@@ -1,2 +1,5 @@
 
 project_id = "thpsoempfyxnjhaflyha"
+
+[functions.idea-analysis]
+verify_jwt = false
