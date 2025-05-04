@@ -5,7 +5,7 @@ import type { Competitor, MarketGapAnalysis, CompetitorDiscoveryResponse, Market
 
 export const findCompetitors = async (idea: string): Promise<Competitor[]> => {
   try {
-    const { data, error } = await supabase.functions.invoke('idea-analysis/discover-competitors', {
+    const { data, error } = await supabase.functions.invoke('discover-competitors', {
       body: { idea },
       method: 'POST'
     });
@@ -43,7 +43,7 @@ export const generateMarketGapAnalysis = async (
   competitors: Competitor[]
 ): Promise<MarketGapAnalysis | null> => {
   try {
-    const { data, error } = await supabase.functions.invoke('idea-analysis/analyze-market-gaps', {
+    const { data, error } = await supabase.functions.invoke('analyze-market-gaps', {
       body: { 
         idea,
         competitors

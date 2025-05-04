@@ -16,7 +16,7 @@ interface MarketGapAnalysis {
   positioningSuggestions: string[];
 }
 
-interface RequestBody {
+interface MarketGapRequest {
   idea: string;
   competitors: Competitor[];
 }
@@ -34,7 +34,7 @@ serve(async (req) => {
   }
   
   try {
-    const { idea, competitors } = await req.json() as RequestBody;
+    const { idea, competitors } = await req.json() as MarketGapRequest;
     
     if (!idea || !competitors || competitors.length === 0) {
       return new Response(
@@ -53,7 +53,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Missing API key',
+          error: 'Missing OpenAI API key',
           analysis: { marketGaps: [], positioningSuggestions: [] }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -95,7 +95,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: `API Error: ${response.status}`,
+          error: `OpenAI API Error: ${response.status}`,
           analysis: { marketGaps: [], positioningSuggestions: [] }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -113,7 +113,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in analyzeMarketGaps:', error);
     return new Response(
       JSON.stringify({
         success: false,
