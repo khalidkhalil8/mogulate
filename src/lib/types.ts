@@ -19,3 +19,16 @@ export interface IdeaData {
   validationPlan: string;
   marketGapAnalysis?: MarketGapAnalysis;
 }
+
+// API response types
+export interface CompetitorDiscoveryResponse {
+  competitors: Competitor[];
+  success: boolean;
+  error?: string;
+}
+
+export interface MarketGapAnalysisResponse {
+  analysis: MarketGapAnalysis;
+  success: boolean;
+  error?: string;
+}
