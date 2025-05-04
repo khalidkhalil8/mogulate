@@ -1,18 +1,7 @@
 
-import { toast } from "@/components/ui/sonner";
-import { createClient } from '@supabase/supabase-js';
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import type { Competitor, MarketGapAnalysis, CompetitorDiscoveryResponse, MarketGapAnalysisResponse } from "./types";
-
-// Hardcoded values for development - in a production environment, these would be environment variables
-// These will be replaced when deployed to Supabase
-const SUPABASE_URL = 'https://your-project-ref.supabase.co';
-const SUPABASE_ANON_KEY = 'your-anon-key';
-
-// Initialize Supabase client with proper fallbacks
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY
-);
 
 export const findCompetitors = async (idea: string): Promise<Competitor[]> => {
   try {
