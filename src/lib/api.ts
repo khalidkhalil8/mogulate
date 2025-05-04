@@ -16,10 +16,9 @@ const supabase = createClient(
 
 export const findCompetitors = async (idea: string): Promise<Competitor[]> => {
   try {
-    const { data, error } = await supabase.functions.invoke('idea-analysis', {
+    const { data, error } = await supabase.functions.invoke('idea-analysis/discover-competitors', {
       body: { idea },
-      method: 'POST',
-      path: 'discover-competitors'
+      method: 'POST'
     });
 
     if (error) {
@@ -49,13 +48,12 @@ export const generateMarketGapAnalysis = async (
   competitors: Competitor[]
 ): Promise<MarketGapAnalysis | null> => {
   try {
-    const { data, error } = await supabase.functions.invoke('idea-analysis', {
+    const { data, error } = await supabase.functions.invoke('idea-analysis/analyze-market-gaps', {
       body: { 
         idea,
         competitors
       },
-      method: 'POST',
-      path: 'analyze-market-gaps'
+      method: 'POST'
     });
 
     if (error) {
