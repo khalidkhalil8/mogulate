@@ -1,5 +1,5 @@
 
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Competitor, MarketGapAnalysis, CompetitorDiscoveryResponse, MarketGapAnalysisResponse } from "./types";
 
@@ -12,7 +12,10 @@ export const findCompetitors = async (idea: string): Promise<Competitor[]> => {
 
     if (error) {
       console.error('Error calling discover-competitors function:', error);
-      toast.error('Failed to fetch competitors. Please try again.');
+      toast('Failed to fetch competitors. Please try again.', {
+        description: error.message,
+        variant: "destructive"
+      });
       return [];
     }
 
@@ -20,14 +23,20 @@ export const findCompetitors = async (idea: string): Promise<Competitor[]> => {
     
     if (!response.success) {
       console.error('Error from discover-competitors function:', response.error);
-      toast.error('Failed to fetch competitors. Please try again.');
+      toast('Failed to fetch competitors. Please try again.', {
+        description: response.error,
+        variant: "destructive"
+      });
       return [];
     }
 
     return response.competitors;
   } catch (error) {
     console.error('Error fetching competitors:', error);
-    toast.error('Failed to fetch competitors. Please try again.');
+    toast('Failed to fetch competitors. Please try again.', {
+      description: error instanceof Error ? error.message : String(error),
+      variant: "destructive"
+    });
     return [];
   }
 };
@@ -47,7 +56,10 @@ export const generateMarketGapAnalysis = async (
 
     if (error) {
       console.error('Error calling analyze-market-gaps function:', error);
-      toast.error('Failed to generate market gap analysis. Please try again.');
+      toast('Failed to generate market gap analysis. Please try again.', {
+        description: error.message,
+        variant: "destructive"
+      });
       return null;
     }
 
@@ -55,14 +67,20 @@ export const generateMarketGapAnalysis = async (
     
     if (!response.success) {
       console.error('Error from analyze-market-gaps function:', response.error);
-      toast.error('Failed to generate market gap analysis. Please try again.');
+      toast('Failed to generate market gap analysis. Please try again.', {
+        description: response.error,
+        variant: "destructive"
+      });
       return null;
     }
 
     return response.analysis;
   } catch (error) {
     console.error('Error generating market gap analysis:', error);
-    toast.error('Failed to generate market gap analysis. Please try again.');
+    toast('Failed to generate market gap analysis. Please try again.', {
+      description: error instanceof Error ? error.message : String(error),
+      variant: "destructive"
+    });
     return null;
   }
 };
