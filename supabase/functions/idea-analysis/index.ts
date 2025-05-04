@@ -18,11 +18,13 @@ interface MarketGapAnalysis {
 // Request and response interfaces
 interface CompetitorDiscoveryRequest {
   idea: string;
+  action: string;
 }
 
 interface MarketGapRequest {
   idea: string;
   competitors: Competitor[];
+  action: string;
 }
 
 interface CompetitorDiscoveryResponse {
@@ -80,20 +82,19 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
   
-  // Get the request URL to determine which function to call
-  const url = new URL(req.url);
-  const path = url.pathname.split('/').pop();
-
   try {
-    if (path === 'discover-competitors') {
-      return await handleDiscoverCompetitors(req);
-    } else if (path === 'analyze-market-gaps') {
-      return await handleMarketGapAnalysis(req);
+    const requestData = await req.json();
+    const action = requestData.action;
+
+    if (action === 'discover-competitors') {
+      return await handleDiscoverCompetitors(requestData);
+    } else if (action === 'analyze-market-gaps') {
+      return await handleMarketGapAnalysis(requestData);
     } else {
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: 'Invalid endpoint',
+          error: 'Invalid action specified',
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
       );
@@ -110,8 +111,8 @@ serve(async (req) => {
   }
 });
 
-async function handleDiscoverCompetitors(req: Request): Promise<Response> {
-  const { idea } = await req.json() as CompetitorDiscoveryRequest;
+async function handleDiscoverCompetitors(requestData: CompetitorDiscoveryRequest): Promise<Response> {
+  const { idea } = requestData;
   
   if (!idea) {
     return new Response(
@@ -187,8 +188,8 @@ async function handleDiscoverCompetitors(req: Request): Promise<Response> {
   );
 }
 
-async function handleMarketGapAnalysis(req: Request): Promise<Response> {
-  const { idea, competitors } = await req.json() as MarketGapRequest;
+async function handleMarketGapAnalysis(requestData: MarketGapRequest): Promise<Response> {
+  const { idea, competitors } = requestData;
   
   if (!idea || !competitors || competitors.length === 0) {
     return new Response(
