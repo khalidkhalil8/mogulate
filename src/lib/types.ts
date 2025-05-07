@@ -25,10 +25,14 @@ export interface CompetitorDiscoveryResponse {
   competitors: Competitor[];
   success: boolean;
   error?: string;
+  tier?: string;
+  remainingUsage?: number;
 }
 
 export interface MarketGapAnalysisResponse {
   analysis: MarketGapAnalysis;
   success: boolean;
   error?: string;
+  tier?: string;
+  remainingUsage?: number;
 }

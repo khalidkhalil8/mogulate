@@ -25,9 +25,17 @@ export const findCompetitors = async (idea: string): Promise<Competitor[]> => {
     
     if (!response.success) {
       console.error('Error from discover-competitors function:', response.error);
-      toast.error('Failed to fetch competitors. Please try again.', {
-        description: response.error
-      });
+      
+      // Special handling for subscription limit errors
+      if (response.error?.includes('limit reached')) {
+        toast.error(`Monthly usage limit reached for your ${response.tier || 'current'} plan`, {
+          description: 'Please upgrade your subscription to continue using this feature.'
+        });
+      } else {
+        toast.error('Failed to fetch competitors. Please try again.', {
+          description: response.error
+        });
+      }
       return [];
     }
 
@@ -67,9 +75,17 @@ export const generateMarketGapAnalysis = async (
     
     if (!response.success) {
       console.error('Error from analyze-market-gaps function:', response.error);
-      toast.error('Failed to generate market gap analysis. Please try again.', {
-        description: response.error
-      });
+      
+      // Special handling for subscription limit errors
+      if (response.error?.includes('limit reached')) {
+        toast.error(`Monthly usage limit reached for your ${response.tier || 'current'} plan`, {
+          description: 'Please upgrade your subscription to continue using this feature.'
+        });
+      } else {
+        toast.error('Failed to generate market gap analysis. Please try again.', {
+          description: response.error
+        });
+      }
       return null;
     }
 

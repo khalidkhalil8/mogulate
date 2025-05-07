@@ -40,6 +40,39 @@ interface MarketGapAnalysisResponse {
   error?: string;
 }
 
+// Subscription tiers and limits
+interface TierLimits {
+  usageLimit: number;
+  competitorCount: number;
+  showCompetitorDescription: boolean;
+  marketGapCount: number;
+  positioningSuggestionCount: number;
+}
+
+const tierLimits: Record<string, TierLimits> = {
+  free: {
+    usageLimit: 5,
+    competitorCount: 3,
+    showCompetitorDescription: false,
+    marketGapCount: 1,
+    positioningSuggestionCount: 0
+  },
+  starter: {
+    usageLimit: 20,
+    competitorCount: 3,
+    showCompetitorDescription: true,
+    marketGapCount: 3,
+    positioningSuggestionCount: 1
+  },
+  pro: {
+    usageLimit: 100,
+    competitorCount: 5,
+    showCompetitorDescription: true,
+    marketGapCount: 3,
+    positioningSuggestionCount: 3
+  }
+};
+
 // CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,6 +83,84 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// Check user's subscription tier and remaining usage
+async function checkUserAccess(userId: string, functionName: string): Promise<{
+  canAccess: boolean;
+  tier: string;
+  tierLimits: TierLimits;
+  remainingUsage: number;
+  error?: string;
+}> {
+  try {
+    // Get user's subscription tier
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', userId)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
+      return { 
+        canAccess: false, 
+        tier: 'free', 
+        tierLimits: tierLimits['free'],
+        remainingUsage: 0,
+        error: 'Failed to retrieve user profile'
+      };
+    }
+
+    const tier = profileData.subscription_tier || 'free';
+    const limits = tierLimits[tier] || tierLimits['free'];
+
+    // Get current month's usage
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const { count, error: usageError } = await supabase
+      .from('api_usage_logs')
+      .select('*', { count: 'exact', head: false })
+      .eq('user_id', userId)
+      .gte('timestamp', firstDayOfMonth.toISOString())
+      .lte('timestamp', lastDayOfMonth.toISOString());
+
+    if (usageError) {
+      console.error('Error checking API usage:', usageError);
+      return { 
+        canAccess: false, 
+        tier,
+        tierLimits: limits,
+        remainingUsage: 0,
+        error: 'Failed to check API usage'
+      };
+    }
+
+    const usageCount = count || 0;
+    const remainingUsage = Math.max(0, limits.usageLimit - usageCount);
+    const canAccess = remainingUsage > 0;
+
+    console.log(`User ${userId} (${tier} tier) has used ${usageCount}/${limits.usageLimit} API calls this month. Remaining: ${remainingUsage}`);
+
+    return {
+      canAccess,
+      tier,
+      tierLimits: limits,
+      remainingUsage,
+      error: canAccess ? undefined : 'Monthly usage limit reached'
+    };
+  } catch (err) {
+    console.error('Exception when checking user access:', err);
+    return { 
+      canAccess: false, 
+      tier: 'free', 
+      tierLimits: tierLimits['free'],
+      remainingUsage: 0,
+      error: 'Error checking access permissions'
+    };
+  }
+}
 
 // Log API usage to the database
 async function logApiUsage(apiType: string, tokensUsed: number, functionName: string, userId?: string) {
@@ -138,10 +249,35 @@ serve(async (req) => {
       }
     }
 
+    // Check if user is authenticated
+    if (!userId) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Authentication required',
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    // Check user access and remaining usage
+    const userAccess = await checkUserAccess(userId, action);
+    if (!userAccess.canAccess) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: userAccess.error || 'Access denied',
+          remainingUsage: userAccess.remainingUsage,
+          tier: userAccess.tier
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
+
     if (action === 'discover-competitors') {
-      return await handleDiscoverCompetitors(requestData, userId);
+      return await handleDiscoverCompetitors(requestData, userId, userAccess.tier, userAccess.tierLimits);
     } else if (action === 'analyze-market-gaps') {
-      return await handleMarketGapAnalysis(requestData, userId);
+      return await handleMarketGapAnalysis(requestData, userId, userAccess.tier, userAccess.tierLimits);
     } else {
       console.error(`Invalid action specified: ${action}`);
       return new Response(
@@ -166,10 +302,12 @@ serve(async (req) => {
 
 async function handleDiscoverCompetitors(
   requestData: CompetitorDiscoveryRequest,
-  userId: string | null
+  userId: string,
+  tier: string,
+  tierLimits: TierLimits
 ): Promise<Response> {
   const { idea } = requestData;
-  console.log(`Processing competitor discovery for idea: ${idea}`);
+  console.log(`Processing competitor discovery for idea: ${idea} (${tier} tier)`);
   
   if (!idea) {
     console.error("No idea provided");
@@ -197,7 +335,9 @@ async function handleDiscoverCompetitors(
     );
   }
   
-  const prompt = `You are a research assistant that provides accurate information about business competitors. Return EXACTLY 5 real companies that would be direct competitors to the idea. For each competitor, include company name, website URL, and a brief description (without using any markdown formatting or special characters like asterisks). Format the information clearly as "Name: [Company Name]", "Website: [URL]", "Description: [Description]" for each competitor. Do not use asterisks, bullets, or markdown formatting in your response. Do not use generic descriptions like "Competitor in the space" - always provide specific details about what each competitor offers. The idea is: "${idea}"`;
+  // Adjust the prompt based on tier limits
+  const count = tierLimits.competitorCount;
+  const prompt = `You are a research assistant that provides accurate information about business competitors. Return EXACTLY ${count} real companies that would be direct competitors to the idea. For each competitor, include company name, website URL${tierLimits.showCompetitorDescription ? ", and a brief description" : ""} (without using any markdown formatting or special characters like asterisks). Format the information clearly as "Name: [Company Name]", "Website: [URL]"${tierLimits.showCompetitorDescription ? ', "Description: [Description]"' : ""} for each competitor. Do not use asterisks, bullets, or markdown formatting in your response. Do not use generic descriptions like "Competitor in the space" - always provide specific details about what each competitor offers. The idea is: "${idea}"`;
 
   console.log("Sending request to Perplexity API");
   const startTime = Date.now();
@@ -257,30 +397,40 @@ async function handleDiscoverCompetitors(
   const competitorsText = data.choices[0].message.content;
   let competitors = extractCompetitors(competitorsText);
   
-  // Ensure we have exactly 5 competitors
-  if (competitors.length > 5) {
-    console.log(`Trimming competitor list from ${competitors.length} to 5`);
-    competitors = competitors.slice(0, 5);
-  } else if (competitors.length < 5) {
-    console.warn(`Only ${competitors.length} valid competitors found, expected 5`);
+  // Apply tier limitations
+  if (competitors.length > tierLimits.competitorCount) {
+    console.log(`Trimming competitor list from ${competitors.length} to ${tierLimits.competitorCount}`);
+    competitors = competitors.slice(0, tierLimits.competitorCount);
+  } else if (competitors.length < tierLimits.competitorCount) {
+    console.warn(`Only ${competitors.length} valid competitors found, expected ${tierLimits.competitorCount}`);
     
     // Fill remaining slots with placeholder competitors if needed
-    const missingCount = 5 - competitors.length;
+    const missingCount = tierLimits.competitorCount - competitors.length;
     for (let i = 0; i < missingCount; i++) {
       competitors.push({
         id: `ai-${crypto.randomUUID().substring(0, 8)}`,
         name: `Generic Competitor ${i + 1}`,
         website: `https://example${i + 1}.com`,
-        description: `A competitor in the ${idea} space. More research needed for detailed information.`,
+        description: tierLimits.showCompetitorDescription ? `A competitor in the ${idea} space. More research needed for detailed information.` : "",
         isAiGenerated: true
       });
     }
   }
 
+  // Remove descriptions for free tier
+  if (!tierLimits.showCompetitorDescription) {
+    competitors = competitors.map(comp => ({
+      ...comp,
+      description: ""
+    }));
+  }
+
   return new Response(
     JSON.stringify({
       success: true,
-      competitors
+      competitors,
+      tier,
+      remainingUsage: tierLimits.usageLimit - 1 // Approximate remaining usage
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
@@ -288,10 +438,12 @@ async function handleDiscoverCompetitors(
 
 async function handleMarketGapAnalysis(
   requestData: MarketGapRequest,
-  userId: string | null
+  userId: string,
+  tier: string,
+  tierLimits: TierLimits
 ): Promise<Response> {
   const { idea, competitors } = requestData;
-  console.log(`Processing market gap analysis for idea: ${idea} with ${competitors.length} competitors`);
+  console.log(`Processing market gap analysis for idea: ${idea} with ${competitors.length} competitors (${tier} tier)`);
   
   if (!idea || !competitors || competitors.length === 0) {
     console.error("Missing idea or competitors data");
@@ -321,10 +473,14 @@ async function handleMarketGapAnalysis(
   
   // Create a string description of all competitors
   const competitorDescriptions = competitors.map(comp => 
-    `${comp.name} (${comp.website}): ${comp.description}`
+    `${comp.name} (${comp.website})${comp.description ? ': ' + comp.description : ''}`
   ).join('\n');
 
-  const prompt = `You are analyzing a business idea: "${idea}". Here are the direct competitors in this market space: ${competitorDescriptions}. Based on these competitors and the business idea, please identify EXACTLY 3 potential gaps in the market not addressed by these competitors, and recommend EXACTLY 3 specific features or positioning elements that would help differentiate this idea. Format your response as a valid JSON object with this exact structure: { "marketGaps": [ "First gap description - make this a specific opportunity not addressed by competitors", "Second gap description - another specific opportunity", "Third gap description - another specific opportunity" ], "positioningSuggestions": [ "First positioning suggestion with specific feature or approach recommendation", "Second positioning suggestion with specific feature or approach recommendation", "Third positioning suggestion with specific feature or approach recommendation" ] }. Make each description a separate paragraph with enough detail to be actionable (max 50 words each). Do not include any text, markdown, or explanations outside the JSON object.`;
+  // Adjust the prompt based on tier limits
+  const marketGapCount = tierLimits.marketGapCount;
+  const positioningSuggestionCount = tierLimits.positioningSuggestionCount;
+  
+  const prompt = `You are analyzing a business idea: "${idea}". Here are the direct competitors in this market space: ${competitorDescriptions}. Based on these competitors and the business idea, please identify EXACTLY ${marketGapCount} potential gap${marketGapCount === 1 ? '' : 's'} in the market not addressed by these competitors${positioningSuggestionCount > 0 ? `, and recommend EXACTLY ${positioningSuggestionCount} specific feature${positioningSuggestionCount === 1 ? '' : 's'} or positioning element${positioningSuggestionCount === 1 ? '' : 's'} that would help differentiate this idea` : ''}. Format your response as a valid JSON object with this exact structure: { "marketGaps": [ "First gap description - make this a specific opportunity not addressed by competitors"${marketGapCount > 1 ? ', "Second gap description - another specific opportunity"' : ''}${marketGapCount > 2 ? ', "Third gap description - another specific opportunity"' : ''} ]${positioningSuggestionCount > 0 ? ', "positioningSuggestions": [ "First positioning suggestion with specific feature or approach recommendation"' + (positioningSuggestionCount > 1 ? ', "Second positioning suggestion with specific feature or approach recommendation"' : '') + (positioningSuggestionCount > 2 ? ', "Third positioning suggestion with specific feature or approach recommendation"' : '') + ' ]' : ''} }. Make each description a separate paragraph with enough detail to be actionable (max 50 words each). Do not include any text, markdown, or explanations outside the JSON object.`;
 
   console.log("Sending request to OpenAI API");
   const startTime = Date.now();
@@ -383,31 +539,33 @@ async function handleMarketGapAnalysis(
   
   const analysisJson = JSON.parse(data.choices[0].message.content);
   
-  // Ensure we have exactly 3 market gaps and 3 positioning suggestions
+  // Apply tier limitations
   let marketGaps = analysisJson.marketGaps || [];
   let positioningSuggestions = analysisJson.positioningSuggestions || [];
   
-  if (marketGaps.length > 3) {
-    console.log(`Trimming market gaps from ${marketGaps.length} to 3`);
-    marketGaps = marketGaps.slice(0, 3);
-  } else if (marketGaps.length < 3) {
-    console.warn(`Only ${marketGaps.length} market gaps found, expected 3`);
+  if (marketGaps.length > tierLimits.marketGapCount) {
+    console.log(`Trimming market gaps from ${marketGaps.length} to ${tierLimits.marketGapCount}`);
+    marketGaps = marketGaps.slice(0, tierLimits.marketGapCount);
+  } else if (marketGaps.length < tierLimits.marketGapCount) {
+    console.warn(`Only ${marketGaps.length} market gaps found, expected ${tierLimits.marketGapCount}`);
     
     // Fill remaining market gaps if needed
-    const missingCount = 3 - marketGaps.length;
+    const missingCount = tierLimits.marketGapCount - marketGaps.length;
     for (let i = 0; i < missingCount; i++) {
       marketGaps.push(`Consider exploring additional market segments or features not covered by competitors to fill gap ${i+1} in the current market landscape.`);
     }
   }
   
-  if (positioningSuggestions.length > 3) {
-    console.log(`Trimming positioning suggestions from ${positioningSuggestions.length} to 3`);
-    positioningSuggestions = positioningSuggestions.slice(0, 3);
-  } else if (positioningSuggestions.length < 3) {
-    console.warn(`Only ${positioningSuggestions.length} positioning suggestions found, expected 3`);
+  if (tierLimits.positioningSuggestionCount === 0) {
+    positioningSuggestions = [];
+  } else if (positioningSuggestions.length > tierLimits.positioningSuggestionCount) {
+    console.log(`Trimming positioning suggestions from ${positioningSuggestions.length} to ${tierLimits.positioningSuggestionCount}`);
+    positioningSuggestions = positioningSuggestions.slice(0, tierLimits.positioningSuggestionCount);
+  } else if (positioningSuggestions.length < tierLimits.positioningSuggestionCount) {
+    console.warn(`Only ${positioningSuggestions.length} positioning suggestions found, expected ${tierLimits.positioningSuggestionCount}`);
     
     // Fill remaining positioning suggestions if needed
-    const missingCount = 3 - positioningSuggestions.length;
+    const missingCount = tierLimits.positioningSuggestionCount - positioningSuggestions.length;
     for (let i = 0; i < missingCount; i++) {
       positioningSuggestions.push(`Differentiate your offering by focusing on unique value proposition ${i+1} that addresses a specific customer pain point not covered by competitors.`);
     }
@@ -421,7 +579,9 @@ async function handleMarketGapAnalysis(
   return new Response(
     JSON.stringify({
       success: true,
-      analysis
+      analysis,
+      tier,
+      remainingUsage: tierLimits.usageLimit - 1 // Approximate remaining usage
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
