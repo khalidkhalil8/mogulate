@@ -47,6 +47,8 @@ const corsHeaders = {
 
 // Helper function to extract competitor information from Perplexity response
 const extractCompetitors = (text: string): Competitor[] => {
+  console.log("Raw Perplexity response:", text);
+  
   const sections = text.split('\n\n');
   const competitors: Competitor[] = [];
   
@@ -73,10 +75,13 @@ const extractCompetitors = (text: string): Competitor[] => {
     }
   }
 
+  console.log(`Extracted ${competitors.length} competitors from Perplexity response`);
   return competitors;
 };
 
 serve(async (req) => {
+  console.log(`Received request: ${req.method} ${req.url}`);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -85,12 +90,14 @@ serve(async (req) => {
   try {
     const requestData = await req.json();
     const action = requestData.action;
+    console.log(`Processing action: ${action}`);
 
     if (action === 'discover-competitors') {
       return await handleDiscoverCompetitors(requestData);
     } else if (action === 'analyze-market-gaps') {
       return await handleMarketGapAnalysis(requestData);
     } else {
+      console.error(`Invalid action specified: ${action}`);
       return new Response(
         JSON.stringify({ 
           success: false,
@@ -113,8 +120,10 @@ serve(async (req) => {
 
 async function handleDiscoverCompetitors(requestData: CompetitorDiscoveryRequest): Promise<Response> {
   const { idea } = requestData;
+  console.log(`Processing competitor discovery for idea: ${idea}`);
   
   if (!idea) {
+    console.error("No idea provided");
     return new Response(
       JSON.stringify({
         success: false,
@@ -128,6 +137,7 @@ async function handleDiscoverCompetitors(requestData: CompetitorDiscoveryRequest
   // Get Perplexity API key from environment variable
   const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY');
   if (!PERPLEXITY_API_KEY) {
+    console.error("Missing Perplexity API key");
     return new Response(
       JSON.stringify({
         success: false,
@@ -138,8 +148,10 @@ async function handleDiscoverCompetitors(requestData: CompetitorDiscoveryRequest
     );
   }
   
-  const prompt = `You are a research assistant that provides accurate information about business competitors. Return only factual information about real companies that would be direct competitors to the idea. For each competitor, include company name, website URL, and a brief description (without using any markdown formatting or special characters like asterisks). Format the information clearly as "Name: [Company Name]", "Website: [URL]", "Description: [Description]" for each competitor. Do not use asterisks, bullets, or markdown formatting in your response. Do not use generic descriptions like "Competitor in the space" - always provide specific details about what each competitor offers. The idea is: "${idea}"`;
+  const prompt = `You are a research assistant that provides accurate information about business competitors. Return EXACTLY 5 real companies that would be direct competitors to the idea. For each competitor, include company name, website URL, and a brief description (without using any markdown formatting or special characters like asterisks). Format the information clearly as "Name: [Company Name]", "Website: [URL]", "Description: [Description]" for each competitor. Do not use asterisks, bullets, or markdown formatting in your response. Do not use generic descriptions like "Competitor in the space" - always provide specific details about what each competitor offers. The idea is: "${idea}"`;
 
+  console.log("Sending request to Perplexity API");
+  const startTime = Date.now();
   const response = await fetch('https://api.perplexity.ai/chat/completions', {
     method: 'POST',
     headers: {
@@ -176,8 +188,31 @@ async function handleDiscoverCompetitors(requestData: CompetitorDiscoveryRequest
   }
 
   const data = await response.json();
+  console.log(`Perplexity API response received in ${Date.now() - startTime}ms`);
+  console.log(`Tokens used - Prompt: ${data.usage?.prompt_tokens}, Completion: ${data.usage?.completion_tokens}, Total: ${data.usage?.total_tokens}`);
+  
   const competitorsText = data.choices[0].message.content;
-  const competitors = extractCompetitors(competitorsText);
+  let competitors = extractCompetitors(competitorsText);
+  
+  // Ensure we have exactly 5 competitors
+  if (competitors.length > 5) {
+    console.log(`Trimming competitor list from ${competitors.length} to 5`);
+    competitors = competitors.slice(0, 5);
+  } else if (competitors.length < 5) {
+    console.warn(`Only ${competitors.length} valid competitors found, expected 5`);
+    
+    // Fill remaining slots with placeholder competitors if needed
+    const missingCount = 5 - competitors.length;
+    for (let i = 0; i < missingCount; i++) {
+      competitors.push({
+        id: `ai-${crypto.randomUUID().substring(0, 8)}`,
+        name: `Generic Competitor ${i + 1}`,
+        website: `https://example${i + 1}.com`,
+        description: `A competitor in the ${idea} space. More research needed for detailed information.`,
+        isAiGenerated: true
+      });
+    }
+  }
 
   return new Response(
     JSON.stringify({
@@ -190,8 +225,10 @@ async function handleDiscoverCompetitors(requestData: CompetitorDiscoveryRequest
 
 async function handleMarketGapAnalysis(requestData: MarketGapRequest): Promise<Response> {
   const { idea, competitors } = requestData;
+  console.log(`Processing market gap analysis for idea: ${idea} with ${competitors.length} competitors`);
   
   if (!idea || !competitors || competitors.length === 0) {
+    console.error("Missing idea or competitors data");
     return new Response(
       JSON.stringify({
         success: false,
@@ -205,6 +242,7 @@ async function handleMarketGapAnalysis(requestData: MarketGapRequest): Promise<R
   // Get OpenAI API key from environment variable
   const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
   if (!OPENAI_API_KEY) {
+    console.error("Missing OpenAI API key");
     return new Response(
       JSON.stringify({
         success: false,
@@ -220,8 +258,10 @@ async function handleMarketGapAnalysis(requestData: MarketGapRequest): Promise<R
     `${comp.name} (${comp.website}): ${comp.description}`
   ).join('\n');
 
-  const prompt = `You are analyzing a business idea: "${idea}". Here are the direct competitors in this market space: ${competitorDescriptions}. Based on these competitors and the business idea, please identify 3 potential gaps in the market not addressed by these competitors, suggest a unique angle or approach for this business idea, and recommend 3 specific features or positioning elements that would help differentiate this idea. Format your response as a valid JSON object with this exact structure: { "marketGaps": [ "First gap description - make this a specific opportunity not addressed by competitors", "Second gap description - another specific opportunity", "Third gap description - another specific opportunity" ], "positioningSuggestions": [ "First positioning suggestion with specific feature or approach recommendation", "Second positioning suggestion with specific feature or approach recommendation", "Third positioning suggestion with specific feature or approach recommendation" ] }. Make each description a separate paragraph with enough detail to be actionable (max 50 words each). Do not include any text, markdown, or explanations outside the JSON object.`;
+  const prompt = `You are analyzing a business idea: "${idea}". Here are the direct competitors in this market space: ${competitorDescriptions}. Based on these competitors and the business idea, please identify EXACTLY 3 potential gaps in the market not addressed by these competitors, and recommend EXACTLY 3 specific features or positioning elements that would help differentiate this idea. Format your response as a valid JSON object with this exact structure: { "marketGaps": [ "First gap description - make this a specific opportunity not addressed by competitors", "Second gap description - another specific opportunity", "Third gap description - another specific opportunity" ], "positioningSuggestions": [ "First positioning suggestion with specific feature or approach recommendation", "Second positioning suggestion with specific feature or approach recommendation", "Third positioning suggestion with specific feature or approach recommendation" ] }. Make each description a separate paragraph with enough detail to be actionable (max 50 words each). Do not include any text, markdown, or explanations outside the JSON object.`;
 
+  console.log("Sending request to OpenAI API");
+  const startTime = Date.now();
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -258,12 +298,50 @@ async function handleMarketGapAnalysis(requestData: MarketGapRequest): Promise<R
   }
 
   const data = await response.json();
+  console.log(`OpenAI API response received in ${Date.now() - startTime}ms`);
+  console.log(`Tokens used - Prompt: ${data.usage?.prompt_tokens}, Completion: ${data.usage?.completion_tokens}, Total: ${data.usage?.total_tokens}`);
+  
   const analysisJson = JSON.parse(data.choices[0].message.content);
+  
+  // Ensure we have exactly 3 market gaps and 3 positioning suggestions
+  let marketGaps = analysisJson.marketGaps || [];
+  let positioningSuggestions = analysisJson.positioningSuggestions || [];
+  
+  if (marketGaps.length > 3) {
+    console.log(`Trimming market gaps from ${marketGaps.length} to 3`);
+    marketGaps = marketGaps.slice(0, 3);
+  } else if (marketGaps.length < 3) {
+    console.warn(`Only ${marketGaps.length} market gaps found, expected 3`);
+    
+    // Fill remaining market gaps if needed
+    const missingCount = 3 - marketGaps.length;
+    for (let i = 0; i < missingCount; i++) {
+      marketGaps.push(`Consider exploring additional market segments or features not covered by competitors to fill gap ${i+1} in the current market landscape.`);
+    }
+  }
+  
+  if (positioningSuggestions.length > 3) {
+    console.log(`Trimming positioning suggestions from ${positioningSuggestions.length} to 3`);
+    positioningSuggestions = positioningSuggestions.slice(0, 3);
+  } else if (positioningSuggestions.length < 3) {
+    console.warn(`Only ${positioningSuggestions.length} positioning suggestions found, expected 3`);
+    
+    // Fill remaining positioning suggestions if needed
+    const missingCount = 3 - positioningSuggestions.length;
+    for (let i = 0; i < missingCount; i++) {
+      positioningSuggestions.push(`Differentiate your offering by focusing on unique value proposition ${i+1} that addresses a specific customer pain point not covered by competitors.`);
+    }
+  }
+  
+  const analysis = {
+    marketGaps,
+    positioningSuggestions
+  };
   
   return new Response(
     JSON.stringify({
       success: true,
-      analysis: analysisJson
+      analysis
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
