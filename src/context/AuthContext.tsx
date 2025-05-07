@@ -11,6 +11,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   userProfile: { subscription_tier: string } | null;
 }
@@ -99,6 +100,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+
+      if (error) {
+        toast.error("Google login failed", {
+          description: error.message,
+        });
+        return;
+      }
+
+      // No need to navigate - redirectTo will handle this
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+      console.error(error);
+    }
+  };
+
   const signUp = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -114,15 +138,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       toast.success("Sign up successful", {
-        description: "Please check your email to verify your account",
+        description: "You can now log in with your credentials",
       });
       
-      // Don't navigate away if email confirmation is required
-      if (!data.session) {
-        return;
+      // With email confirmation disabled, we can log the user in immediately
+      if (data.session) {
+        navigate("/");
       }
-      
-      navigate("/");
     } catch (error) {
       toast.error("An unexpected error occurred");
       console.error(error);
@@ -156,6 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         signUp,
+        loginWithGoogle,
         logout,
         userProfile,
       }}
