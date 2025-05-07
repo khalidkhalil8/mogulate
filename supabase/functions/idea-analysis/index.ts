@@ -1,5 +1,6 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 // Type definitions
 interface Competitor {
@@ -43,6 +44,35 @@ interface MarketGapAnalysisResponse {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+// Initialize Supabase client for logging
+const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// Log API usage to the database
+async function logApiUsage(apiType: string, tokensUsed: number, functionName: string, userId?: string) {
+  console.log(`Logging ${apiType} API usage: ${tokensUsed} tokens for function ${functionName}`);
+  
+  try {
+    const { error } = await supabase
+      .from('api_usage_logs')
+      .insert({
+        api_type: apiType,
+        tokens_used: tokensUsed,
+        function_name: functionName,
+        user_id: userId || null
+      });
+    
+    if (error) {
+      console.error('Error logging API usage to database:', error);
+    } else {
+      console.log('Successfully logged API usage to database');
+    }
+  } catch (err) {
+    console.error('Exception when logging API usage:', err);
+  }
 }
 
 // Helper function to extract competitor information from Perplexity response
@@ -92,10 +122,26 @@ serve(async (req) => {
     const action = requestData.action;
     console.log(`Processing action: ${action}`);
 
+    // Extract user ID from authorization header if available
+    let userId = null;
+    const authHeader = req.headers.get('authorization');
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: userData, error } = await supabase.auth.getUser(token);
+        if (!error && userData?.user) {
+          userId = userData.user.id;
+          console.log(`Request from authenticated user: ${userId}`);
+        }
+      } catch (e) {
+        console.error('Error extracting user ID from token:', e);
+      }
+    }
+
     if (action === 'discover-competitors') {
-      return await handleDiscoverCompetitors(requestData);
+      return await handleDiscoverCompetitors(requestData, userId);
     } else if (action === 'analyze-market-gaps') {
-      return await handleMarketGapAnalysis(requestData);
+      return await handleMarketGapAnalysis(requestData, userId);
     } else {
       console.error(`Invalid action specified: ${action}`);
       return new Response(
@@ -118,7 +164,10 @@ serve(async (req) => {
   }
 });
 
-async function handleDiscoverCompetitors(requestData: CompetitorDiscoveryRequest): Promise<Response> {
+async function handleDiscoverCompetitors(
+  requestData: CompetitorDiscoveryRequest,
+  userId: string | null
+): Promise<Response> {
   const { idea } = requestData;
   console.log(`Processing competitor discovery for idea: ${idea}`);
   
@@ -189,7 +238,21 @@ async function handleDiscoverCompetitors(requestData: CompetitorDiscoveryRequest
 
   const data = await response.json();
   console.log(`Perplexity API response received in ${Date.now() - startTime}ms`);
-  console.log(`Tokens used - Prompt: ${data.usage?.prompt_tokens}, Completion: ${data.usage?.completion_tokens}, Total: ${data.usage?.total_tokens}`);
+  
+  // Log token usage
+  const promptTokens = data.usage?.prompt_tokens || 0;
+  const completionTokens = data.usage?.completion_tokens || 0;
+  const totalTokens = data.usage?.total_tokens || 0;
+  
+  console.log(`Tokens used - Prompt: ${promptTokens}, Completion: ${completionTokens}, Total: ${totalTokens}`);
+  
+  // Log API usage to the database
+  await logApiUsage(
+    'perplexity',
+    totalTokens,
+    'competitor_discovery',
+    userId
+  );
   
   const competitorsText = data.choices[0].message.content;
   let competitors = extractCompetitors(competitorsText);
@@ -223,7 +286,10 @@ async function handleDiscoverCompetitors(requestData: CompetitorDiscoveryRequest
   );
 }
 
-async function handleMarketGapAnalysis(requestData: MarketGapRequest): Promise<Response> {
+async function handleMarketGapAnalysis(
+  requestData: MarketGapRequest,
+  userId: string | null
+): Promise<Response> {
   const { idea, competitors } = requestData;
   console.log(`Processing market gap analysis for idea: ${idea} with ${competitors.length} competitors`);
   
@@ -299,7 +365,21 @@ async function handleMarketGapAnalysis(requestData: MarketGapRequest): Promise<R
 
   const data = await response.json();
   console.log(`OpenAI API response received in ${Date.now() - startTime}ms`);
-  console.log(`Tokens used - Prompt: ${data.usage?.prompt_tokens}, Completion: ${data.usage?.completion_tokens}, Total: ${data.usage?.total_tokens}`);
+  
+  // Log token usage
+  const promptTokens = data.usage?.prompt_tokens || 0;
+  const completionTokens = data.usage?.completion_tokens || 0;
+  const totalTokens = data.usage?.total_tokens || 0;
+  
+  console.log(`Tokens used - Prompt: ${promptTokens}, Completion: ${completionTokens}, Total: ${totalTokens}`);
+  
+  // Log API usage to the database
+  await logApiUsage(
+    'openai',
+    totalTokens,
+    'market_gap_analysis',
+    userId
+  );
   
   const analysisJson = JSON.parse(data.choices[0].message.content);
   
