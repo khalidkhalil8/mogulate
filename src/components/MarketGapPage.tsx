@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Header from './Header';
 import LoadingState from './ui/LoadingState';
-import { generateMarketGapAnalysis } from '@/lib/api';
+import { generateMarketGapAnalysis } from '@/lib/api/marketGaps';
 import type { Competitor, MarketGapAnalysis } from '@/lib/types';
 import {
   Dialog,

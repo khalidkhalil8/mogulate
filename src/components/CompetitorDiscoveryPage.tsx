@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Header from './Header';
 import type { Competitor } from '@/lib/types';
 import LoadingState from './ui/LoadingState';
-import { findCompetitors } from '@/lib/api';
+import { findCompetitors } from '@/lib/api/competitors';
 import CompetitorsList from './competitors/CompetitorsList';
 import FindCompetitorsDialog from './competitors/FindCompetitorsDialog';
 
