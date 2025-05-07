@@ -32,12 +32,16 @@ interface CompetitorDiscoveryResponse {
   competitors: Competitor[];
   success: boolean;
   error?: string;
+  tier?: string;
+  remainingUsage?: number;
 }
 
 interface MarketGapAnalysisResponse {
   analysis: MarketGapAnalysis;
   success: boolean;
   error?: string;
+  tier?: string;
+  remainingUsage?: number;
 }
 
 // Subscription tiers and limits
@@ -190,28 +194,33 @@ async function logApiUsage(apiType: string, tokensUsed: number, functionName: st
 const extractCompetitors = (text: string): Competitor[] => {
   console.log("Raw Perplexity response:", text);
   
-  const sections = text.split('\n\n');
   const competitors: Competitor[] = [];
   
-  for (const section of sections) {
-    const lines = section.split('\n');
+  // Split by double newlines to separate competitors
+  const entries = text.split(/\n\n+/);
+  
+  for (const entry of entries) {
     const competitor: Partial<Competitor> = {
       id: `ai-${crypto.randomUUID().substring(0, 8)}`,
       isAiGenerated: true
     };
     
+    // Parse lines to extract name, website, and description
+    const lines = entry.split('\n');
     for (const line of lines) {
-      if (line.startsWith('Name:')) {
-        competitor.name = line.replace('Name:', '').trim();
-      } else if (line.startsWith('Website:')) {
-        competitor.website = line.replace('Website:', '').trim();
-      } else if (line.startsWith('Description:')) {
-        competitor.description = line.replace('Description:', '').trim();
-      }
+      const nameLine = line.match(/Name:\s*(.*)/i);
+      const websiteLine = line.match(/Website:\s*(.*)/i);
+      const descriptionLine = line.match(/(?:Description|Details):\s*(.*)/i);
+      
+      if (nameLine && nameLine[1]) competitor.name = nameLine[1].trim();
+      if (websiteLine && websiteLine[1]) competitor.website = websiteLine[1].trim();
+      if (descriptionLine && descriptionLine[1]) competitor.description = descriptionLine[1].trim();
     }
     
     // Only add if we have all required fields
-    if (competitor.name && competitor.website && competitor.description) {
+    if (competitor.name && competitor.website) {
+      // Ensure description exists (even if empty)
+      if (!competitor.description) competitor.description = "";
       competitors.push(competitor as Competitor);
     }
   }

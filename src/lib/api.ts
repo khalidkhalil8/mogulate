@@ -39,7 +39,7 @@ export const findCompetitors = async (idea: string): Promise<Competitor[]> => {
       return [];
     }
 
-    return response.competitors;
+    return response.competitors || [];
   } catch (error) {
     console.error('Error fetching competitors:', error);
     toast.error('Failed to fetch competitors. Please try again.', {

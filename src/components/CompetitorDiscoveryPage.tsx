@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,7 +74,7 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
     e.preventDefault();
     // Filter out incomplete competitors
     const validCompetitors = competitors.filter(
-      comp => comp.name.trim() && comp.website.trim() && comp.description.trim()
+      comp => comp.name.trim() && comp.website.trim()
     );
     onCompetitorsSubmit(validCompetitors);
     navigate('/market-gaps');
