@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import HomePage from '@/components/HomePage';
 import IdeaEntryPage from '@/components/IdeaEntryPage';
 import CompetitorDiscoveryPage from '@/components/CompetitorDiscoveryPage';
@@ -12,6 +13,7 @@ import type { IdeaData, Competitor, MarketGapAnalysis } from '@/lib/types';
 const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   
   const [ideaData, setIdeaData] = useState<IdeaData>({
     idea: '',

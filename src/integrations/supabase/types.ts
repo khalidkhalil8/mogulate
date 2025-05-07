@@ -36,6 +36,24 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          subscription_tier: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          subscription_tier?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          subscription_tier?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
