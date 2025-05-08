@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { toast } from "@/components/ui/sonner";
 
 interface MarketGapPageProps {
   idea: string;
@@ -47,6 +48,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
       const result = await generateMarketGapAnalysis(idea, competitors);
       if (result) {
         setAnalysis(result);
+        toast.success("Successfully generated market gap analysis");
       }
     } finally {
       setIsLoading(false);
@@ -181,6 +183,9 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
             <DialogTitle>Generate Market Gaps</DialogTitle>
             <DialogDescription>
               Our AI will analyze your idea and competitors to suggest potential differentiation strategies.
+              <p className="mt-2 text-amber-600">
+                Note: Free tier accounts are limited to 5 AI analyses per month.
+              </p>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

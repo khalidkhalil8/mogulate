@@ -30,14 +30,15 @@ export const generateMarketGapAnalysis = async (
     if (!response.success) {
       console.error('Error from analyze-market-gaps function:', response.error);
       
-      // Special handling for subscription limit errors
-      if (response.error?.includes('limit reached')) {
+      // Improved handling for subscription limit errors
+      if (response.error?.includes('limit reached') || response.error?.includes('Monthly usage limit')) {
         toast.error(`Monthly usage limit reached for your ${response.tier || 'current'} plan`, {
-          description: 'Please upgrade your subscription to continue using this feature.'
+          description: 'You can still manually input your market gaps and continue. Consider upgrading your subscription for more AI-generated analyses.',
+          duration: 6000
         });
       } else {
         toast.error('Failed to generate market gap analysis. Please try again.', {
-          description: response.error
+          description: response.error || 'An unexpected error occurred'
         });
       }
       return null;
