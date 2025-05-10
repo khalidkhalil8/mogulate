@@ -95,12 +95,13 @@ async function checkUserAccess(userId: string, functionName: string): Promise<{
   tierLimits: TierLimits;
   remainingUsage: number;
   error?: string;
+  nextReset?: string;
 }> {
   try {
-    // Get user's subscription tier
+    // Get user's subscription tier and subscription start date
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('subscription_tier')
+      .select('subscription_tier, subscription_started_at')
       .eq('id', userId)
       .single();
 
@@ -117,18 +118,35 @@ async function checkUserAccess(userId: string, functionName: string): Promise<{
 
     const tier = profileData.subscription_tier || 'free';
     const limits = tierLimits[tier] || tierLimits['free'];
-
-    // Get current month's usage
+    let subscriptionStartedAt = new Date(profileData.subscription_started_at);
     const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    
+    // Check if 30 days have passed since subscription started
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+    const daysSinceSubscriptionStarted = now.getTime() - subscriptionStartedAt.getTime();
+    
+    // If 30 days have passed, reset the subscription_started_at date
+    if (daysSinceSubscriptionStarted >= thirtyDaysInMs) {
+      console.log(`Resetting subscription cycle for user ${userId} as 30 days have passed`);
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ subscription_started_at: now.toISOString() })
+        .eq('id', userId);
+        
+      if (updateError) {
+        console.error('Error resetting subscription cycle:', updateError);
+      } else {
+        // Update the subscription start date for the current check
+        subscriptionStartedAt = now;
+      }
+    }
 
+    // Get usage since subscription started
     const { count, error: usageError } = await supabase
       .from('api_usage_logs')
       .select('*', { count: 'exact', head: false })
       .eq('user_id', userId)
-      .gte('timestamp', firstDayOfMonth.toISOString())
-      .lte('timestamp', lastDayOfMonth.toISOString());
+      .gte('timestamp', subscriptionStartedAt.toISOString());
 
     if (usageError) {
       console.error('Error checking API usage:', usageError);
@@ -144,15 +162,21 @@ async function checkUserAccess(userId: string, functionName: string): Promise<{
     const usageCount = count || 0;
     const remainingUsage = Math.max(0, limits.usageLimit - usageCount);
     const canAccess = remainingUsage > 0;
-
-    console.log(`User ${userId} (${tier} tier) has used ${usageCount}/${limits.usageLimit} API calls this month. Remaining: ${remainingUsage}`);
+    
+    // Calculate next reset date (30 days from subscription_started_at)
+    const nextResetDate = new Date(subscriptionStartedAt.getTime() + thirtyDaysInMs);
+    const nextResetFormatted = nextResetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    console.log(`User ${userId} (${tier} tier) has used ${usageCount}/${limits.usageLimit} API calls this cycle. Remaining: ${remainingUsage}`);
+    console.log(`Next reset date: ${nextResetFormatted}`);
 
     return {
       canAccess,
       tier,
       tierLimits: limits,
       remainingUsage,
-      error: canAccess ? undefined : 'Monthly usage limit reached'
+      nextReset: nextResetFormatted,
+      error: canAccess ? undefined : `You've reached your monthly limit. Your plan will reset 30 days after your subscription started (${nextResetFormatted}).`
     };
   } catch (err) {
     console.error('Exception when checking user access:', err);
@@ -277,7 +301,8 @@ serve(async (req) => {
           success: false,
           error: userAccess.error || 'Access denied',
           remainingUsage: userAccess.remainingUsage,
-          tier: userAccess.tier
+          tier: userAccess.tier,
+          nextReset: userAccess.nextReset
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
       );

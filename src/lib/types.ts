@@ -27,6 +27,7 @@ export interface CompetitorDiscoveryResponse {
   error?: string;
   tier?: string;
   remainingUsage?: number;
+  nextReset?: string;
 }
 
 export interface MarketGapAnalysisResponse {
@@ -35,4 +36,5 @@ export interface MarketGapAnalysisResponse {
   error?: string;
   tier?: string;
   remainingUsage?: number;
+  nextReset?: string;
 }

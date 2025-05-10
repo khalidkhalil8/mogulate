@@ -1,55 +1,84 @@
 
-import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
-import type { Competitor, MarketGapAnalysis, MarketGapAnalysisResponse } from "../types";
+import type { Competitor, MarketGapAnalysisResponse, MarketGapAnalysis } from "../types";
+import { toast } from "@/components/ui/sonner";
 
-export const generateMarketGapAnalysis = async (
-  idea: string, 
-  competitors: Competitor[]
-): Promise<MarketGapAnalysis | null> => {
+export async function analyzeMarketGaps(idea: string, competitors: Competitor[]): Promise<{ 
+  analysis: MarketGapAnalysis | null, 
+  tier?: string, 
+  remainingUsage?: number,
+  nextReset?: string 
+}> {
   try {
-    const { data, error } = await supabase.functions.invoke('idea-analysis', {
-      body: { 
-        idea,
-        competitors,
-        action: 'analyze-market-gaps'
-      },
-      method: 'POST'
-    });
+    const { data: session } = await supabase.auth.getSession();
+    const token = session?.session?.access_token;
 
-    if (error) {
-      console.error('Error calling analyze-market-gaps function:', error);
-      toast.error('Failed to generate market gap analysis. Please try again.', {
-        description: error.message
+    if (!token) {
+      toast.error("Authentication required", {
+        description: "Please sign in to use this feature.",
       });
-      return null;
+      return { analysis: null };
     }
 
-    const response = data as MarketGapAnalysisResponse;
-    
-    if (!response.success) {
-      console.error('Error from analyze-market-gaps function:', response.error);
-      
-      // Improved handling for subscription limit errors
-      if (response.error?.includes('limit reached') || response.error?.includes('Monthly usage limit')) {
-        toast.error(`Monthly usage limit reached for your ${response.tier || 'current'} plan`, {
-          description: 'You can still manually input your market gaps and continue. Consider upgrading your subscription for more AI-generated analyses.',
-          duration: 6000
+    const response = await fetch(
+      `https://thpsoempfyxnjhaflyha.supabase.co/functions/v1/idea-analysis`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          idea,
+          competitors,
+          action: "analyze-market-gaps",
+        }),
+      }
+    );
+
+    const data: MarketGapAnalysisResponse = await response.json();
+
+    if (!data.success) {
+      // Handle subscription limit error specifically
+      if (data.error && data.error.includes("monthly limit")) {
+        toast.error("Subscription Limit Reached", {
+          description: data.error,
+          duration: 6000,
         });
       } else {
-        toast.error('Failed to generate market gap analysis. Please try again.', {
-          description: response.error || 'An unexpected error occurred'
+        toast.error("Failed to analyze market gaps", {
+          description: data.error || "Unknown error occurred",
         });
       }
-      return null;
+      return { 
+        analysis: null, 
+        tier: data.tier, 
+        remainingUsage: data.remainingUsage,
+        nextReset: data.nextReset
+      };
     }
 
-    return response.analysis;
+    // Show remaining usage as toast if less than 20% of limit remains
+    const tierLimit = data.tier === 'free' ? 5 : data.tier === 'starter' ? 20 : 100;
+    const remainingPercentage = (data.remainingUsage || 0) / tierLimit;
+    
+    if (remainingPercentage <= 0.2 && remainingPercentage > 0) {
+      toast.warning("Usage limit approaching", {
+        description: `You have ${data.remainingUsage} API calls remaining this cycle.`,
+      });
+    }
+
+    return { 
+      analysis: data.analysis, 
+      tier: data.tier, 
+      remainingUsage: data.remainingUsage,
+      nextReset: data.nextReset
+    };
   } catch (error) {
-    console.error('Error generating market gap analysis:', error);
-    toast.error('Failed to generate market gap analysis. Please try again.', {
-      description: error instanceof Error ? error.message : String(error)
+    console.error("Error analyzing market gaps:", error);
+    toast.error("Failed to analyze market gaps", {
+      description: "An unexpected error occurred",
     });
-    return null;
+    return { analysis: null };
   }
-};
+}
