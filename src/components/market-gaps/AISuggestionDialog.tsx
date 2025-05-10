@@ -29,9 +29,6 @@ const AISuggestionDialog: React.FC<AISuggestionDialogProps> = ({
           <DialogTitle>Generate Market Gaps</DialogTitle>
           <DialogDescription>
             Our AI will analyze your idea and competitors to suggest potential differentiation strategies.
-            <p className="mt-2 text-amber-600">
-              Note: Free tier accounts are limited to 5 AI analyses per month.
-            </p>
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

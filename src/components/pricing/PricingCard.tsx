@@ -14,7 +14,6 @@ interface PricingFeature {
 interface PricingCardProps {
   tier: string;
   price: string;
-  description: string;
   features: PricingFeature[];
   popular?: boolean;
   buttonText?: string;
@@ -24,7 +23,6 @@ interface PricingCardProps {
 const PricingCard: React.FC<PricingCardProps> = ({
   tier,
   price,
-  description,
   features,
   popular = false,
   buttonText = "Choose Plan",
@@ -65,9 +63,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
         <CardTitle className="text-xl">{tier}</CardTitle>
         <div className="mt-4">
           <span className="text-3xl font-bold">{price}</span>
-          {price !== "Free" && <span className="text-gray-500 ml-1">/month</span>}
+          {price !== "$0" && <span className="text-gray-500 ml-1">/month</span>}
         </div>
-        <CardDescription className="mt-4">{description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
         <ul className="space-y-3">

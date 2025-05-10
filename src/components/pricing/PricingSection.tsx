@@ -19,7 +19,6 @@ const PricingSection: React.FC<PricingSectionProps> = ({
     {
       tier: "Free",
       price: "$0",
-      description: "Get started with basic idea validation tools",
       features: [
         { text: "5 uses per month" },
         { text: "3 competitors (Name & URL only)" },
@@ -30,26 +29,24 @@ const PricingSection: React.FC<PricingSectionProps> = ({
     {
       tier: "Starter",
       price: "$10",
-      description: "Perfect for early-stage entrepreneurs",
       features: [
         { text: "20 uses per month" },
         { text: "3 competitors (Name, URL & descriptions)" },
         { text: "3 market gaps per idea" },
         { text: "1 positioning suggestion per idea" }
       ],
-      popular: true
+      popular: false
     },
     {
       tier: "Pro",
       price: "$30",
-      description: "For serious founders ready to scale",
       features: [
         { text: "100 uses per month" },
         { text: "5 competitors (Name, URL & descriptions)" },
         { text: "3 market gaps per idea" },
         { text: "3 positioning suggestions per idea" }
       ],
-      popular: false
+      popular: true
     }
   ];
 
@@ -60,7 +57,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Choose the plan that best fits your needs. All plans come with core features to help validate your ideas.
+              Choose the plan that best fits your needs.
             </p>
           </div>
         )}
@@ -71,7 +68,6 @@ const PricingSection: React.FC<PricingSectionProps> = ({
               key={plan.tier} 
               tier={plan.tier} 
               price={plan.price}
-              description={plan.description}
               features={plan.features}
               popular={plan.popular}
               buttonText={isHomePage ? "Get Started" : currentTier === plan.tier.toLowerCase() ? "Current Plan" : "Switch to This Plan"}
