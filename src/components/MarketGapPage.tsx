@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Header from './Header';
 import LoadingState from './ui/LoadingState';
-import { generateMarketGapAnalysis } from '@/lib/api/marketGaps';
+import { analyzeMarketGaps } from '@/lib/api/marketGaps';
 import type { Competitor, MarketGapAnalysis } from '@/lib/types';
 import {
   Dialog,
@@ -45,9 +45,9 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
     setIsDialogOpen(false);
     setIsLoading(true);
     try {
-      const result = await generateMarketGapAnalysis(idea, competitors);
-      if (result) {
-        setAnalysis(result);
+      const result = await analyzeMarketGaps(idea, competitors);
+      if (result.analysis) {
+        setAnalysis(result.analysis);
         toast.success("Successfully generated market gap analysis");
       }
     } finally {

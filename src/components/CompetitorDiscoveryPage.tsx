@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Header from './Header';
 import type { Competitor } from '@/lib/types';
 import LoadingState from './ui/LoadingState';
-import { findCompetitors } from '@/lib/api/competitors';
+import { fetchCompetitors } from '@/lib/api/competitors';
 import CompetitorsList from './competitors/CompetitorsList';
 import FindCompetitorsDialog from './competitors/FindCompetitorsDialog';
 
@@ -49,11 +49,11 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
     setIsDialogOpen(false);
     setIsLoading(true);
     try {
-      const aiCompetitors = await findCompetitors(idea);
-      if (aiCompetitors.length) {
+      const result = await fetchCompetitors(idea);
+      if (result.competitors.length) {
         // Filter out any AI competitors that might have the same name as manually entered ones
         const existingNames = new Set(competitors.map(c => c.name.toLowerCase()));
-        const newCompetitors = aiCompetitors.filter(c => !existingNames.has(c.name.toLowerCase()));
+        const newCompetitors = result.competitors.filter(c => !existingNames.has(c.name.toLowerCase()));
         
         setCompetitors([...competitors, ...newCompetitors]);
       }
