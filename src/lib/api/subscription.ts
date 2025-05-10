@@ -17,7 +17,7 @@ export const updateSubscription = async (
 
     if (error) {
       console.error('Error calling update-subscription function:', error);
-      toast.error('Failed to update subscription. Please try again.', {
+      toast.error('Subscription update failed', {
         description: error.message
       });
       return false;
@@ -25,20 +25,20 @@ export const updateSubscription = async (
 
     if (!data.success) {
       console.error('Error from update-subscription function:', data.error);
-      toast.error('Failed to update subscription. Please try again.', {
+      toast.error('Subscription update failed', {
         description: data.error || 'An unexpected error occurred'
       });
       return false;
     }
 
-    toast.success(`Subscription updated to ${newTier} successfully`, {
-      description: "Your new subscription benefits are now active"
+    toast.success(`Subscription updated`, {
+      description: `Your ${newTier} plan is now active`
     });
     
     return true;
   } catch (error) {
     console.error('Error updating subscription:', error);
-    toast.error('Failed to update subscription. Please try again.', {
+    toast.error('Subscription update failed', {
       description: error instanceof Error ? error.message : String(error)
     });
     return false;

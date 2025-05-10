@@ -142,16 +142,16 @@ const Settings = () => {
               </CardContent>
             </Card>
 
-            {/* Usage This Cycle */}
+            {/* Usage This Cycle - Changed title from "API Usage" to "Plan Usage" */}
             <Card>
               <CardHeader>
-                <CardTitle>Usage This Cycle</CardTitle>
-                <CardDescription>Your API usage for this billing cycle</CardDescription>
+                <CardTitle>Plan Usage</CardTitle>
+                <CardDescription>Your usage for this billing cycle</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">API Calls Used</span>
+                    <span className="text-gray-600">Uses Remaining</span>
                     <span className="font-medium">
                       {usageData?.usedCount} / {usageData?.maxCount}
                     </span>
@@ -164,8 +164,8 @@ const Settings = () => {
                   
                   <p className="text-sm text-gray-500">
                     {usageData && usageData.maxCount > usageData.usedCount 
-                      ? `You have ${usageData.maxCount - usageData.usedCount} API calls remaining this cycle.`
-                      : "You've used all your API calls for this cycle."}
+                      ? `You have ${usageData.maxCount - usageData.usedCount} uses remaining this cycle.`
+                      : "You've used all your available uses for this cycle."}
                   </p>
                 </div>
               </CardContent>
@@ -183,7 +183,7 @@ const Settings = () => {
                     <div className="flex justify-between items-center p-4 border rounded-md">
                       <div>
                         <p className="font-medium">Free Plan</p>
-                        <p className="text-sm text-gray-500">5 API calls per month</p>
+                        <p className="text-sm text-gray-500">5 uses per month</p>
                       </div>
                       <Button 
                         variant="outline" 
@@ -199,7 +199,7 @@ const Settings = () => {
                     <div className="flex justify-between items-center p-4 border rounded-md bg-gray-50">
                       <div>
                         <p className="font-medium">Starter Plan</p>
-                        <p className="text-sm text-gray-500">20 API calls per month</p>
+                        <p className="text-sm text-gray-500">20 uses per month</p>
                       </div>
                       <Button 
                         onClick={() => handleSubscriptionChange("starter")}
@@ -214,7 +214,7 @@ const Settings = () => {
                     <div className="flex justify-between items-center p-4 border rounded-md bg-blue-50">
                       <div>
                         <p className="font-medium">Pro Plan</p>
-                        <p className="text-sm text-gray-500">100 API calls per month</p>
+                        <p className="text-sm text-gray-500">100 uses per month</p>
                       </div>
                       <Button 
                         onClick={() => handleSubscriptionChange("pro")}
