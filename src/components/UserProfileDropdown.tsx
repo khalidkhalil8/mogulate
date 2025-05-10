@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 
 const UserProfileDropdown: React.FC = () => {
   const { user, logout, userProfile } = useAuth();
@@ -45,6 +46,11 @@ const UserProfileDropdown: React.FC = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/settings" className="w-full cursor-pointer">
+            Settings
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => logout()}
           className="text-red-600 cursor-pointer"

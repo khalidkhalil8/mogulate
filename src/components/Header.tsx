@@ -25,6 +25,14 @@ const Header: React.FC = () => {
           >
             Home
           </Link>
+          {user && (
+            <Link
+              to="/settings"
+              className="text-charcoal hover:text-teal-600 font-medium transition-colors"
+            >
+              Settings
+            </Link>
+          )}
         </nav>
         
         <div className="flex items-center gap-4">
