@@ -3,3 +3,6 @@ project_id = "thpsoempfyxnjhaflyha"
 
 [functions.idea-analysis]
 verify_jwt = false
+
+[functions.update-subscription]
+verify_jwt = false
