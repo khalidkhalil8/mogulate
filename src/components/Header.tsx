@@ -37,30 +37,30 @@ const Header: React.FC = () => {
           </div>
         </Link>
         
-        <nav className="hidden md:flex items-center gap-6">
-          <Link
-            to="/"
-            className="text-charcoal hover:text-teal-600 font-medium transition-colors"
-          >
-            Home
-          </Link>
-          <button
-            onClick={handlePricingClick}
-            className="text-charcoal hover:text-teal-600 font-medium transition-colors"
-          >
-            Pricing
-          </button>
-          {user && (
+        <div className="flex items-center gap-4">
+          <nav className="hidden md:flex items-center gap-6">
             <Link
-              to="/settings"
+              to="/"
               className="text-charcoal hover:text-teal-600 font-medium transition-colors"
             >
-              Settings
+              Home
             </Link>
-          )}
-        </nav>
-        
-        <div className="flex items-center gap-4">
+            <button
+              onClick={handlePricingClick}
+              className="text-charcoal hover:text-teal-600 font-medium transition-colors"
+            >
+              Pricing
+            </button>
+            {user && (
+              <Link
+                to="/settings"
+                className="text-charcoal hover:text-teal-600 font-medium transition-colors"
+              >
+                Settings
+              </Link>
+            )}
+          </nav>
+          
           {isLoading ? (
             <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse"></div>
           ) : user ? (

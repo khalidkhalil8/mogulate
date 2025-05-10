@@ -47,15 +47,12 @@ const Index = () => {
     });
   };
   
-  // Check if user is trying to access a page without completing previous steps
+  // Modified routing logic to only block access to pages if idea is missing
   React.useEffect(() => {
-    if (location.pathname === '/competitors' && !ideaData.idea) {
-      navigate('/idea');
-    } else if (location.pathname === '/market-gaps' && (!ideaData.idea || ideaData.competitors.length === 0)) {
-      navigate('/idea');
-    } else if (location.pathname === '/validation-plan' && (!ideaData.idea || ideaData.competitors.length === 0 || !ideaData.marketGaps)) {
-      navigate('/idea');
-    } else if (location.pathname === '/summary' && (!ideaData.idea || ideaData.competitors.length === 0 || !ideaData.marketGaps || !ideaData.validationPlan)) {
+    if ((location.pathname === '/competitors' || 
+         location.pathname === '/market-gaps' || 
+         location.pathname === '/validation-plan' || 
+         location.pathname === '/summary') && !ideaData.idea) {
       navigate('/idea');
     }
   }, [location.pathname, ideaData, navigate]);
