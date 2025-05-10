@@ -5,16 +5,16 @@ import { supabase } from "@/integrations/supabase/client";
 interface UsageData {
   usedCount: number;
   maxCount: number;
-  nextResetDate: string;
+  nextResetDate: string | undefined;
 }
 
-export const useUserUsage = (userId: string | undefined, subscriptionStartedAt: string | null, subscriptionTier: string | null) => {
+export const useUserUsage = (userId: string | undefined, subscriptionStartedAt: string | null | undefined, subscriptionTier: string | null) => {
   const [usageData, setUsageData] = useState<UsageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsageData = async () => {
-      if (!userId || !subscriptionStartedAt || !subscriptionTier) {
+      if (!userId || !subscriptionTier) {
         setIsLoading(false);
         return;
       }
@@ -22,16 +22,21 @@ export const useUserUsage = (userId: string | undefined, subscriptionStartedAt: 
       setIsLoading(true);
       
       try {
-        const startDate = new Date(subscriptionStartedAt);
-        const nextResetDate = new Date(startDate);
-        nextResetDate.setDate(nextResetDate.getDate() + 30);
+        let nextResetDate: Date | undefined;
+        
+        // Only calculate next reset date if we have a subscription start date
+        if (subscriptionStartedAt) {
+          const startDate = new Date(subscriptionStartedAt);
+          nextResetDate = new Date(startDate);
+          nextResetDate.setDate(nextResetDate.getDate() + 30);
+        }
         
         // Count API usage since subscription started
         const { count, error: usageError } = await supabase
           .from("api_usage_logs")
           .select("*", { count: 'exact' })
           .eq("user_id", userId)
-          .gte("timestamp", subscriptionStartedAt);
+          .gte("timestamp", subscriptionStartedAt || '');
           
         if (usageError) {
           console.error("Error fetching API usage:", usageError);
@@ -50,7 +55,7 @@ export const useUserUsage = (userId: string | undefined, subscriptionStartedAt: 
         setUsageData({
           usedCount: count || 0,
           maxCount,
-          nextResetDate: nextResetDate.toLocaleDateString()
+          nextResetDate: nextResetDate?.toLocaleDateString()
         });
       } catch (error) {
         console.error("Error loading usage data:", error);

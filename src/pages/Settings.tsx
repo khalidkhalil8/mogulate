@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 import { updateSubscription } from "@/lib/api/subscription";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
-// Import our new components
+// Import our components
 import SubscriptionDetails from "@/components/settings/SubscriptionDetails";
 import UsageProgress from "@/components/settings/UsageProgress";
 import SubscriptionPicker from "@/components/settings/SubscriptionPicker";
@@ -24,10 +24,14 @@ const Settings = () => {
     }
   }, [user, navigate]);
   
+  // Safely access userProfile properties, handling the case where some might be missing
+  const subscriptionStartedAt = userProfile?.subscription_started_at;
+  const subscriptionTier = userProfile?.subscription_tier || 'free';
+  
   const { usageData, isLoading } = useUserUsage(
     user?.id,
-    userProfile?.subscription_started_at,
-    userProfile?.subscription_tier
+    subscriptionStartedAt,
+    subscriptionTier
   );
 
   const handleSubscriptionChange = async (newTier: string) => {

@@ -25,7 +25,7 @@ const SubscriptionDetails: React.FC<SubscriptionDetailsProps> = ({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Next Reset Date</span>
-            <span className="font-medium">{nextResetDate}</span>
+            <span className="font-medium">{nextResetDate || 'Not available'}</span>
           </div>
         </div>
       </CardContent>
