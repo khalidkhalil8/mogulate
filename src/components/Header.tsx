@@ -27,6 +27,14 @@ const Header: React.FC = () => {
       scrollToPricing();
     }
   };
+
+  const handleGetStartedClick = () => {
+    if (user) {
+      navigate('/idea');
+    } else {
+      navigate('/auth');
+    }
+  };
   
   return (
     <header className="py-4 px-4 md:px-6 border-b shadow-sm">

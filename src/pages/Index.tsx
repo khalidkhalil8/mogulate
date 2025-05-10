@@ -49,19 +49,18 @@ const Index = () => {
   
   // Modified routing logic to only block access to pages if idea is missing
   React.useEffect(() => {
-    if ((location.pathname === '/competitors' || 
-         location.pathname === '/market-gaps' || 
-         location.pathname === '/validation-plan' || 
-         location.pathname === '/summary') && !ideaData.idea) {
+    if ((location.pathname === '/idea/competitors' || 
+         location.pathname === '/idea/market-gaps' || 
+         location.pathname === '/idea/validation-plan' || 
+         location.pathname === '/idea/summary') && !ideaData.idea) {
       navigate('/idea');
     }
   }, [location.pathname, ideaData, navigate]);
   
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
       <Route 
-        path="/idea" 
+        path="/" 
         element={
           <IdeaEntryPage 
             initialIdea={ideaData.idea} 

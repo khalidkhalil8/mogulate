@@ -4,12 +4,22 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import Header from './Header';
 import PricingSection from './pricing/PricingSection';
+import { useAuth } from '@/context/AuthContext';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const scrollToPricing = () => {
     document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+  };
+  
+  const handleGetStarted = () => {
+    if (user) {
+      navigate('/idea');
+    } else {
+      navigate('/auth');
+    }
   };
   
   return (
@@ -29,7 +39,7 @@ const HomePage: React.FC = () => {
               </p>
               <Button 
                 className="px-8 py-6 text-lg gradient-bg border-none hover:opacity-90 button-transition"
-                onClick={() => navigate('/idea')}
+                onClick={handleGetStarted}
               >
                 Get Started
               </Button>

@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
 import PricingPage from "./pages/PricingPage";
 import { useAuth } from "./context/AuthContext";
+import HomePage from "./components/HomePage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,15 +38,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/auth" element={<AuthPage />} />
       <Route 
-        path="/*" 
+        path="/idea/*" 
         element={
           <ProtectedRoute>
             <Index />
           </ProtectedRoute>
         } 
       />
-      <Route path="/auth" element={<AuthPage />} />
       <Route 
         path="/settings" 
         element={
