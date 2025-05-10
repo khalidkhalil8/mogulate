@@ -9,6 +9,25 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
   
+  const scrollToPricing = () => {
+    if (window.location.pathname === '/') {
+      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  };
+  
+  const handlePricingClick = () => {
+    if (user) {
+      navigate('/pricing');
+    } else {
+      scrollToPricing();
+    }
+  };
+  
   return (
     <header className="py-4 px-4 md:px-6 border-b shadow-sm">
       <div className="container-width flex items-center justify-between">
@@ -25,6 +44,12 @@ const Header: React.FC = () => {
           >
             Home
           </Link>
+          <button
+            onClick={handlePricingClick}
+            className="text-charcoal hover:text-teal-600 font-medium transition-colors"
+          >
+            Pricing
+          </button>
           {user && (
             <Link
               to="/settings"

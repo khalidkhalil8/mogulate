@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
+import PricingPage from "./pages/PricingPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/*" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/pricing" element={<PricingPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

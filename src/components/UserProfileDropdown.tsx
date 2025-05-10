@@ -51,6 +51,11 @@ const UserProfileDropdown: React.FC = () => {
             Settings
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/pricing" className="w-full cursor-pointer">
+            Pricing Plans
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => logout()}
           className="text-red-600 cursor-pointer"

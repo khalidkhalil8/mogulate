@@ -3,9 +3,14 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import Header from './Header';
+import PricingSection from './pricing/PricingSection';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  
+  const scrollToPricing = () => {
+    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+  };
   
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -73,6 +78,9 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </section>
+        
+        {/* Add Pricing Section */}
+        <PricingSection isHomePage={true} />
       </main>
       
       <footer className="py-8 px-4 border-t">
