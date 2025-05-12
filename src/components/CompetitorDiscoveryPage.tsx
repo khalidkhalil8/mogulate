@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -69,7 +68,7 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
       comp => comp.name.trim() && comp.website.trim()
     );
     onCompetitorsSubmit(validCompetitors);
-    navigate('/market-gaps');
+    navigate('/idea/market-gaps');
   };
   
   return (

@@ -21,7 +21,7 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
     e.preventDefault();
     if (idea.trim()) {
       onIdeaSubmit(idea);
-      navigate('/competitors');
+      navigate('/idea/competitors');
     }
   };
   
