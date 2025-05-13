@@ -47,22 +47,24 @@ const Index = () => {
     });
   };
   
-  // Only redirect user to the idea entry page if:
-  // 1. They're trying to access a page that requires idea data
-  // 2. They don't have idea data
-  // 3. They're not on the idea entry or competitors page
+  // Prevent redirection when user is navigating through the idea flow
   useEffect(() => {
     const currentPath = location.pathname;
     const isIdeaEntryPage = currentPath === '/idea' || currentPath === '/idea/';
     const isCompetitorsPage = currentPath === '/idea/competitors';
     const isMarketGapsPage = currentPath === '/idea/market-gaps';
+    const isValidationPlanPage = currentPath === '/idea/validation-plan';
+    const isSummaryPage = currentPath === '/idea/summary';
     
     // Only redirect if:
-    // - Not on idea entry page
-    // - Not on competitors page 
-    // - Not on market gaps page (new fix)
+    // - We're in the idea flow (not on a different part of the app)
+    // - Not on the entry pages
     // - AND the idea is empty
-    if (!isIdeaEntryPage && !isCompetitorsPage && !isMarketGapsPage && !ideaData.idea) {
+    const isInIdeaFlow = currentPath.startsWith('/idea');
+    const isOnEntryPage = isIdeaEntryPage || isCompetitorsPage || isMarketGapsPage || 
+                           isValidationPlanPage || isSummaryPage;
+    
+    if (isInIdeaFlow && !isOnEntryPage && !ideaData.idea) {
       navigate('/idea');
     }
   }, [location.pathname, ideaData.idea, navigate]);
