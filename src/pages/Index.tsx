@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import HomePage from '@/components/HomePage';
@@ -47,12 +47,19 @@ const Index = () => {
     });
   };
   
-  // Fix: Only redirect once when location changes, not on every render
-  React.useEffect(() => {
-    // Only redirect if we're not on the idea entry page and the idea is missing
-    if (location.pathname !== '/idea' && 
-        location.pathname !== '/idea/' && 
-        !ideaData.idea) {
+  // Only redirect when on a page that requires idea data, but not when on competitors page after submitting idea
+  useEffect(() => {
+    // We should only redirect on certain conditions:
+    // 1. Only redirect if not on the idea entry or competitors page
+    // 2. Only redirect if the idea is missing
+
+    const currentPath = location.pathname;
+    const isIdeaEntryPage = currentPath === '/idea' || currentPath === '/idea/';
+    const isCompetitorsPage = currentPath === '/idea/competitors';
+    
+    // If we're not on the idea entry page or competitors page, AND the idea is empty, redirect
+    // This allows staying on the competitors page after navigating from idea entry
+    if (!isIdeaEntryPage && !isCompetitorsPage && !ideaData.idea) {
       navigate('/idea');
     }
   }, [location.pathname, ideaData.idea, navigate]);
