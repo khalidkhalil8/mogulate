@@ -21,7 +21,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
     e.preventDefault();
     if (validationPlan.trim()) {
       onValidationPlanSubmit(validationPlan);
-      navigate('/summary');
+      navigate('/idea/summary');
     }
   };
   

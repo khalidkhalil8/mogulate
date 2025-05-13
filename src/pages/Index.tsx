@@ -47,19 +47,22 @@ const Index = () => {
     });
   };
   
-  // Only redirect when on a page that requires idea data, but not when on competitors page after submitting idea
+  // Only redirect user to the idea entry page if:
+  // 1. They're trying to access a page that requires idea data
+  // 2. They don't have idea data
+  // 3. They're not on the idea entry or competitors page
   useEffect(() => {
-    // We should only redirect on certain conditions:
-    // 1. Only redirect if not on the idea entry or competitors page
-    // 2. Only redirect if the idea is missing
-
     const currentPath = location.pathname;
     const isIdeaEntryPage = currentPath === '/idea' || currentPath === '/idea/';
     const isCompetitorsPage = currentPath === '/idea/competitors';
+    const isMarketGapsPage = currentPath === '/idea/market-gaps';
     
-    // If we're not on the idea entry page or competitors page, AND the idea is empty, redirect
-    // This allows staying on the competitors page after navigating from idea entry
-    if (!isIdeaEntryPage && !isCompetitorsPage && !ideaData.idea) {
+    // Only redirect if:
+    // - Not on idea entry page
+    // - Not on competitors page 
+    // - Not on market gaps page (new fix)
+    // - AND the idea is empty
+    if (!isIdeaEntryPage && !isCompetitorsPage && !isMarketGapsPage && !ideaData.idea) {
       navigate('/idea');
     }
   }, [location.pathname, ideaData.idea, navigate]);

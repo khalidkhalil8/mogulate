@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
@@ -47,7 +46,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onMarketGapsSubmit(marketGaps, analysis);
-    navigate('/validation-plan');
+    navigate('/idea/validation-plan');
   };
   
   return (
