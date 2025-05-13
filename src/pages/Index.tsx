@@ -47,15 +47,15 @@ const Index = () => {
     });
   };
   
-  // Modified routing logic to only block access to pages if idea is missing
+  // Fix: Only redirect once when location changes, not on every render
   React.useEffect(() => {
-    if ((location.pathname === '/idea/competitors' || 
-         location.pathname === '/idea/market-gaps' || 
-         location.pathname === '/idea/validation-plan' || 
-         location.pathname === '/idea/summary') && !ideaData.idea) {
+    // Only redirect if we're not on the idea entry page and the idea is missing
+    if (location.pathname !== '/idea' && 
+        location.pathname !== '/idea/' && 
+        !ideaData.idea) {
       navigate('/idea');
     }
-  }, [location.pathname, ideaData, navigate]);
+  }, [location.pathname, ideaData.idea, navigate]);
   
   return (
     <Routes>
