@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
@@ -7,6 +8,8 @@ import type { Competitor, MarketGapAnalysis } from '@/lib/types';
 import { toast } from "@/components/ui/sonner";
 import MarketGapForm from './market-gaps/MarketGapForm';
 import AISuggestionDialog from './market-gaps/AISuggestionDialog';
+import SocialInsightsWaitlist from './market-gaps/SocialInsightsWaitlist';
+import { useAuth } from '@/context/AuthContext';
 
 interface MarketGapPageProps {
   idea: string;
@@ -28,6 +31,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const handleGetAiSuggestions = async () => {
     setIsDialogOpen(false);
@@ -71,6 +75,12 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
                 onSubmit={handleSubmit}
                 isCompetitorsAvailable={competitors.length > 0}
               />
+            )}
+            
+            {user && (
+              <div className="mt-12 pt-8 border-t border-gray-200">
+                <SocialInsightsWaitlist />
+              </div>
             )}
           </div>
         </div>
