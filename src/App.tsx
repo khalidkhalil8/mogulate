@@ -12,7 +12,6 @@ import Settings from "./pages/Settings";
 import PricingPage from "./pages/PricingPage";
 import { useAuth } from "./context/AuthContext";
 import HomePage from "./components/HomePage";
-import WaitlistDashboard from "./components/admin/WaitlistDashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,14 +63,6 @@ const AppRoutes = () => {
             <PricingPage />
           </ProtectedRoute>
         } 
-      />
-      <Route 
-        path="/admin/waitlists" 
-        element={
-          <ProtectedRoute>
-            <WaitlistDashboard />
-          </ProtectedRoute>
-        }
       />
       <Route path="*" element={<NotFound />} />
     </Routes>
