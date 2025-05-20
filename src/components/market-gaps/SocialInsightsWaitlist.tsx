@@ -41,17 +41,17 @@ const SocialInsightsWaitlist: React.FC = () => {
       if (data.success) {
         setHasJoined(true);
         toast.success("Joined waitlist", {
-          description: "You've been added to the waitlist for Social Insights!",
+          description: "✅ You've been added to the waitlist for Social Insights!",
         });
       } else {
         toast.error("Could not join waitlist", {
-          description: data.error || "An unexpected error occurred",
+          description: data.error || "⚠️ Something went wrong. Please try again.",
         });
       }
     } catch (error) {
       console.error("Error joining waitlist:", error);
       toast.error("Could not join waitlist", {
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        description: "⚠️ Something went wrong. Please try again.",
       });
     } finally {
       setIsJoining(false);
