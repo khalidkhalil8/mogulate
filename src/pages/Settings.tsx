@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
@@ -39,7 +39,7 @@ const Settings = () => {
               <div className="space-y-6">
                 <SubscriptionDetails 
                   subscriptionTier={userProfile?.subscription_tier || 'free'} 
-                  startDate={userProfile?.subscription_started_at} 
+                  nextResetDate={usageData?.nextResetDate}
                   usageData={usageData}
                   isLoading={isUsageLoading}
                 />
@@ -53,8 +53,9 @@ const Settings = () => {
                   </CardHeader>
                   <CardContent>
                     <SubscriptionPicker 
-                      currentTier={userProfile?.subscription_tier || 'free'} 
-                      userId={user?.id || ''}
+                      currentTier={userProfile?.subscription_tier || 'free'}
+                      isUpdating={false}
+                      onChangeSubscription={() => {}}
                     />
                   </CardContent>
                 </Card>

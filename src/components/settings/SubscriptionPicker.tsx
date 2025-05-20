@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 
 interface SubscriptionPickerProps {
   currentTier: string;
-  isUpdating: boolean;
+  isUpdating?: boolean;
+  userId?: string;
   onChangeSubscription: (tier: string) => void;
 }
 
 const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
   currentTier,
-  isUpdating,
+  isUpdating = false,
+  userId,
   onChangeSubscription
 }) => {
   return (

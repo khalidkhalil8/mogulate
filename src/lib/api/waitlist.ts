@@ -35,9 +35,21 @@ export const joinFeatureWaitlist = async (
       return true;
     }
 
+    // Get the current user's ID - fix: need to provide user_id
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error('Authentication required', {
+        description: 'You must be logged in to join a waitlist'
+      });
+      return false;
+    }
+
     const { error } = await supabase
       .from('feature_waitlists')
-      .insert({ feature_name: featureName });
+      .insert({ 
+        feature_name: featureName,
+        user_id: user.id 
+      });
 
     if (error) {
       console.error('Error joining waitlist:', error);

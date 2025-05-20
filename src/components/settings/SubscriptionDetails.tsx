@@ -4,12 +4,16 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 
 interface SubscriptionDetailsProps {
   subscriptionTier: string;
-  nextResetDate: string | undefined;
+  nextResetDate?: string;
+  usageData: any;
+  isLoading: boolean;
 }
 
 const SubscriptionDetails: React.FC<SubscriptionDetailsProps> = ({ 
   subscriptionTier,
-  nextResetDate
+  nextResetDate,
+  usageData,
+  isLoading
 }) => {
   return (
     <Card>
