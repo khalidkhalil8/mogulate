@@ -6,3 +6,6 @@ verify_jwt = false
 
 [functions.update-subscription]
 verify_jwt = false
+
+[functions.joinWaitlist]
+verify_jwt = true
