@@ -36,6 +36,35 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_waitlists: {
+        Row: {
+          feature_name: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          feature_name: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          feature_name?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_waitlists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
