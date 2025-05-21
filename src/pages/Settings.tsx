@@ -6,17 +6,39 @@ import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SubscriptionDetails from "@/components/settings/SubscriptionDetails";
+import UsageProgress from "@/components/settings/UsageProgress";
 import SubscriptionPicker from "@/components/settings/SubscriptionPicker";
 import FeatureWaitlists from "@/components/settings/FeatureWaitlists";
 import { useUserUsage } from "@/hooks/useUserUsage";
+import { updateSubscription } from "@/lib/api/subscription";
+import { toast } from "@/components/ui/sonner";
 
 const Settings = () => {
   const { user, userProfile } = useAuth();
+  const [isUpdatingSubscription, setIsUpdatingSubscription] = useState(false);
   const { usageData, isLoading: isUsageLoading } = useUserUsage(
     user?.id, 
     userProfile?.subscription_started_at,
     userProfile?.subscription_tier
   );
+  
+  const handleChangeSubscription = async (newTier: string) => {
+    if (!user?.id) {
+      toast.error("You need to be logged in to change your subscription");
+      return;
+    }
+    
+    setIsUpdatingSubscription(true);
+    try {
+      const success = await updateSubscription(user.id, newTier);
+      if (success) {
+        toast.success(`Subscription updated to ${newTier} plan`);
+        // The auth context should refresh automatically to reflect the new subscription
+      }
+    } finally {
+      setIsUpdatingSubscription(false);
+    }
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -44,6 +66,13 @@ const Settings = () => {
                   isLoading={isUsageLoading}
                 />
                 
+                {usageData && !isUsageLoading && (
+                  <UsageProgress 
+                    usedCount={usageData.used || 0}
+                    maxCount={usageData.maximum || 0}
+                  />
+                )}
+                
                 <Card>
                   <CardHeader>
                     <CardTitle>Upgrade Your Plan</CardTitle>
@@ -54,8 +83,9 @@ const Settings = () => {
                   <CardContent>
                     <SubscriptionPicker 
                       currentTier={userProfile?.subscription_tier || 'free'}
-                      isUpdating={false}
-                      onChangeSubscription={() => {}}
+                      isUpdating={isUpdatingSubscription}
+                      userId={user?.id}
+                      onChangeSubscription={handleChangeSubscription}
                     />
                   </CardContent>
                 </Card>
