@@ -68,8 +68,8 @@ const Settings = () => {
                 
                 {usageData && !isUsageLoading && (
                   <UsageProgress 
-                    usedCount={usageData.used || 0}
-                    maxCount={usageData.maximum || 0}
+                    usedCount={usageData.usedCount}
+                    maxCount={usageData.maxCount}
                   />
                 )}
                 
