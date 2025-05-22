@@ -1,3 +1,4 @@
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
@@ -41,6 +42,7 @@ interface MarketGapAnalysisResponse {
   error?: string;
   tier?: string;
   remainingUsage?: number;
+  nextReset?: string;
 }
 
 // Subscription tiers and limits
@@ -310,7 +312,7 @@ serve(async (req) => {
     if (action === 'discover-competitors') {
       return await handleDiscoverCompetitors(requestData, userId, userAccess.tier, userAccess.tierLimits);
     } else if (action === 'analyze-market-gaps') {
-      return await handleMarketGapAnalysis(requestData, userId, userAccess.tier, userAccess.tierLimits);
+      return await handleMarketGapAnalysis(requestData, userId, userAccess.tier, userAccess.tierLimits, userAccess.remainingUsage, userAccess.nextReset);
     } else {
       console.error(`Invalid action specified: ${action}`);
       return new Response(
@@ -473,7 +475,9 @@ async function handleMarketGapAnalysis(
   requestData: MarketGapRequest,
   userId: string,
   tier: string,
-  tierLimits: TierLimits
+  tierLimits: TierLimits,
+  remainingUsage: number,
+  nextReset?: string
 ): Promise<Response> {
   const { idea, competitors } = requestData;
   console.log(`Processing market gap analysis for idea: ${idea} with ${competitors.length} competitors (${tier} tier)`);
@@ -628,8 +632,8 @@ Make each description a separate entry with enough detail to be actionable (max 
       success: true,
       analysis,
       tier,
-      remainingUsage: tierLimits.usageLimit - 1, // Approximate remaining usage
-      nextReset: userAccess.nextReset
+      remainingUsage: remainingUsage,
+      nextReset: nextReset
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
