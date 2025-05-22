@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
@@ -514,7 +513,21 @@ async function handleMarketGapAnalysis(
   const marketGapCount = tierLimits.marketGapCount;
   const positioningSuggestionCount = tierLimits.positioningSuggestionCount;
   
-  const prompt = `You are analyzing a business idea: "${idea}". Here are the direct competitors in this market space: ${competitorDescriptions}. Based on these competitors and the business idea, please identify EXACTLY ${marketGapCount} potential gap${marketGapCount === 1 ? '' : 's'} in the market not addressed by these competitors${positioningSuggestionCount > 0 ? `, and recommend EXACTLY ${positioningSuggestionCount} specific feature${positioningSuggestionCount === 1 ? '' : 's'} or positioning element${positioningSuggestionCount === 1 ? '' : 's'} that would help differentiate this idea` : ''}. Format your response as a valid JSON object with this exact structure: { "marketGaps": [ "First gap description - make this a specific opportunity not addressed by competitors"${marketGapCount > 1 ? ', "Second gap description - another specific opportunity"' : ''}${marketGapCount > 2 ? ', "Third gap description - another specific opportunity"' : ''} ]${positioningSuggestionCount > 0 ? ', "positioningSuggestions": [ "First positioning suggestion with specific feature or approach recommendation"' + (positioningSuggestionCount > 1 ? ', "Second positioning suggestion with specific feature or approach recommendation"' : '') + (positioningSuggestionCount > 2 ? ', "Third positioning suggestion with specific feature or approach recommendation"' : '') + ' ]' : ''} }. Make each description a separate paragraph with enough detail to be actionable (max 50 words each). Do not include any text, markdown, or explanations outside the JSON object.`;
+  // Updated prompt to clearly separate market gaps from positioning suggestions
+  const prompt = `You are analyzing a business idea: "${idea}". Here are the direct competitors in this market space: ${competitorDescriptions}.
+
+First, identify EXACTLY ${marketGapCount} market gap${marketGapCount === 1 ? '' : 's'} that represent unaddressed opportunities in the market. Focus only on identifying gaps without suggesting how to address them. These are opportunities that existing competitors are not sufficiently addressing.
+
+Second${positioningSuggestionCount > 0 ? `, recommend EXACTLY ${positioningSuggestionCount} specific positioning suggestion${positioningSuggestionCount === 1 ? '' : 's'} that would help differentiate this idea in the market. These should be concrete actionable advice on how to position the product/service` : ', you do not need to provide any positioning suggestions'}.
+
+Format your response as a valid JSON object with this exact structure: 
+{
+  "marketGaps": [
+    "First gap description - this should ONLY describe an unaddressed market opportunity without suggesting solutions"${marketGapCount > 1 ? ',\n    "Second gap description - another unaddressed market opportunity"' : ''}${marketGapCount > 2 ? ',\n    "Third gap description - another unaddressed market opportunity"' : ''}
+  ]${positioningSuggestionCount > 0 ? ',\n  "positioningSuggestions": [\n    "First positioning suggestion with specific feature or approach recommendation"' + (positioningSuggestionCount > 1 ? ',\n    "Second positioning suggestion with specific feature or approach recommendation"' : '') + (positioningSuggestionCount > 2 ? ',\n    "Third positioning suggestion with specific feature or approach recommendation"' : '') + '\n  ]' : ',\n  "positioningSuggestions": []'}
+}
+
+Make each description a separate entry with enough detail to be actionable (max 50 words each). Only include the JSON object in your response, no additional text, markdown, or explanations.`;
 
   console.log("Sending request to OpenAI API");
   const startTime = Date.now();
@@ -573,7 +586,7 @@ async function handleMarketGapAnalysis(
   
   const analysisJson = JSON.parse(data.choices[0].message.content);
   
-  // Apply tier limitations
+  // Apply tier limitations while ensuring proper separation
   let marketGaps = analysisJson.marketGaps || [];
   let positioningSuggestions = analysisJson.positioningSuggestions || [];
   
@@ -586,7 +599,7 @@ async function handleMarketGapAnalysis(
     // Fill remaining market gaps if needed
     const missingCount = tierLimits.marketGapCount - marketGaps.length;
     for (let i = 0; i < missingCount; i++) {
-      marketGaps.push(`Consider exploring additional market segments or features not covered by competitors to fill gap ${i+1} in the current market landscape.`);
+      marketGaps.push(`Market opportunity ${i+1}: There appears to be a gap in the current market where customer needs are not being fully addressed.`);
     }
   }
   
@@ -601,7 +614,7 @@ async function handleMarketGapAnalysis(
     // Fill remaining positioning suggestions if needed
     const missingCount = tierLimits.positioningSuggestionCount - positioningSuggestions.length;
     for (let i = 0; i < missingCount; i++) {
-      positioningSuggestions.push(`Differentiate your offering by focusing on unique value proposition ${i+1} that addresses a specific customer pain point not covered by competitors.`);
+      positioningSuggestions.push(`Positioning strategy ${i+1}: Consider developing a unique value proposition that addresses a specific customer pain point not covered by competitors.`);
     }
   }
   
@@ -615,7 +628,8 @@ async function handleMarketGapAnalysis(
       success: true,
       analysis,
       tier,
-      remainingUsage: tierLimits.usageLimit - 1 // Approximate remaining usage
+      remainingUsage: tierLimits.usageLimit - 1, // Approximate remaining usage
+      nextReset: userAccess.nextReset
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
