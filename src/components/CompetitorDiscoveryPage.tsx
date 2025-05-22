@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import LoadingState from './ui/LoadingState';
 import { fetchCompetitors } from '@/lib/api/competitors';
 import CompetitorsList from './competitors/CompetitorsList';
 import FindCompetitorsDialog from './competitors/FindCompetitorsDialog';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface CompetitorDiscoveryPageProps {
   idea: string;
@@ -94,48 +96,47 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
                 />
                 
                 <div className="flex flex-col md:flex-row justify-between gap-4">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => setIsDialogOpen(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  <div className="flex gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => navigate('/idea')}
+                      className="flex items-center gap-2"
                     >
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <span>Find Competitors</span>
-                  </Button>
+                      <ArrowLeft size={18} />
+                      <span>Back</span>
+                    </Button>
+                    
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setIsDialogOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                      <span>Find Competitors</span>
+                    </Button>
+                  </div>
                   
                   <Button 
                     type="submit" 
                     className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
                   >
                     <span>Next</span>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="18" 
-                      height="18" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                    >
-                      <path d="M5 12h14" />
-                      <path d="m12 5 7 7-7 7" />
-                    </svg>
+                    <ArrowRight size={18} />
                   </Button>
                 </div>
               </form>

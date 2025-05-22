@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Header from './Header';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface ValidationPlanPageProps {
   initialValidationPlan?: string;
@@ -19,10 +20,8 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validationPlan.trim()) {
-      onValidationPlanSubmit(validationPlan);
-      navigate('/idea/summary');
-    }
+    onValidationPlanSubmit(validationPlan);
+    navigate('/idea/summary');
   };
   
   return (
@@ -50,31 +49,26 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
                   value={validationPlan}
                   onChange={(e) => setValidationPlan(e.target.value)}
                   className="min-h-[150px] resize-y"
-                  required
                 />
               </div>
               
-              <div className="flex justify-end">
+              <div className="flex justify-between">
+                <Button
+                  type="button" 
+                  variant="outline"
+                  onClick={() => navigate('/idea/market-gaps')}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft size={18} />
+                  <span>Back</span>
+                </Button>
+                
                 <Button 
                   type="submit" 
                   className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
-                  disabled={!validationPlan.trim()}
                 >
                   <span>Next</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="18" 
-                    height="18" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
-                  </svg>
+                  <ArrowRight size={18} />
                 </Button>
               </div>
             </form>

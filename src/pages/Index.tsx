@@ -50,7 +50,7 @@ const Index = () => {
   // Prevent redirection when user is navigating through the idea flow
   useEffect(() => {
     const currentPath = location.pathname;
-    const isIdeaEntryPage = currentPath === '/idea' || currentPath === '/idea/';
+    const isIdeaEntryPage = currentPath === '/idea';
     const isCompetitorsPage = currentPath === '/idea/competitors';
     const isMarketGapsPage = currentPath === '/idea/market-gaps';
     const isValidationPlanPage = currentPath === '/idea/validation-plan';

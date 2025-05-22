@@ -10,6 +10,8 @@ import MarketGapForm from './market-gaps/MarketGapForm';
 import AISuggestionDialog from './market-gaps/AISuggestionDialog';
 import SocialInsightsWaitlist from './market-gaps/SocialInsightsWaitlist';
 import { useAuth } from '@/context/AuthContext';
+import { Button } from './ui/button';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface MarketGapPageProps {
   idea: string;
@@ -67,14 +69,35 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
             {isLoading ? (
               <LoadingState message="Hang tight - our AI is generating an analysis" />
             ) : (
-              <MarketGapForm
-                marketGaps={marketGaps}
-                analysis={analysis}
-                setMarketGaps={setMarketGaps}
-                onGetAiSuggestions={() => setIsDialogOpen(true)}
-                onSubmit={handleSubmit}
-                isCompetitorsAvailable={competitors.length > 0}
-              />
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <MarketGapForm
+                  marketGaps={marketGaps}
+                  analysis={analysis}
+                  setMarketGaps={setMarketGaps}
+                  onGetAiSuggestions={() => setIsDialogOpen(true)}
+                  isCompetitorsAvailable={competitors.length > 0}
+                />
+                
+                <div className="flex justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate('/idea/competitors')}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft size={18} />
+                    <span>Back</span>
+                  </Button>
+                  
+                  <Button 
+                    type="submit" 
+                    className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
+                  >
+                    <span>Next</span>
+                    <ArrowRight size={18} />
+                  </Button>
+                </div>
+              </form>
             )}
             
             {user && (
