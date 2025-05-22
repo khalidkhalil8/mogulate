@@ -23,7 +23,7 @@ const MarketGapForm: React.FC<MarketGapFormProps> = ({
   isCompetitorsAvailable,
 }) => {
   return (
-    <form onSubmit={onSubmit} className="space-y-8">
+    <div className="space-y-8">
       {analysis && (
         <div className="space-y-6">
           <MarketGapAnalysisCard analysis={analysis} />
@@ -48,7 +48,7 @@ const MarketGapForm: React.FC<MarketGapFormProps> = ({
         />
       </div>
       
-      <div className="flex flex-col md:flex-row justify-between gap-4">
+      <div className="flex justify-start">
         <Button
           type="button"
           variant="secondary"
@@ -71,30 +71,8 @@ const MarketGapForm: React.FC<MarketGapFormProps> = ({
           </svg>
           <span>Get AI Suggestions</span>
         </Button>
-        
-        <Button 
-          type="submit" 
-          className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
-          disabled={!marketGaps.trim()}
-        >
-          <span>Next</span>
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="18" 
-            height="18" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          >
-            <path d="M5 12h14" />
-            <path d="m12 5 7 7-7 7" />
-          </svg>
-        </Button>
       </div>
-    </form>
+    </div>
   );
 };
 

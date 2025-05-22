@@ -21,7 +21,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onValidationPlanSubmit(validationPlan);
-    navigate('/idea/summary');
+    navigate('/summary');
   };
   
   return (
@@ -56,7 +56,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
                 <Button
                   type="button" 
                   variant="outline"
-                  onClick={() => navigate('/idea/market-gaps')}
+                  onClick={() => navigate('/market-gaps')}
                   className="flex items-center gap-2"
                 >
                   <ArrowLeft size={18} />
