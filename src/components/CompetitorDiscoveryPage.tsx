@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -73,7 +72,7 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
   const handleBack = () => {
     // Save current competitors before navigating back to maintain state
     onCompetitorsSubmit(competitors);
-    navigate('/');
+    navigate('/idea');
   };
   
   return (

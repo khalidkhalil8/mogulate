@@ -47,71 +47,58 @@ const Index = () => {
     });
   };
   
-  // Prevent redirection when user is navigating through the idea flow
+  // Determine which component to show based on the current path
+  const currentPath = location.pathname;
+  
+  // Prevent access to steps if idea is empty
   useEffect(() => {
-    const currentPath = location.pathname;
-    const isIdeaEntryPage = currentPath === '/idea';
-    
-    // Only redirect if we're in the idea flow (not on /idea), and the idea is empty
-    if (currentPath.startsWith('/idea') && !isIdeaEntryPage && !ideaData.idea) {
+    if (currentPath !== '/idea' && !ideaData.idea) {
       navigate('/idea');
     }
-  }, [location.pathname, ideaData.idea, navigate]);
+  }, [currentPath, ideaData.idea, navigate]);
   
-  return (
-    <Routes>
-      <Route 
-        path="/" 
-        element={
-          <IdeaEntryPage 
-            initialIdea={ideaData.idea} 
-            onIdeaSubmit={handleIdeaSubmit} 
-          />
-        } 
+  // Render the correct component based on the current path
+  if (currentPath === '/competitors') {
+    return (
+      <CompetitorDiscoveryPage 
+        idea={ideaData.idea}
+        initialCompetitors={ideaData.competitors}
+        onCompetitorsSubmit={handleCompetitorsSubmit}
       />
-      <Route 
-        path="/competitors" 
-        element={
-          <CompetitorDiscoveryPage 
-            idea={ideaData.idea}
-            initialCompetitors={ideaData.competitors}
-            onCompetitorsSubmit={handleCompetitorsSubmit}
-          />
-        } 
+    );
+  } else if (currentPath === '/market-gaps') {
+    return (
+      <MarketGapPage 
+        idea={ideaData.idea}
+        competitors={ideaData.competitors}
+        initialMarketGaps={ideaData.marketGaps}
+        initialAnalysis={ideaData.marketGapAnalysis}
+        onMarketGapsSubmit={handleMarketGapsSubmit}
       />
-      <Route 
-        path="/market-gaps" 
-        element={
-          <MarketGapPage 
-            idea={ideaData.idea}
-            competitors={ideaData.competitors}
-            initialMarketGaps={ideaData.marketGaps}
-            initialAnalysis={ideaData.marketGapAnalysis}
-            onMarketGapsSubmit={handleMarketGapsSubmit}
-          />
-        } 
+    );
+  } else if (currentPath === '/validation-plan') {
+    return (
+      <ValidationPlanPage 
+        initialValidationPlan={ideaData.validationPlan}
+        onValidationPlanSubmit={handleValidationPlanSubmit}
       />
-      <Route 
-        path="/validation-plan" 
-        element={
-          <ValidationPlanPage 
-            initialValidationPlan={ideaData.validationPlan}
-            onValidationPlanSubmit={handleValidationPlanSubmit}
-          />
-        } 
+    );
+  } else if (currentPath === '/summary') {
+    return (
+      <SummaryPage 
+        data={ideaData}
+        onReset={handleReset}
       />
-      <Route 
-        path="/summary" 
-        element={
-          <SummaryPage 
-            data={ideaData}
-            onReset={handleReset}
-          />
-        } 
+    );
+  } else {
+    // Default to idea entry page
+    return (
+      <IdeaEntryPage 
+        initialIdea={ideaData.idea} 
+        onIdeaSubmit={handleIdeaSubmit} 
       />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
+    );
+  }
 };
 
 export default Index;
