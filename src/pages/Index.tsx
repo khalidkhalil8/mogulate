@@ -51,20 +51,9 @@ const Index = () => {
   useEffect(() => {
     const currentPath = location.pathname;
     const isIdeaEntryPage = currentPath === '/idea';
-    const isCompetitorsPage = currentPath === '/idea/competitors';
-    const isMarketGapsPage = currentPath === '/idea/market-gaps';
-    const isValidationPlanPage = currentPath === '/idea/validation-plan';
-    const isSummaryPage = currentPath === '/idea/summary';
     
-    // Only redirect if:
-    // - We're in the idea flow (not on a different part of the app)
-    // - Not on the entry pages
-    // - AND the idea is empty
-    const isInIdeaFlow = currentPath.startsWith('/idea');
-    const isOnEntryPage = isIdeaEntryPage || isCompetitorsPage || isMarketGapsPage || 
-                           isValidationPlanPage || isSummaryPage;
-    
-    if (isInIdeaFlow && !isOnEntryPage && !ideaData.idea) {
+    // Only redirect if we're in the idea flow (not on /idea), and the idea is empty
+    if (currentPath.startsWith('/idea') && !isIdeaEntryPage && !ideaData.idea) {
       navigate('/idea');
     }
   }, [location.pathname, ideaData.idea, navigate]);

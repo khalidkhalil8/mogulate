@@ -65,12 +65,15 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Filter out incomplete competitors
-    const validCompetitors = competitors.filter(
-      comp => comp.name.trim() && comp.website.trim()
-    );
-    onCompetitorsSubmit(validCompetitors);
-    navigate('/idea/market-gaps');
+    // Always save current competitors state, even if empty
+    onCompetitorsSubmit(competitors);
+    navigate('/market-gaps');
+  };
+  
+  const handleBack = () => {
+    // Save current competitors before navigating back to maintain state
+    onCompetitorsSubmit(competitors);
+    navigate('/');
   };
   
   return (
@@ -100,7 +103,7 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => navigate('/idea')}
+                      onClick={handleBack}
                       className="flex items-center gap-2"
                     >
                       <ArrowLeft size={18} />

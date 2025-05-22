@@ -54,6 +54,12 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
     onMarketGapsSubmit(marketGaps, analysis);
     navigate('/validation-plan');
   };
+
+  const handleBack = () => {
+    // Save current market gaps before navigating back
+    onMarketGapsSubmit(marketGaps, analysis);
+    navigate('/competitors');
+  };
   
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -69,14 +75,36 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
             {isLoading ? (
               <LoadingState message="Hang tight - our AI is generating an analysis" />
             ) : (
-              <MarketGapForm
-                marketGaps={marketGaps}
-                analysis={analysis}
-                setMarketGaps={setMarketGaps}
-                onGetAiSuggestions={() => setIsDialogOpen(true)}
-                onSubmit={handleSubmit}
-                isCompetitorsAvailable={competitors.length > 0}
-              />
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <MarketGapForm
+                  marketGaps={marketGaps}
+                  analysis={analysis}
+                  setMarketGaps={setMarketGaps}
+                  onGetAiSuggestions={() => setIsDialogOpen(true)}
+                  onSubmit={handleSubmit}
+                  isCompetitorsAvailable={competitors.length > 0}
+                />
+                
+                <div className="flex justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft size={18} />
+                    <span>Back</span>
+                  </Button>
+                  
+                  <Button 
+                    type="submit" 
+                    className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
+                  >
+                    <span>Next</span>
+                    <ArrowRight size={18} />
+                  </Button>
+                </div>
+              </form>
             )}
             
             {user && (
