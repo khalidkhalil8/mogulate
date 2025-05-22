@@ -52,7 +52,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onMarketGapsSubmit(marketGaps, analysis);
-    navigate('/idea/validation-plan');
+    navigate('/validation-plan');
   };
   
   return (
@@ -69,35 +69,14 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
             {isLoading ? (
               <LoadingState message="Hang tight - our AI is generating an analysis" />
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-8">
-                <MarketGapForm
-                  marketGaps={marketGaps}
-                  analysis={analysis}
-                  setMarketGaps={setMarketGaps}
-                  onGetAiSuggestions={() => setIsDialogOpen(true)}
-                  isCompetitorsAvailable={competitors.length > 0}
-                />
-                
-                <div className="flex justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate('/idea/competitors')}
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft size={18} />
-                    <span>Back</span>
-                  </Button>
-                  
-                  <Button 
-                    type="submit" 
-                    className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
-                  >
-                    <span>Next</span>
-                    <ArrowRight size={18} />
-                  </Button>
-                </div>
-              </form>
+              <MarketGapForm
+                marketGaps={marketGaps}
+                analysis={analysis}
+                setMarketGaps={setMarketGaps}
+                onGetAiSuggestions={() => setIsDialogOpen(true)}
+                onSubmit={handleSubmit}
+                isCompetitorsAvailable={competitors.length > 0}
+              />
             )}
             
             {user && (
