@@ -5,22 +5,18 @@ import { supabase } from "@/integrations/supabase/client";
 export interface FeatureWaitlist {
   id: string;
   user_id: string;
-  feature_name: string;
   joined_at: string;
 }
 
 /**
- * Joins a feature waitlist
+ * Joins the unified feature waitlist
  */
-export const joinFeatureWaitlist = async (
-  featureName: string
-): Promise<boolean> => {
+export const joinFeatureWaitlist = async (): Promise<boolean> => {
   try {
     const { data: existingEntry, error: checkError } = await supabase
       .from('feature_waitlists')
       .select('id')
-      .eq('feature_name', featureName)
-      .single();
+      .maybeSingle();
 
     if (checkError && checkError.code !== 'PGRST116') {
       console.error('Error checking waitlist entry:', checkError);
@@ -30,26 +26,23 @@ export const joinFeatureWaitlist = async (
     // If user is already in the waitlist, return true
     if (existingEntry) {
       toast.info('Already on waitlist', {
-        description: `You're already on the waitlist for this feature`
+        description: `You're already on the waitlist for upcoming features`
       });
       return true;
     }
 
-    // Get the current user's ID - fix: need to provide user_id
+    // Get the current user's ID
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error('Authentication required', {
-        description: 'You must be logged in to join a waitlist'
+        description: 'You must be logged in to join the waitlist'
       });
       return false;
     }
 
     const { error } = await supabase
       .from('feature_waitlists')
-      .insert({ 
-        feature_name: featureName,
-        user_id: user.id 
-      });
+      .insert({ user_id: user.id });
 
     if (error) {
       console.error('Error joining waitlist:', error);
@@ -60,7 +53,7 @@ export const joinFeatureWaitlist = async (
     }
 
     toast.success('Joined waitlist', {
-      description: `You've been added to the ${featureName} waitlist`
+      description: `You've been added to the waitlist for upcoming features`
     });
     return true;
   } catch (error) {
@@ -73,16 +66,14 @@ export const joinFeatureWaitlist = async (
 };
 
 /**
- * Leaves a feature waitlist
+ * Leaves the feature waitlist
  */
-export const leaveFeatureWaitlist = async (
-  featureName: string
-): Promise<boolean> => {
+export const leaveFeatureWaitlist = async (): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from('feature_waitlists')
       .delete()
-      .eq('feature_name', featureName);
+      .is('user_id', 'auth.uid()');
 
     if (error) {
       console.error('Error leaving waitlist:', error);
@@ -93,7 +84,7 @@ export const leaveFeatureWaitlist = async (
     }
 
     toast.success('Left waitlist', {
-      description: `You've been removed from the ${featureName} waitlist`
+      description: `You've been removed from the features waitlist`
     });
     return true;
   } catch (error) {
@@ -106,16 +97,13 @@ export const leaveFeatureWaitlist = async (
 };
 
 /**
- * Checks if the user is on a specific feature waitlist
+ * Checks if the user is on the feature waitlist
  */
-export const isOnFeatureWaitlist = async (
-  featureName: string
-): Promise<boolean> => {
+export const isOnFeatureWaitlist = async (): Promise<boolean> => {
   try {
     const { data, error } = await supabase
       .from('feature_waitlists')
       .select('id')
-      .eq('feature_name', featureName)
       .maybeSingle();
 
     if (error) {
@@ -131,22 +119,23 @@ export const isOnFeatureWaitlist = async (
 };
 
 /**
- * Gets all feature waitlists for the current user
+ * Gets the user's waitlist entry if they are on it
  */
-export const getUserWaitlists = async (): Promise<FeatureWaitlist[]> => {
+export const getUserWaitlistEntry = async (): Promise<FeatureWaitlist | null> => {
   try {
     const { data, error } = await supabase
       .from('feature_waitlists')
-      .select('*');
+      .select('*')
+      .maybeSingle();
 
     if (error) {
-      console.error('Error fetching user waitlists:', error);
-      return [];
+      console.error('Error fetching user waitlist:', error);
+      return null;
     }
 
-    return data || [];
+    return data;
   } catch (error) {
-    console.error('Error fetching user waitlists:', error);
-    return [];
+    console.error('Error fetching user waitlist:', error);
+    return null;
   }
 };

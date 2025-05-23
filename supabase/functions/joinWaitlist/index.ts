@@ -52,28 +52,11 @@ serve(async (req) => {
       );
     }
 
-    // Parse the request body to get the feature_name
-    const { feature_name } = await req.json();
-    
-    if (!feature_name) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'feature_name is required' 
-        }),
-        { 
-          status: 400, 
-          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
-        }
-      );
-    }
-
     // Check if the user is already on the waitlist
     const { data: existingEntry, error: checkError } = await supabase
       .from('feature_waitlists')
       .select('id')
       .eq('user_id', user.id)
-      .eq('feature_name', feature_name)
       .maybeSingle();
 
     if (checkError) {
@@ -110,7 +93,6 @@ serve(async (req) => {
       .from('feature_waitlists')
       .insert({
         user_id: user.id,
-        feature_name: feature_name,
         // joined_at will use the default now() value from the table definition
       })
       .select();
@@ -133,7 +115,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Successfully joined waitlist',
+        message: "✅ You've joined the waitlist! We'll notify you when these features launch.",
         data
       }),
       { 

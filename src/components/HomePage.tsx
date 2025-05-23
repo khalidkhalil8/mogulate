@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import Header from './Header';
 import PricingSection from './pricing/PricingSection';
+import UpcomingFeaturesSection from './features/UpcomingFeaturesSection';
 import { useAuth } from '@/context/AuthContext';
 
 const HomePage: React.FC = () => {
@@ -88,6 +89,9 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </section>
+        
+        {/* Features Coming Soon Section */}
+        <UpcomingFeaturesSection />
         
         {/* Add Pricing Section */}
         <PricingSection isHomePage={true} />

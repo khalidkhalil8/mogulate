@@ -1,13 +1,22 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
+import { isOnFeatureWaitlist } from '@/lib/api/waitlist';
 
 const SocialInsightsWaitlist: React.FC = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
+  
+  useEffect(() => {
+    const checkWaitlistStatus = async () => {
+      const onWaitlist = await isOnFeatureWaitlist();
+      setHasJoined(onWaitlist);
+    };
+    checkWaitlistStatus();
+  }, []);
 
   const handleJoinWaitlist = async () => {
     setIsJoining(true);
@@ -29,10 +38,7 @@ const SocialInsightsWaitlist: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            feature_name: 'social_insights'
-          }),
+          }
         }
       );
       
@@ -41,7 +47,7 @@ const SocialInsightsWaitlist: React.FC = () => {
       if (data.success) {
         setHasJoined(true);
         toast.success("Joined waitlist", {
-          description: "✅ You've been added to the waitlist for Social Insights!",
+          description: data.message || "✅ You've been added to the waitlist for upcoming features!",
         });
       } else {
         toast.error("Could not join waitlist", {

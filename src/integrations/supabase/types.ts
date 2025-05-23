@@ -38,19 +38,16 @@ export type Database = {
       }
       feature_waitlists: {
         Row: {
-          feature_name: string
           id: string
           joined_at: string
           user_id: string
         }
         Insert: {
-          feature_name: string
           id?: string
           joined_at?: string
           user_id: string
         }
         Update: {
-          feature_name?: string
           id?: string
           joined_at?: string
           user_id?: string
@@ -59,7 +56,7 @@ export type Database = {
           {
             foreignKeyName: "feature_waitlists_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
