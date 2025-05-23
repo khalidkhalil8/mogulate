@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -29,6 +29,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
   currentPlan = false,
 }) => {
   const { user, userProfile, refreshUserProfile } = useAuth();
+  const [isUpdating, setIsUpdating] = useState(false);
   
   const handleSubscription = async () => {
     if (!user) {
@@ -36,6 +37,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
       return;
     }
     
+    setIsUpdating(true);
     try {
       const success = await updateSubscription(user.id, tier.toLowerCase());
       if (success) {
@@ -46,6 +48,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
     } catch (error) {
       toast.error("Failed to update subscription");
       console.error("Error updating subscription:", error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -88,9 +92,9 @@ const PricingCard: React.FC<PricingCardProps> = ({
               ? "bg-gray-500 hover:bg-gray-600"
               : ""
           }`}
-          disabled={currentPlan}
+          disabled={currentPlan || isUpdating}
         >
-          {currentPlan ? "Current Plan" : buttonText}
+          {isUpdating ? "Updating..." : currentPlan ? "Current Plan" : buttonText}
         </Button>
       </CardFooter>
     </Card>

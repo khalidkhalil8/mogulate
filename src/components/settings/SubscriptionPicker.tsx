@@ -16,6 +16,9 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
   userId,
   onChangeSubscription
 }) => {
+  // Normalize tier to lowercase to ensure consistent comparison
+  const normalizedTier = currentTier.toLowerCase();
+  
   return (
     <Card>
       <CardHeader>
@@ -24,7 +27,7 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {currentTier !== "free" && (
+          {normalizedTier !== "free" && (
             <div className="flex justify-between items-center p-4 border rounded-md">
               <div>
                 <p className="font-medium">Free Plan</p>
@@ -33,14 +36,14 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
               <Button 
                 variant="outline" 
                 onClick={() => onChangeSubscription("free")}
-                disabled={isUpdating || currentTier === "free"}
+                disabled={isUpdating || normalizedTier === "free"}
               >
                 Switch to Free
               </Button>
             </div>
           )}
           
-          {currentTier !== "starter" && (
+          {normalizedTier !== "starter" && (
             <div className="flex justify-between items-center p-4 border rounded-md bg-gray-50">
               <div>
                 <p className="font-medium">Starter Plan</p>
@@ -48,14 +51,14 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
               </div>
               <Button 
                 onClick={() => onChangeSubscription("starter")}
-                disabled={isUpdating || currentTier === "starter"}
+                disabled={isUpdating || normalizedTier === "starter"}
               >
-                {currentTier === "pro" ? "Switch to Starter" : "Upgrade to Starter"}
+                {normalizedTier === "pro" ? "Switch to Starter" : "Upgrade to Starter"}
               </Button>
             </div>
           )}
           
-          {currentTier !== "pro" && (
+          {normalizedTier !== "pro" && (
             <div className="flex justify-between items-center p-4 border rounded-md bg-blue-50">
               <div>
                 <p className="font-medium">Pro Plan</p>
@@ -63,7 +66,7 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
               </div>
               <Button 
                 onClick={() => onChangeSubscription("pro")}
-                disabled={isUpdating || currentTier === "pro"}
+                disabled={isUpdating || normalizedTier === "pro"}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 Upgrade to Pro

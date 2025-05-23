@@ -14,7 +14,7 @@ import { updateSubscription } from "@/lib/api/subscription";
 import { toast } from "@/components/ui/sonner";
 
 const ProfilePage = () => {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, refreshUserProfile } = useAuth();
   const [isUpdatingSubscription, setIsUpdatingSubscription] = useState(false);
   const { usageData, isLoading: isUsageLoading, refetchUsage } = useUsageData(user?.id);
   
@@ -29,6 +29,8 @@ const ProfilePage = () => {
       const success = await updateSubscription(user.id, newTier);
       if (success) {
         toast.success(`Subscription updated to ${newTier} plan`);
+        // Refresh user profile after subscription change to update UI
+        await refreshUserProfile();
         // Refresh usage data after subscription change
         refetchUsage();
       }
@@ -60,7 +62,7 @@ const ProfilePage = () => {
             <TabsContent value="subscription">
               <div className="space-y-6">
                 <SubscriptionDetails 
-                  subscriptionTier={userProfile?.subscription_tier || 'free'} 
+                  subscriptionTier={usageData?.tier || userProfile?.subscription_tier || 'free'} 
                   usageData={usageData}
                   isLoading={isUsageLoading}
                 />
@@ -82,7 +84,7 @@ const ProfilePage = () => {
                   </CardHeader>
                   <CardContent>
                     <SubscriptionPicker 
-                      currentTier={userProfile?.subscription_tier || 'free'}
+                      currentTier={usageData?.tier || userProfile?.subscription_tier || 'free'}
                       isUpdating={isUpdatingSubscription}
                       userId={user?.id}
                       onChangeSubscription={handleChangeSubscription}

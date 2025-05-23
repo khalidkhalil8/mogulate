@@ -16,6 +16,9 @@ const SubscriptionDetails: React.FC<SubscriptionDetailsProps> = ({
   usageData,
   isLoading
 }) => {
+  // Always prefer the tier from the usageData as it's the most up-to-date
+  const displayTier = usageData?.tier || subscriptionTier || 'free';
+  
   return (
     <Card>
       <CardHeader>
@@ -26,7 +29,7 @@ const SubscriptionDetails: React.FC<SubscriptionDetailsProps> = ({
         <div className="flex flex-col space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Current Plan</span>
-            <span className="font-medium capitalize">{subscriptionTier} Plan</span>
+            <span className="font-medium capitalize">{displayTier} Plan</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Next Reset Date</span>
