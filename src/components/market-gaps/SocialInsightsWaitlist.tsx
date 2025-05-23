@@ -2,9 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
-import { isOnFeatureWaitlist } from '@/lib/api/waitlist';
+import { isOnFeatureWaitlist, joinFeatureWaitlist } from '@/lib/api/waitlist';
 
 const SocialInsightsWaitlist: React.FC = () => {
   const [isJoining, setIsJoining] = useState(false);
@@ -22,37 +21,10 @@ const SocialInsightsWaitlist: React.FC = () => {
     setIsJoining(true);
     
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const success = await joinFeatureWaitlist();
       
-      if (!session) {
-        toast.error("Authentication required", {
-          description: "Please sign in to join the waitlist",
-        });
-        return;
-      }
-      
-      const response = await fetch(
-        'https://thpsoempfyxnjhaflyha.supabase.co/functions/v1/joinWaitlist',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          }
-        }
-      );
-      
-      const data = await response.json();
-      
-      if (data.success) {
+      if (success) {
         setHasJoined(true);
-        toast.success("Joined waitlist", {
-          description: data.message || "✅ You've been added to the waitlist for upcoming features!",
-        });
-      } else {
-        toast.error("Could not join waitlist", {
-          description: data.error || "⚠️ Something went wrong. Please try again.",
-        });
       }
     } catch (error) {
       console.error("Error joining waitlist:", error);
