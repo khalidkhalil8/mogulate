@@ -70,10 +70,20 @@ export const joinFeatureWaitlist = async (): Promise<boolean> => {
  */
 export const leaveFeatureWaitlist = async (): Promise<boolean> => {
   try {
+    // Get the current user's ID first
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error('Authentication required', {
+        description: 'You must be logged in to leave the waitlist'
+      });
+      return false;
+    }
+    
+    // Then use the user ID in the delete query
     const { error } = await supabase
       .from('feature_waitlists')
       .delete()
-      .is('user_id', 'auth.uid()');
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error leaving waitlist:', error);
