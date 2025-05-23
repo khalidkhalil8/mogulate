@@ -39,7 +39,7 @@ const PricingPage: React.FC = () => {
       
       <footer className="py-8 px-4 border-t">
         <div className="container-width text-center text-gray-500">
-          <p>© 2025 TalonIQ. All rights reserved.</p>
+          <p>© 2025 Mogulate. All rights reserved.</p>
         </div>
       </footer>
     </div>

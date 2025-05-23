@@ -41,7 +41,7 @@ const Header: React.FC = () => {
       <div className="container-width flex items-center justify-between">
         <Link to="/" className="flex items-center">
           <div className="text-2xl font-bold bg-clip-text text-transparent gradient-bg">
-            TalonIQ
+            Mogulate
           </div>
         </Link>
         

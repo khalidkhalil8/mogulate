@@ -45,7 +45,7 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
-        <title>Profile | Idea Validator</title>
+        <title>Profile | Mogulate</title>
       </Helmet>
       <Header />
       
