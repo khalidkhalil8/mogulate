@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 
 const UserProfileDropdown: React.FC = () => {
-  const { user, logout, userProfile } = useAuth();
+  const { user, logout, userProfile, refreshUserProfile } = useAuth();
   
   if (!user) {
     return null;

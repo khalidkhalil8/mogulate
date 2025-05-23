@@ -1,6 +1,7 @@
 
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getUsageStatus } from "./usage";
 
 export const updateSubscription = async (
   userId: string,
@@ -31,6 +32,9 @@ export const updateSubscription = async (
       return false;
     }
 
+    // Get updated usage after subscription change
+    await getUsageStatus(userId);
+    
     toast.success(`Subscription updated`, {
       description: `Your ${newTier} plan is now active`
     });

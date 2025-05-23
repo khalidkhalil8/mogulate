@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
@@ -9,18 +9,14 @@ import SubscriptionDetails from "@/components/settings/SubscriptionDetails";
 import UsageProgress from "@/components/settings/UsageProgress";
 import SubscriptionPicker from "@/components/settings/SubscriptionPicker";
 import FeatureWaitlists from "@/components/settings/FeatureWaitlists";
-import { useUserUsage } from "@/hooks/useUserUsage";
+import { useUsageData } from "@/hooks/useUsageData";
 import { updateSubscription } from "@/lib/api/subscription";
 import { toast } from "@/components/ui/sonner";
 
 const ProfilePage = () => {
   const { user, userProfile } = useAuth();
   const [isUpdatingSubscription, setIsUpdatingSubscription] = useState(false);
-  const { usageData, isLoading: isUsageLoading } = useUserUsage(
-    user?.id, 
-    userProfile?.subscription_started_at,
-    userProfile?.subscription_tier
-  );
+  const { usageData, isLoading: isUsageLoading, refetchUsage } = useUsageData(user?.id);
   
   const handleChangeSubscription = async (newTier: string) => {
     if (!user?.id) {
@@ -33,12 +29,16 @@ const ProfilePage = () => {
       const success = await updateSubscription(user.id, newTier);
       if (success) {
         toast.success(`Subscription updated to ${newTier} plan`);
-        // The auth context should refresh automatically to reflect the new subscription
+        // Refresh usage data after subscription change
+        refetchUsage();
       }
     } finally {
       setIsUpdatingSubscription(false);
     }
   };
+  
+  // Show alert if user has downgraded and now exceeds their plan limit
+  const showAlert = usageData ? usageData.used > usageData.limit : false;
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -61,15 +61,15 @@ const ProfilePage = () => {
               <div className="space-y-6">
                 <SubscriptionDetails 
                   subscriptionTier={userProfile?.subscription_tier || 'free'} 
-                  nextResetDate={usageData?.nextResetDate}
                   usageData={usageData}
                   isLoading={isUsageLoading}
                 />
                 
                 {usageData && !isUsageLoading && (
                   <UsageProgress 
-                    usedCount={usageData.usedCount}
-                    maxCount={usageData.maxCount}
+                    usedCount={usageData.used}
+                    maxCount={usageData.limit}
+                    showAlert={showAlert}
                   />
                 )}
                 

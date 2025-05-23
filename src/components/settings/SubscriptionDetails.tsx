@@ -1,11 +1,12 @@
 
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { UsageStatus } from "@/lib/api/usage";
 
 interface SubscriptionDetailsProps {
   subscriptionTier: string;
   nextResetDate?: string;
-  usageData: any;
+  usageData: UsageStatus | null;
   isLoading: boolean;
 }
 
@@ -29,7 +30,7 @@ const SubscriptionDetails: React.FC<SubscriptionDetailsProps> = ({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Next Reset Date</span>
-            <span className="font-medium">{nextResetDate || 'Not available'}</span>
+            <span className="font-medium">{(usageData?.nextReset || nextResetDate) || 'Not available'}</span>
           </div>
         </div>
       </CardContent>

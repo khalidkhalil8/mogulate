@@ -28,7 +28,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
   buttonText = "Choose Plan",
   currentPlan = false,
 }) => {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, refreshUserProfile } = useAuth();
   
   const handleSubscription = async () => {
     if (!user) {
@@ -40,6 +40,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
       const success = await updateSubscription(user.id, tier.toLowerCase());
       if (success) {
         toast.success(`Successfully changed subscription to ${tier}`);
+        // Refresh user profile to show updated subscription status
+        await refreshUserProfile();
       }
     } catch (error) {
       toast.error("Failed to update subscription");
