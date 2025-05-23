@@ -13,7 +13,7 @@ import { useUserUsage } from "@/hooks/useUserUsage";
 import { updateSubscription } from "@/lib/api/subscription";
 import { toast } from "@/components/ui/sonner";
 
-const Settings = () => {
+const ProfilePage = () => {
   const { user, userProfile } = useAuth();
   const [isUpdatingSubscription, setIsUpdatingSubscription] = useState(false);
   const { usageData, isLoading: isUsageLoading } = useUserUsage(
@@ -43,13 +43,13 @@ const Settings = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
-        <title>Settings | Idea Validator</title>
+        <title>Profile | Idea Validator</title>
       </Helmet>
       <Header />
       
       <main className="flex-1 py-8 px-4">
         <div className="container-width max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Settings</h1>
+          <h1 className="text-3xl font-bold mb-6">Profile</h1>
           
           <Tabs defaultValue="subscription">
             <TabsList className="mb-4">
@@ -102,4 +102,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default ProfilePage;

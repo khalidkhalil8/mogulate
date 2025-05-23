@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,7 +9,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
-import Settings from "./pages/Settings";
+import ProfilePage from "./pages/ProfilePage";
 import PricingPage from "./pages/PricingPage";
 import { useAuth } from "./context/AuthContext";
 import HomePage from "./components/HomePage";
@@ -46,10 +47,10 @@ const AppRoutes = () => {
       <Route path="/validation-plan" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/summary" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route 
-        path="/settings" 
+        path="/profile" 
         element={
           <ProtectedRoute>
-            <Settings />
+            <ProfilePage />
           </ProtectedRoute>
         } 
       />

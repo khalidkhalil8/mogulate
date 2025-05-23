@@ -59,14 +59,6 @@ const Header: React.FC = () => {
             >
               Pricing
             </button>
-            {user && (
-              <Link
-                to="/settings"
-                className="text-charcoal hover:text-teal-600 font-medium transition-colors"
-              >
-                Settings
-              </Link>
-            )}
           </nav>
           
           {isLoading ? (
