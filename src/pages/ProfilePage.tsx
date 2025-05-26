@@ -5,18 +5,85 @@ import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import SubscriptionDetails from "@/components/settings/SubscriptionDetails";
 import UsageProgress from "@/components/settings/UsageProgress";
 import SubscriptionPicker from "@/components/settings/SubscriptionPicker";
 import FeatureWaitlists from "@/components/settings/FeatureWaitlists";
 import { useUsageData } from "@/hooks/useUsageData";
 import { updateSubscription } from "@/lib/api/subscription";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 
 const ProfilePage = () => {
   const { user, userProfile, refreshUserProfile } = useAuth();
   const [isUpdatingSubscription, setIsUpdatingSubscription] = useState(false);
+  const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
+  const [isManagingSubscription, setIsManagingSubscription] = useState(false);
   const { usageData, isLoading: isUsageLoading, refetchUsage } = useUsageData(user?.id);
+  
+  // Check subscription status on page load
+  useEffect(() => {
+    if (user) {
+      checkSubscriptionStatus();
+    }
+  }, [user]);
+
+  const checkSubscriptionStatus = async () => {
+    if (!user) return;
+    
+    setIsCheckingSubscription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) {
+        console.error('Error checking subscription:', error);
+        toast.error('Failed to check subscription status');
+        return;
+      }
+
+      if (data) {
+        // Refresh user profile to get updated subscription info
+        await refreshUserProfile();
+        // Refresh usage data
+        refetchUsage();
+        toast.success('Subscription status updated');
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      toast.error('Failed to check subscription status');
+    } finally {
+      setIsCheckingSubscription(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    if (!user) {
+      toast.error("Please login to manage subscription");
+      return;
+    }
+
+    setIsManagingSubscription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      
+      if (error) {
+        throw error;
+      }
+
+      if (data?.url) {
+        // Open Stripe customer portal in a new tab
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error("No portal URL received");
+      }
+    } catch (error) {
+      toast.error("Failed to open subscription management");
+      console.error("Error opening customer portal:", error);
+    } finally {
+      setIsManagingSubscription(false);
+    }
+  };
   
   const handleChangeSubscription = async (newTier: string) => {
     if (!user?.id) {
@@ -74,6 +141,35 @@ const ProfilePage = () => {
                     showAlert={showAlert}
                   />
                 )}
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Subscription Management</CardTitle>
+                    <CardDescription>
+                      Manage your subscription and billing
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex gap-4">
+                      <Button
+                        onClick={checkSubscriptionStatus}
+                        disabled={isCheckingSubscription}
+                        variant="outline"
+                      >
+                        {isCheckingSubscription ? "Checking..." : "Refresh Status"}
+                      </Button>
+                      
+                      {userProfile?.subscription_tier !== 'free' && (
+                        <Button
+                          onClick={handleManageSubscription}
+                          disabled={isManagingSubscription}
+                        >
+                          {isManagingSubscription ? "Opening..." : "Manage Subscription"}
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
                 
                 <Card>
                   <CardHeader>

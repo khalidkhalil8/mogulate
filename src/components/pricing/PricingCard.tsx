@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { CheckCircle } from "lucide-react";
-import { updateSubscription } from "@/lib/api/subscription";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 
 interface PricingFeature {
@@ -29,27 +29,80 @@ const PricingCard: React.FC<PricingCardProps> = ({
   currentPlan = false,
 }) => {
   const { user, userProfile, refreshUserProfile } = useAuth();
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleSubscription = async () => {
     if (!user) {
-      toast.error("Please login to change subscription");
+      toast.error("Please login to subscribe");
+      return;
+    }
+
+    // Free plan - update locally
+    if (tier.toLowerCase() === "free") {
+      setIsLoading(true);
+      try {
+        const success = await updateSubscription(user.id, "free");
+        if (success) {
+          toast.success("Successfully switched to Free plan");
+          await refreshUserProfile();
+        }
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
     
-    setIsUpdating(true);
+    setIsLoading(true);
     try {
-      const success = await updateSubscription(user.id, tier.toLowerCase());
-      if (success) {
-        toast.success(`Successfully changed subscription to ${tier}`);
-        // Refresh user profile to show updated subscription status
-        await refreshUserProfile();
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          tier: tier.toLowerCase(),
+          priceId: null // We're creating the price dynamically in the function
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.url) {
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error("No checkout URL received");
       }
     } catch (error) {
-      toast.error("Failed to update subscription");
-      console.error("Error updating subscription:", error);
+      toast.error("Failed to create checkout session");
+      console.error("Error creating checkout:", error);
     } finally {
-      setIsUpdating(false);
+      setIsLoading(false);
+    }
+  };
+
+  // Helper function for free plan updates
+  const updateSubscription = async (userId: string, newTier: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('update-subscription', {
+        body: { userId, newTier }
+      });
+
+      if (error) {
+        console.error('Error calling update-subscription function:', error);
+        toast.error('Subscription update failed');
+        return false;
+      }
+
+      if (!data.success) {
+        console.error('Error from update-subscription function:', data.error);
+        toast.error('Subscription update failed');
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+      toast.error('Subscription update failed');
+      return false;
     }
   };
 
@@ -92,9 +145,9 @@ const PricingCard: React.FC<PricingCardProps> = ({
               ? "bg-gray-500 hover:bg-gray-600"
               : ""
           }`}
-          disabled={currentPlan || isUpdating}
+          disabled={currentPlan || isLoading}
         >
-          {isUpdating ? "Updating..." : currentPlan ? "Current Plan" : buttonText}
+          {isLoading ? "Processing..." : currentPlan ? "Current Plan" : buttonText}
         </Button>
       </CardFooter>
     </Card>

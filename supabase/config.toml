@@ -9,3 +9,15 @@ verify_jwt = false
 
 [functions.joinWaitlist]
 verify_jwt = true
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = false
+
+[functions.customer-portal]
+verify_jwt = false
+
+[functions.get-usage-status]
+verify_jwt = false
