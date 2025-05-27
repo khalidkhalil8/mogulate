@@ -60,13 +60,42 @@ serve(async (req) => {
 
     console.log(`Updating subscription for user ${userId} to ${newTier}`);
 
-    // Update the profile with new subscription tier and reset subscription_started_at to now()
+    // Get current profile to preserve subscription_started_at for billing cycle consistency
+    const { data: currentProfile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('subscription_started_at')
+      .eq('id', userId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching current profile:', fetchError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: fetchError.message,
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
+    }
+
+    // Only update subscription_started_at for paid plans (starter, pro)
+    // For free plan, preserve the existing subscription_started_at to maintain billing cycle
+    const shouldUpdateStartDate = newTier !== 'free';
+    const updateData: any = {
+      subscription_tier: newTier,
+    };
+
+    if (shouldUpdateStartDate) {
+      updateData.subscription_started_at = new Date().toISOString();
+    }
+
+    // Update the profile with new subscription tier
     const { data, error } = await supabase
       .from('profiles')
-      .update({ 
-        subscription_tier: newTier,
-        subscription_started_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', userId);
 
     if (error) {

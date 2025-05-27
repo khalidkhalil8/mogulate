@@ -51,10 +51,10 @@ serve(async (req) => {
       );
     }
 
-    // Get the user's profile to determine subscription tier and start date
+    // Get the user's profile to determine subscription tier
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('subscription_tier, subscription_started_at')
+      .select('subscription_tier, subscription_started_at, created_at')
       .eq('id', userId)
       .single();
 
@@ -73,7 +73,6 @@ serve(async (req) => {
     }
 
     const tier = profileData.subscription_tier;
-    const subscriptionStartedAt = profileData.subscription_started_at;
 
     // Define usage limits based on subscription tier
     const tierLimits: Record<string, number> = {
@@ -84,12 +83,31 @@ serve(async (req) => {
 
     const limit = tierLimits[tier] || 0;
 
-    // Count API usage since subscription started
+    // Calculate the start of the current billing cycle
+    // For better usage tracking, we'll use a monthly reset based on when the user first created their account
+    const accountCreatedAt = new Date(profileData.created_at);
+    const now = new Date();
+    
+    // Calculate the start of the current month cycle based on account creation date
+    const billingCycleStart = new Date(now.getFullYear(), now.getMonth(), accountCreatedAt.getDate());
+    
+    // If we're before the billing day this month, use last month's billing date
+    if (now.getDate() < accountCreatedAt.getDate()) {
+      billingCycleStart.setMonth(billingCycleStart.getMonth() - 1);
+    }
+
+    console.log('Billing cycle calculation:', {
+      accountCreatedAt: accountCreatedAt.toISOString(),
+      billingCycleStart: billingCycleStart.toISOString(),
+      currentDate: now.toISOString()
+    });
+
+    // Count API usage since the billing cycle started
     const { count: used, error: usageError } = await supabase
       .from("api_usage_logs")
       .select("*", { count: 'exact' })
       .eq("user_id", userId)
-      .gte("timestamp", subscriptionStartedAt || '');
+      .gte("timestamp", billingCycleStart.toISOString());
       
     if (usageError) {
       console.error("Error fetching API usage:", usageError);
@@ -105,12 +123,9 @@ serve(async (req) => {
       );
     }
 
-    // Calculate next reset date
-    let nextReset: Date | undefined;
-    if (subscriptionStartedAt) {
-      nextReset = new Date(subscriptionStartedAt);
-      nextReset.setDate(nextReset.getDate() + 30); // 30 days from subscription start
-    }
+    // Calculate next reset date (next month's billing date)
+    const nextReset = new Date(billingCycleStart);
+    nextReset.setMonth(nextReset.getMonth() + 1);
 
     // Calculate remaining usage
     const usedCount = used || 0;
@@ -124,7 +139,7 @@ serve(async (req) => {
           used: usedCount,
           limit,
           remaining,
-          nextReset: nextReset?.toISOString().split('T')[0] // Format as YYYY-MM-DD
+          nextReset: nextReset.toISOString().split('T')[0] // Format as YYYY-MM-DD
         }
       }),
       { 

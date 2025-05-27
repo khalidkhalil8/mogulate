@@ -58,7 +58,7 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
 
       if (error) {
         console.error(`[SubscriptionPicker] Error from create-checkout:`, error);
-        throw error;
+        throw new Error(`Checkout failed: ${error.message}`);
       }
 
       if (data?.url) {
@@ -68,11 +68,12 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
         toast.success("Redirecting to Stripe checkout...");
       } else {
         console.error(`[SubscriptionPicker] No checkout URL received in response:`, data);
-        throw new Error("No checkout URL received from Stripe");
+        throw new Error("No checkout URL received from Stripe. Please check your Stripe configuration.");
       }
     } catch (error) {
       console.error(`[SubscriptionPicker] Failed to create checkout session:`, error);
-      toast.error("Failed to create checkout session. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Failed to create checkout session: ${errorMessage}`);
     } finally {
       setIsProcessing(null);
     }
