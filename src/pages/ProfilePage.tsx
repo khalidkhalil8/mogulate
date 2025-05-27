@@ -3,12 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import SubscriptionDetails from "@/components/settings/SubscriptionDetails";
-import UsageProgress from "@/components/settings/UsageProgress";
-import SubscriptionPicker from "@/components/settings/SubscriptionPicker";
+import SubscriptionTab from "@/components/settings/SubscriptionTab";
 import FeatureWaitlists from "@/components/settings/FeatureWaitlists";
 import { useUsageData } from "@/hooks/useUsageData";
 import { updateSubscription } from "@/lib/api/subscription";
@@ -19,7 +15,6 @@ const ProfilePage = () => {
   const { user, userProfile, refreshUserProfile } = useAuth();
   const [isUpdatingSubscription, setIsUpdatingSubscription] = useState(false);
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
-  const [isManagingSubscription, setIsManagingSubscription] = useState(false);
   const { usageData, isLoading: isUsageLoading, refetchUsage } = useUsageData(user?.id);
   
   // Check subscription status on page load - but silently
@@ -82,34 +77,6 @@ const ProfilePage = () => {
       setIsCheckingSubscription(false);
     }
   };
-
-  const handleManageSubscription = async () => {
-    if (!user) {
-      toast.error("Please login to manage subscription");
-      return;
-    }
-
-    setIsManagingSubscription(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-      
-      if (error) {
-        throw error;
-      }
-
-      if (data?.url) {
-        // Open Stripe customer portal in a new tab
-        window.open(data.url, '_blank');
-      } else {
-        throw new Error("No portal URL received");
-      }
-    } catch (error) {
-      toast.error("Failed to open subscription management");
-      console.error("Error opening customer portal:", error);
-    } finally {
-      setIsManagingSubscription(false);
-    }
-  };
   
   const handleChangeSubscription = async (newTier: string) => {
     if (!user?.id) {
@@ -132,9 +99,6 @@ const ProfilePage = () => {
     }
   };
   
-  // Show alert if user has downgraded and now exceeds their plan limit
-  const showAlert = usageData ? usageData.used > usageData.limit : false;
-  
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
@@ -153,67 +117,16 @@ const ProfilePage = () => {
             </TabsList>
             
             <TabsContent value="subscription">
-              <div className="space-y-6">
-                <SubscriptionDetails 
-                  subscriptionTier={usageData?.tier || userProfile?.subscription_tier || 'free'} 
-                  usageData={usageData}
-                  isLoading={isUsageLoading}
-                />
-                
-                {usageData && !isUsageLoading && (
-                  <UsageProgress 
-                    usedCount={usageData.used}
-                    maxCount={usageData.limit}
-                    showAlert={showAlert}
-                  />
-                )}
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Subscription Management</CardTitle>
-                    <CardDescription>
-                      Manage your subscription and billing
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex gap-4">
-                      <Button
-                        onClick={checkSubscriptionStatus}
-                        disabled={isCheckingSubscription}
-                        variant="outline"
-                      >
-                        {isCheckingSubscription ? "Checking..." : "Refresh Status"}
-                      </Button>
-                      
-                      {userProfile?.subscription_tier !== 'free' && (
-                        <Button
-                          onClick={handleManageSubscription}
-                          disabled={isManagingSubscription}
-                        >
-                          {isManagingSubscription ? "Opening..." : "Manage Subscription"}
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Upgrade Your Plan</CardTitle>
-                    <CardDescription>
-                      Choose the plan that best fits your needs
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <SubscriptionPicker 
-                      currentTier={usageData?.tier || userProfile?.subscription_tier || 'free'}
-                      isUpdating={isUpdatingSubscription}
-                      userId={user?.id}
-                      onChangeSubscription={handleChangeSubscription}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
+              <SubscriptionTab
+                usageData={usageData}
+                isUsageLoading={isUsageLoading}
+                userSubscriptionTier={userProfile?.subscription_tier}
+                isUpdatingSubscription={isUpdatingSubscription}
+                isCheckingSubscription={isCheckingSubscription}
+                userId={user?.id}
+                onChangeSubscription={handleChangeSubscription}
+                onRefreshStatus={checkSubscriptionStatus}
+              />
             </TabsContent>
             
             <TabsContent value="features">
