@@ -28,7 +28,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
   buttonText = "Choose Plan",
   currentPlan = false,
 }) => {
-  const { user, userProfile, refreshUserProfile } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   
   const handleSubscription = async () => {
