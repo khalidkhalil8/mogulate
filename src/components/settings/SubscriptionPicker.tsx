@@ -25,6 +25,7 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
   
   const handleSubscriptionChange = async (tier: string) => {
     if (!userId) {
+      console.error(`[SubscriptionPicker] No user ID provided`);
       toast.error("Please login to change subscription");
       return;
     }
@@ -46,6 +47,7 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
     
     try {
       console.log(`[SubscriptionPicker] Calling create-checkout function for tier: ${tier}`);
+      console.log(`[SubscriptionPicker] Function invocation starting...`);
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
@@ -54,7 +56,9 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
         }
       });
 
-      console.log(`[SubscriptionPicker] create-checkout response:`, { data, error });
+      console.log(`[SubscriptionPicker] create-checkout response received`);
+      console.log(`[SubscriptionPicker] Response data:`, data);
+      console.log(`[SubscriptionPicker] Response error:`, error);
 
       if (error) {
         console.error(`[SubscriptionPicker] Error from create-checkout:`, error);
@@ -62,10 +66,18 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
       }
 
       if (data?.url) {
-        console.log(`[SubscriptionPicker] Redirecting to Stripe checkout: ${data.url}`);
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
-        toast.success("Redirecting to Stripe checkout...");
+        console.log(`[SubscriptionPicker] Checkout URL received: ${data.url}`);
+        console.log(`[SubscriptionPicker] Attempting to redirect to Stripe checkout...`);
+        
+        // Try multiple redirect methods for better compatibility
+        try {
+          window.open(data.url, '_blank');
+          console.log(`[SubscriptionPicker] Redirect successful via window.open`);
+          toast.success("Redirecting to Stripe checkout...");
+        } catch (redirectError) {
+          console.error(`[SubscriptionPicker] window.open failed, trying location.href:`, redirectError);
+          window.location.href = data.url;
+        }
       } else {
         console.error(`[SubscriptionPicker] No checkout URL received in response:`, data);
         throw new Error("No checkout URL received from Stripe. Please check your Stripe configuration.");
@@ -73,8 +85,10 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
     } catch (error) {
       console.error(`[SubscriptionPicker] Failed to create checkout session:`, error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      console.error(`[SubscriptionPicker] Error details:`, { error, errorMessage });
       toast.error(`Failed to create checkout session: ${errorMessage}`);
     } finally {
+      console.log(`[SubscriptionPicker] Process completed, clearing processing state`);
       setIsProcessing(null);
     }
   };

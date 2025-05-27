@@ -62,22 +62,42 @@ serve(async (req) => {
       logStep("No existing customer found, will create new one during checkout");
     }
 
-    // Create price based on tier
+    // Create price based on tier or use provided priceId
     let unitAmount;
     let productName;
+    let priceData;
     
-    if (tier === "starter") {
-      unitAmount = 1000; // $10.00 in cents
-      productName = "Starter Plan";
-    } else if (tier === "pro") {
-      unitAmount = 3000; // $30.00 in cents
-      productName = "Pro Plan";
+    if (priceId) {
+      // Use existing Stripe price ID
+      logStep("Using provided Stripe price ID", { priceId });
+      priceData = { price: priceId };
     } else {
-      logStep("Invalid tier provided", { tier });
-      throw new Error("Invalid tier");
-    }
+      // Create price dynamically based on tier
+      if (tier === "starter") {
+        unitAmount = 1000; // $10.00 in cents
+        productName = "Starter Plan";
+      } else if (tier === "pro") {
+        unitAmount = 3000; // $30.00 in cents
+        productName = "Pro Plan";
+      } else {
+        logStep("Invalid tier provided", { tier });
+        throw new Error("Invalid tier");
+      }
 
-    logStep("Price configuration", { tier, unitAmount, productName });
+      logStep("Price configuration", { tier, unitAmount, productName });
+
+      priceData = {
+        price_data: {
+          currency: "usd",
+          product_data: { 
+            name: productName,
+            description: `Monthly subscription to ${productName}`
+          },
+          unit_amount: unitAmount,
+          recurring: { interval: "month" },
+        }
+      };
+    }
 
     const origin = req.headers.get("origin") || "https://mogulate.com";
     logStep("Origin detected", { origin });
@@ -87,15 +107,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price_data: {
-            currency: "usd",
-            product_data: { 
-              name: productName,
-              description: `Monthly subscription to ${productName}`
-            },
-            unit_amount: unitAmount,
-            recurring: { interval: "month" },
-          },
+          ...priceData,
           quantity: 1,
         },
       ],

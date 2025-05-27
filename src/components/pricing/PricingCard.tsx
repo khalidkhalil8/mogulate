@@ -33,6 +33,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
   
   const handleSubscription = async () => {
     if (!user) {
+      console.error(`[PricingCard] No user found when attempting subscription`);
       toast.error("Please login to subscribe");
       return;
     }
@@ -62,6 +63,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
     
     try {
       console.log(`[PricingCard] Calling create-checkout function for tier: ${tier}`);
+      console.log(`[PricingCard] Function invocation starting...`);
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
@@ -70,7 +72,9 @@ const PricingCard: React.FC<PricingCardProps> = ({
         }
       });
 
-      console.log(`[PricingCard] create-checkout response:`, { data, error });
+      console.log(`[PricingCard] create-checkout response received`);
+      console.log(`[PricingCard] Response data:`, data);
+      console.log(`[PricingCard] Response error:`, error);
 
       if (error) {
         console.error(`[PricingCard] Error from create-checkout:`, error);
@@ -78,10 +82,18 @@ const PricingCard: React.FC<PricingCardProps> = ({
       }
 
       if (data?.url) {
-        console.log(`[PricingCard] Redirecting to Stripe checkout: ${data.url}`);
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
-        toast.success("Redirecting to Stripe checkout...");
+        console.log(`[PricingCard] Checkout URL received: ${data.url}`);
+        console.log(`[PricingCard] Attempting to redirect to Stripe checkout...`);
+        
+        // Try multiple redirect methods for better compatibility
+        try {
+          window.open(data.url, '_blank');
+          console.log(`[PricingCard] Redirect successful via window.open`);
+          toast.success("Redirecting to Stripe checkout...");
+        } catch (redirectError) {
+          console.error(`[PricingCard] window.open failed, trying location.href:`, redirectError);
+          window.location.href = data.url;
+        }
       } else {
         console.error(`[PricingCard] No checkout URL received in response:`, data);
         throw new Error("No checkout URL received from Stripe. Please check your Stripe configuration.");
@@ -89,8 +101,10 @@ const PricingCard: React.FC<PricingCardProps> = ({
     } catch (error) {
       console.error(`[PricingCard] Failed to create checkout session:`, error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      console.error(`[PricingCard] Error details:`, { error, errorMessage });
       toast.error(`Failed to create checkout session: ${errorMessage}`);
     } finally {
+      console.log(`[PricingCard] Process completed, clearing loading state`);
       setIsLoading(false);
     }
   };
