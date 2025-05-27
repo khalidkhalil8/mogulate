@@ -29,15 +29,24 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
       return;
     }
 
-    // Free plan - update locally
+    console.log(`[SubscriptionPicker] Attempting to change subscription to: ${tier}`);
+    console.log(`[SubscriptionPicker] Current tier: ${normalizedTier}`);
+    console.log(`[SubscriptionPicker] User ID: ${userId}`);
+
+    // Free plan - update locally only
     if (tier.toLowerCase() === "free") {
+      console.log(`[SubscriptionPicker] Switching to free plan locally`);
       onChangeSubscription(tier);
       return;
     }
     
-    // Paid plans - redirect to Stripe checkout
+    // Paid plans (starter, pro) - MUST redirect to Stripe checkout
+    console.log(`[SubscriptionPicker] Processing paid plan: ${tier}`);
     setIsProcessing(tier);
+    
     try {
+      console.log(`[SubscriptionPicker] Calling create-checkout function for tier: ${tier}`);
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
           tier: tier.toLowerCase(),
@@ -45,20 +54,25 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
         }
       });
 
+      console.log(`[SubscriptionPicker] create-checkout response:`, { data, error });
+
       if (error) {
+        console.error(`[SubscriptionPicker] Error from create-checkout:`, error);
         throw error;
       }
 
       if (data?.url) {
+        console.log(`[SubscriptionPicker] Redirecting to Stripe checkout: ${data.url}`);
         // Open Stripe checkout in a new tab
         window.open(data.url, '_blank');
         toast.success("Redirecting to Stripe checkout...");
       } else {
-        throw new Error("No checkout URL received");
+        console.error(`[SubscriptionPicker] No checkout URL received in response:`, data);
+        throw new Error("No checkout URL received from Stripe");
       }
     } catch (error) {
-      toast.error("Failed to create checkout session");
-      console.error("Error creating checkout:", error);
+      console.error(`[SubscriptionPicker] Failed to create checkout session:`, error);
+      toast.error("Failed to create checkout session. Please try again.");
     } finally {
       setIsProcessing(null);
     }
@@ -121,7 +135,7 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
         </div>
       </CardContent>
       <CardFooter className="text-sm text-gray-500">
-        Paid plans will redirect you to Stripe for secure payment processing.
+        All paid plans redirect to Stripe for secure payment processing.
       </CardFooter>
     </Card>
   );

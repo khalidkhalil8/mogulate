@@ -37,8 +37,12 @@ const PricingCard: React.FC<PricingCardProps> = ({
       return;
     }
 
+    console.log(`[PricingCard] Attempting subscription to: ${tier}`);
+    console.log(`[PricingCard] User ID: ${user.id}`);
+
     // Free plan - update locally
     if (tier.toLowerCase() === "free") {
+      console.log(`[PricingCard] Processing free plan locally`);
       setIsLoading(true);
       try {
         const success = await updateSubscription(user.id, "free");
@@ -52,8 +56,13 @@ const PricingCard: React.FC<PricingCardProps> = ({
       return;
     }
     
+    // Paid plans - redirect to Stripe checkout
+    console.log(`[PricingCard] Processing paid plan: ${tier}`);
     setIsLoading(true);
+    
     try {
+      console.log(`[PricingCard] Calling create-checkout function for tier: ${tier}`);
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
           tier: tier.toLowerCase(),
@@ -61,19 +70,25 @@ const PricingCard: React.FC<PricingCardProps> = ({
         }
       });
 
+      console.log(`[PricingCard] create-checkout response:`, { data, error });
+
       if (error) {
+        console.error(`[PricingCard] Error from create-checkout:`, error);
         throw error;
       }
 
       if (data?.url) {
+        console.log(`[PricingCard] Redirecting to Stripe checkout: ${data.url}`);
         // Open Stripe checkout in a new tab
         window.open(data.url, '_blank');
+        toast.success("Redirecting to Stripe checkout...");
       } else {
-        throw new Error("No checkout URL received");
+        console.error(`[PricingCard] No checkout URL received in response:`, data);
+        throw new Error("No checkout URL received from Stripe");
       }
     } catch (error) {
-      toast.error("Failed to create checkout session");
-      console.error("Error creating checkout:", error);
+      console.error(`[PricingCard] Failed to create checkout session:`, error);
+      toast.error("Failed to create checkout session. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +97,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
   // Helper function for free plan updates
   const updateSubscription = async (userId: string, newTier: string): Promise<boolean> => {
     try {
+      console.log(`[PricingCard] Updating subscription locally for user ${userId} to ${newTier}`);
+      
       const { data, error } = await supabase.functions.invoke('update-subscription', {
         body: { userId, newTier }
       });
