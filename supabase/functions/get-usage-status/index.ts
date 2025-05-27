@@ -84,37 +84,31 @@ serve(async (req) => {
     const limit = tierLimits[tier] || 0;
 
     // Calculate the start of the current billing cycle
-    // Use subscription_started_at if available, otherwise use a simple monthly cycle
+    // Use the account creation date as the billing cycle anchor for consistency
     const now = new Date();
-    let billingCycleStart: Date;
-
-    if (profileData.subscription_started_at) {
-      // Use subscription start date as the billing cycle reference
-      const subscriptionStart = new Date(profileData.subscription_started_at);
-      
-      // Calculate how many months have passed since subscription started
-      const monthsDiff = (now.getFullYear() - subscriptionStart.getFullYear()) * 12 + 
-                        (now.getMonth() - subscriptionStart.getMonth());
-      
-      // Set billing cycle start to the subscription day of the current month
-      billingCycleStart = new Date(subscriptionStart);
-      billingCycleStart.setFullYear(now.getFullYear());
-      billingCycleStart.setMonth(subscriptionStart.getMonth() + monthsDiff);
-      
-      // If we haven't reached the billing day this month, use last month's billing date
-      if (now.getDate() < subscriptionStart.getDate()) {
-        billingCycleStart.setMonth(billingCycleStart.getMonth() - 1);
-      }
-    } else {
-      // Fallback: Use start of current month
-      billingCycleStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const accountCreatedAt = new Date(profileData.created_at);
+    
+    // Calculate how many months have passed since account creation
+    const monthsDiff = (now.getFullYear() - accountCreatedAt.getFullYear()) * 12 + 
+                      (now.getMonth() - accountCreatedAt.getMonth());
+    
+    // Set billing cycle start to the account creation day of the current month
+    let billingCycleStart = new Date(accountCreatedAt);
+    billingCycleStart.setFullYear(now.getFullYear());
+    billingCycleStart.setMonth(accountCreatedAt.getMonth() + monthsDiff);
+    
+    // If we haven't reached the billing day this month, use last month's billing date
+    if (now.getDate() < accountCreatedAt.getDate()) {
+      billingCycleStart.setMonth(billingCycleStart.getMonth() - 1);
     }
 
     console.log('Billing cycle calculation:', {
+      accountCreatedAt: profileData.created_at,
       subscriptionStartedAt: profileData.subscription_started_at,
       billingCycleStart: billingCycleStart.toISOString(),
       currentDate: now.toISOString(),
-      tier
+      tier,
+      monthsDiff
     });
 
     // Count API usage since the billing cycle started
@@ -150,7 +144,8 @@ serve(async (req) => {
       usedCount,
       limit,
       remaining,
-      nextReset: nextReset.toISOString().split('T')[0]
+      nextReset: nextReset.toISOString().split('T')[0],
+      billingCycleMethod: 'account_creation_date'
     });
 
     return new Response(

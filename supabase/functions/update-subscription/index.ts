@@ -60,42 +60,13 @@ serve(async (req) => {
 
     console.log(`Updating subscription for user ${userId} to ${newTier}`);
 
-    // Get current profile to preserve subscription_started_at for billing cycle consistency
-    const { data: currentProfile, error: fetchError } = await supabase
-      .from('profiles')
-      .select('subscription_started_at')
-      .eq('id', userId)
-      .single();
-
-    if (fetchError) {
-      console.error('Error fetching current profile:', fetchError);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: fetchError.message,
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
-          status: 500 
-        }
-      );
-    }
-
-    // Only update subscription_started_at for paid plans (starter, pro)
-    // For free plan, preserve the existing subscription_started_at to maintain billing cycle
-    const shouldUpdateStartDate = newTier !== 'free';
-    const updateData: any = {
-      subscription_tier: newTier,
-    };
-
-    if (shouldUpdateStartDate) {
-      updateData.subscription_started_at = new Date().toISOString();
-    }
-
-    // Update the profile with new subscription tier
+    // Update the profile with new subscription tier only
+    // DO NOT update subscription_started_at to maintain consistent billing cycles
     const { data, error } = await supabase
       .from('profiles')
-      .update(updateData)
+      .update({
+        subscription_tier: newTier,
+      })
       .eq('id', userId);
 
     if (error) {
@@ -126,6 +97,8 @@ serve(async (req) => {
       console.error('Error logging subscription update:', logError);
       // Continue anyway as this is not critical
     }
+
+    console.log(`Successfully updated subscription for user ${userId} to ${newTier} without resetting billing cycle`);
 
     return new Response(
       JSON.stringify({
