@@ -44,16 +44,30 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Get current user profile to check existing subscription tier
+    const { data: currentProfile } = await supabaseClient
+      .from("profiles")
+      .select("subscription_tier")
+      .eq("id", user.id)
+      .single();
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No customer found, updating to free tier");
-      await supabaseClient.from("profiles").upsert({
-        id: user.id,
-        subscription_tier: "free",
-        subscription_started_at: new Date().toISOString(),
-      }, { onConflict: 'id' });
+      logStep("No customer found");
+      
+      // Only update if the user is not already on free tier to avoid unnecessary resets
+      if (currentProfile?.subscription_tier !== "free") {
+        logStep("Updating to free tier");
+        await supabaseClient.from("profiles").upsert({
+          id: user.id,
+          subscription_tier: "free",
+          subscription_started_at: new Date().toISOString(),
+        }, { onConflict: 'id' });
+      } else {
+        logStep("User already on free tier, skipping update");
+      }
       
       return new Response(JSON.stringify({ 
         subscribed: false, 
@@ -98,12 +112,21 @@ serve(async (req) => {
       logStep("No active subscription found");
     }
 
-    // Update the profiles table with the subscription info
-    await supabaseClient.from("profiles").upsert({
-      id: user.id,
-      subscription_tier: subscriptionTier,
-      subscription_started_at: new Date().toISOString(),
-    }, { onConflict: 'id' });
+    // Only update the profiles table if the subscription tier has actually changed
+    if (currentProfile?.subscription_tier !== subscriptionTier) {
+      logStep("Subscription tier changed, updating database", { 
+        from: currentProfile?.subscription_tier, 
+        to: subscriptionTier 
+      });
+      
+      await supabaseClient.from("profiles").upsert({
+        id: user.id,
+        subscription_tier: subscriptionTier,
+        subscription_started_at: new Date().toISOString(),
+      }, { onConflict: 'id' });
+    } else {
+      logStep("Subscription tier unchanged, skipping database update");
+    }
 
     logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier });
     return new Response(JSON.stringify({

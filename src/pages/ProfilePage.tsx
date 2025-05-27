@@ -22,12 +22,38 @@ const ProfilePage = () => {
   const [isManagingSubscription, setIsManagingSubscription] = useState(false);
   const { usageData, isLoading: isUsageLoading, refetchUsage } = useUsageData(user?.id);
   
-  // Check subscription status on page load
+  // Check subscription status on page load - but silently
   useEffect(() => {
     if (user) {
-      checkSubscriptionStatus();
+      checkSubscriptionStatusSilently();
     }
   }, [user]);
+
+  const checkSubscriptionStatusSilently = async () => {
+    if (!user) return;
+    
+    setIsCheckingSubscription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) {
+        console.error('Error checking subscription:', error);
+        return;
+      }
+
+      if (data) {
+        // Refresh user profile to get updated subscription info
+        await refreshUserProfile();
+        // Refresh usage data
+        refetchUsage();
+        // Don't show success toast for silent checks
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    } finally {
+      setIsCheckingSubscription(false);
+    }
+  };
 
   const checkSubscriptionStatus = async () => {
     if (!user) return;
