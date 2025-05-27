@@ -37,8 +37,8 @@ serve(async (req) => {
 
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { priceId, tier } = await req.json();
-    logStep("Request body parsed", { priceId, tier });
+    const { tier } = await req.json();
+    logStep("Request body parsed", { tier });
     
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
@@ -62,42 +62,18 @@ serve(async (req) => {
       logStep("No existing customer found, will create new one during checkout");
     }
 
-    // Create price based on tier or use provided priceId
-    let unitAmount;
-    let productName;
-    let priceData;
-    
-    if (priceId) {
-      // Use existing Stripe price ID
-      logStep("Using provided Stripe price ID", { priceId });
-      priceData = { price: priceId };
+    // Map tier to actual Stripe Price IDs
+    let priceId;
+    if (tier === "starter") {
+      priceId = "price_1RSedFFt7oRBKHCKJ6srGnT2";
+    } else if (tier === "pro") {
+      priceId = "price_1RSpgaFt7oRBKHCKlLpPke8Z";
     } else {
-      // Create price dynamically based on tier
-      if (tier === "starter") {
-        unitAmount = 1000; // $10.00 in cents
-        productName = "Starter Plan";
-      } else if (tier === "pro") {
-        unitAmount = 3000; // $30.00 in cents
-        productName = "Pro Plan";
-      } else {
-        logStep("Invalid tier provided", { tier });
-        throw new Error("Invalid tier");
-      }
-
-      logStep("Price configuration", { tier, unitAmount, productName });
-
-      priceData = {
-        price_data: {
-          currency: "usd",
-          product_data: { 
-            name: productName,
-            description: `Monthly subscription to ${productName}`
-          },
-          unit_amount: unitAmount,
-          recurring: { interval: "month" },
-        }
-      };
+      logStep("Invalid tier provided", { tier });
+      throw new Error("Invalid tier. Only 'starter' and 'pro' are supported.");
     }
+
+    logStep("Using Stripe Price ID", { tier, priceId });
 
     const origin = req.headers.get("origin") || "https://mogulate.com";
     logStep("Origin detected", { origin });
@@ -107,11 +83,11 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          ...priceData,
+          price: priceId,
           quantity: 1,
         },
       ],
-      mode: "subscription",
+      mode: "subscription" as const,
       success_url: `${origin}/profile?success=true`,
       cancel_url: `${origin}/pricing`,
     };
