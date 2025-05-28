@@ -21,3 +21,6 @@ verify_jwt = false
 
 [functions.get-usage-status]
 verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
