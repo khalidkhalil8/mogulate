@@ -41,16 +41,31 @@ const PricingCard: React.FC<PricingCardProps> = ({
     console.log(`[PricingCard] Attempting subscription to: ${tier}`);
     console.log(`[PricingCard] User ID: ${user.id}`);
 
-    // Free plan - update locally
+    // Free plan - update locally without usage tracking
     if (tier.toLowerCase() === "free") {
       console.log(`[PricingCard] Processing free plan locally`);
       setIsLoading(true);
       try {
-        const success = await updateSubscription(user.id, "free");
-        if (success) {
-          toast.success("Successfully switched to Free plan");
-          await refreshUserProfile();
+        // Direct database update for free plan without usage tracking
+        const { error } = await supabase
+          .from('profiles')
+          .update({ 
+            subscription_tier: 'free',
+            subscription_started_at: new Date().toISOString()
+          })
+          .eq('id', user.id);
+
+        if (error) {
+          console.error('Error updating to free plan:', error);
+          toast.error('Failed to switch to free plan');
+          return;
         }
+
+        toast.success("Successfully switched to Free plan");
+        await refreshUserProfile();
+      } catch (error) {
+        console.error('Unexpected error switching to free plan:', error);
+        toast.error('Failed to switch to free plan');
       } finally {
         setIsLoading(false);
       }
@@ -100,35 +115,6 @@ const PricingCard: React.FC<PricingCardProps> = ({
     } finally {
       console.log(`[PricingCard] Process completed, clearing loading state`);
       setIsLoading(false);
-    }
-  };
-
-  // Helper function for free plan updates
-  const updateSubscription = async (userId: string, newTier: string): Promise<boolean> => {
-    try {
-      console.log(`[PricingCard] Updating subscription locally for user ${userId} to ${newTier}`);
-      
-      const { data, error } = await supabase.functions.invoke('update-subscription', {
-        body: { userId, newTier }
-      });
-
-      if (error) {
-        console.error('Error calling update-subscription function:', error);
-        toast.error('Subscription update failed');
-        return false;
-      }
-
-      if (!data.success) {
-        console.error('Error from update-subscription function:', data.error);
-        toast.error('Subscription update failed');
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error updating subscription:', error);
-      toast.error('Subscription update failed');
-      return false;
     }
   };
 

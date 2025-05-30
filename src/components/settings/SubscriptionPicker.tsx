@@ -34,7 +34,7 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
     console.log(`[SubscriptionPicker] Current tier: ${normalizedTier}`);
     console.log(`[SubscriptionPicker] User ID: ${userId}`);
 
-    // Free plan - update locally only
+    // Free plan - update locally only, no usage tracking
     if (tier.toLowerCase() === "free") {
       console.log(`[SubscriptionPicker] Switching to free plan locally`);
       onChangeSubscription(tier);

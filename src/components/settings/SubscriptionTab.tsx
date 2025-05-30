@@ -6,6 +6,8 @@ import UsageProgress from "@/components/settings/UsageProgress";
 import SubscriptionPicker from "@/components/settings/SubscriptionPicker";
 import SubscriptionManagement from "@/components/settings/SubscriptionManagement";
 import { UsageStatus } from "@/lib/api/usage";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/sonner";
 
 interface SubscriptionTabProps {
   usageData: UsageStatus | null;
@@ -30,6 +32,41 @@ const SubscriptionTab: React.FC<SubscriptionTabProps> = ({
 }) => {
   // Show alert if user has downgraded and now exceeds their plan limit
   const showAlert = usageData ? usageData.used > usageData.limit : false;
+
+  // Handle subscription changes without usage tracking
+  const handleSubscriptionChange = async (tier: string) => {
+    if (!userId) {
+      toast.error("Please login to change subscription");
+      return;
+    }
+
+    // For free plan, update directly without going through the usage-tracking update function
+    if (tier.toLowerCase() === "free") {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ 
+            subscription_tier: 'free',
+            subscription_started_at: new Date().toISOString()
+          })
+          .eq('id', userId);
+
+        if (error) {
+          console.error('Error updating to free plan:', error);
+          toast.error('Failed to switch to free plan');
+          return;
+        }
+
+        toast.success("Successfully switched to Free plan");
+        // Refresh the usage data after subscription change
+        await onRefreshStatus();
+      } catch (error) {
+        console.error('Unexpected error switching to free plan:', error);
+        toast.error('Failed to switch to free plan');
+      }
+    }
+    // For paid plans, the components will handle Stripe checkout
+  };
 
   return (
     <div className="space-y-6">
@@ -65,7 +102,7 @@ const SubscriptionTab: React.FC<SubscriptionTabProps> = ({
             currentTier={usageData?.tier || userSubscriptionTier || 'free'}
             isUpdating={isUpdatingSubscription}
             userId={userId}
-            onChangeSubscription={onChangeSubscription}
+            onChangeSubscription={handleSubscriptionChange}
           />
         </CardContent>
       </Card>
