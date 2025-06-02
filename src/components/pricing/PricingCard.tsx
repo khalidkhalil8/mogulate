@@ -96,15 +96,25 @@ const PricingCard: React.FC<PricingCardProps> = ({
 
       if (data?.url) {
         console.log(`[PricingCard] Checkout URL received: ${data.url}`);
+        console.log(`[PricingCard] URL length: ${data.url.length}`);
+        console.log(`[PricingCard] URL starts with: ${data.url.substring(0, 50)}...`);
         
-        // Add a small delay to ensure the toast shows, then redirect
-        toast.success("Redirecting to Stripe checkout...");
+        // Try opening in a new tab first to see if that works better
+        const newTab = window.open(data.url, '_blank');
         
-        // Use a more reliable redirect method with a slight delay
-        setTimeout(() => {
-          console.log(`[PricingCard] Redirecting to: ${data.url}`);
-          window.location.href = data.url;
-        }, 100);
+        if (newTab) {
+          console.log(`[PricingCard] Successfully opened checkout in new tab`);
+          toast.success("Stripe checkout opened in new tab");
+        } else {
+          console.log(`[PricingCard] Popup blocked, trying same tab redirect`);
+          toast.success("Redirecting to Stripe checkout...");
+          
+          // Fallback to same tab redirect
+          setTimeout(() => {
+            console.log(`[PricingCard] Redirecting to: ${data.url}`);
+            window.location.href = data.url;
+          }, 500);
+        }
       } else {
         console.error(`[PricingCard] No checkout URL received in response:`, data);
         throw new Error("No checkout URL received from Stripe. Please check your Stripe configuration.");
