@@ -62,18 +62,18 @@ serve(async (req) => {
       logStep("No existing customer found, will create new one during checkout");
     }
 
-    // Map tier to actual Stripe Price IDs
+    // Map tier to test Price IDs
     let priceId;
     if (tier === "starter") {
-      priceId = "price_1RSedFFt7oRBKHCKJ6srGnT2";
+      priceId = "price_1RVMj6Ft7oRBKHCK2GDGVwii";
     } else if (tier === "pro") {
-      priceId = "price_1RSpgaFt7oRBKHCKlLpPke8Z";
+      priceId = "price_1RVMjMFt7oRBKHCKCAkHfofU";
     } else {
       logStep("Invalid tier provided", { tier });
       throw new Error("Invalid tier. Only 'starter' and 'pro' are supported.");
     }
 
-    logStep("Using Stripe Price ID", { tier, priceId });
+    logStep("Using test Stripe Price ID", { tier, priceId });
 
     const origin = req.headers.get("origin") || "https://mogulate.com";
     logStep("Origin detected", { origin });

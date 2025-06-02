@@ -134,16 +134,23 @@ async function handleSubscriptionChange(event: Stripe.Event, supabase: any) {
     return;
   }
 
-  // Determine subscription tier based on price
+  // Determine subscription tier based on test price IDs
   let subscriptionTier = "free";
   if (subscription.items.data.length > 0) {
     const priceId = subscription.items.data[0].price.id;
     const price = await stripe.prices.retrieve(priceId);
     const amount = price.unit_amount || 0;
     
-    if (priceId === "price_1RSedFFt7oRBKHCKJ6srGnT2") {
+    // Test price IDs mapping
+    if (priceId === "price_1RVMj6Ft7oRBKHCK2GDGVwii") {
+      subscriptionTier = "starter";
+    } else if (priceId === "price_1RVMjMFt7oRBKHCKCAkHfofU") {
+      subscriptionTier = "pro";
+    } else if (priceId === "price_1RSedFFt7oRBKHCKJ6srGnT2") {
+      // Legacy live price ID for starter
       subscriptionTier = "starter";
     } else if (priceId === "price_1RSpgaFt7oRBKHCKlLpPke8Z") {
+      // Legacy live price ID for pro
       subscriptionTier = "pro";
     } else if (amount <= 999) {
       subscriptionTier = "starter";
