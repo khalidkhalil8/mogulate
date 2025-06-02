@@ -40,17 +40,18 @@ serve(async (req) => {
     const { tier } = await req.json();
     logStep("Request body parsed", { tier });
     
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    // Use test secret key for testing
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY_TEST");
     if (!stripeKey) {
-      logStep("Missing Stripe secret key");
-      throw new Error("Stripe secret key not configured");
+      logStep("Missing Stripe test secret key");
+      throw new Error("Stripe test secret key not configured");
     }
     
     const stripe = new Stripe(stripeKey, { 
       apiVersion: "2023-10-16" 
     });
     
-    logStep("Stripe client initialized");
+    logStep("Stripe client initialized with test key");
     
     // Check if customer exists
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
