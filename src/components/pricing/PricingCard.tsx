@@ -78,7 +78,6 @@ const PricingCard: React.FC<PricingCardProps> = ({
     
     try {
       console.log(`[PricingCard] Calling create-checkout function for tier: ${tier}`);
-      console.log(`[PricingCard] Function invocation starting...`);
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
@@ -97,12 +96,15 @@ const PricingCard: React.FC<PricingCardProps> = ({
 
       if (data?.url) {
         console.log(`[PricingCard] Checkout URL received: ${data.url}`);
-        console.log(`[PricingCard] Attempting to redirect to Stripe checkout...`);
         
-        // Redirect to Stripe checkout in the same tab
-        window.location.href = data.url;
-        console.log(`[PricingCard] Redirect initiated via window.location.href`);
+        // Add a small delay to ensure the toast shows, then redirect
         toast.success("Redirecting to Stripe checkout...");
+        
+        // Use a more reliable redirect method with a slight delay
+        setTimeout(() => {
+          console.log(`[PricingCard] Redirecting to: ${data.url}`);
+          window.location.href = data.url;
+        }, 100);
       } else {
         console.error(`[PricingCard] No checkout URL received in response:`, data);
         throw new Error("No checkout URL received from Stripe. Please check your Stripe configuration.");

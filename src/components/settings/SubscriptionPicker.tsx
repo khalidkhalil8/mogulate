@@ -47,7 +47,6 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
     
     try {
       console.log(`[SubscriptionPicker] Calling create-checkout function for tier: ${tier}`);
-      console.log(`[SubscriptionPicker] Function invocation starting...`);
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
@@ -66,12 +65,15 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
 
       if (data?.url) {
         console.log(`[SubscriptionPicker] Checkout URL received: ${data.url}`);
-        console.log(`[SubscriptionPicker] Attempting to redirect to Stripe checkout...`);
         
-        // Redirect to Stripe checkout in the same tab
-        window.location.href = data.url;
-        console.log(`[SubscriptionPicker] Redirect initiated via window.location.href`);
+        // Add a small delay to ensure the toast shows, then redirect
         toast.success("Redirecting to Stripe checkout...");
+        
+        // Use a more reliable redirect method with a slight delay
+        setTimeout(() => {
+          console.log(`[SubscriptionPicker] Redirecting to: ${data.url}`);
+          window.location.href = data.url;
+        }, 100);
       } else {
         console.error(`[SubscriptionPicker] No checkout URL received in response:`, data);
         throw new Error("No checkout URL received from Stripe. Please check your Stripe configuration.");
