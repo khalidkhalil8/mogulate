@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -60,14 +61,14 @@ serve(async (req) => {
     // Handle different event types
     switch (event.type) {
       case "checkout.session.completed":
-        await handleCheckoutCompleted(event, supabase);
+        await handleCheckoutCompleted(event, supabase, stripe);
         break;
       case "customer.subscription.created":
       case "customer.subscription.updated":
-        await handleSubscriptionChange(event, supabase);
+        await handleSubscriptionChange(event, supabase, stripe);
         break;
       case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(event, supabase);
+        await handleSubscriptionDeleted(event, supabase, stripe);
         break;
       case "invoice.payment_succeeded":
         await handlePaymentSucceeded(event, supabase);
@@ -93,7 +94,7 @@ serve(async (req) => {
   }
 });
 
-async function handleCheckoutCompleted(event: Stripe.Event, supabase: any) {
+async function handleCheckoutCompleted(event: Stripe.Event, supabase: any, stripe: Stripe) {
   const session = event.data.object as Stripe.Checkout.Session;
   logStep("Processing checkout completed", { sessionId: session.id, customerId: session.customer });
 
@@ -109,13 +110,13 @@ async function handleCheckoutCompleted(event: Stripe.Event, supabase: any) {
     const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
     logStep("Subscription checkout completed", { subscriptionId, customerId });
     
-    // The subscription events will handle the actual updates
-    // This is just for logging successful checkout completion
-    logStep("Checkout completed successfully for subscription", { subscriptionId });
+    // Get the subscription to determine the tier
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    await handleSubscriptionChange({ ...event, data: { object: subscription } }, supabase, stripe);
   }
 }
 
-async function handleSubscriptionChange(event: Stripe.Event, supabase: any) {
+async function handleSubscriptionChange(event: Stripe.Event, supabase: any, stripe: Stripe) {
   const subscription = event.data.object as Stripe.Subscription;
   logStep("Processing subscription change", { 
     subscriptionId: subscription.id, 
@@ -126,7 +127,6 @@ async function handleSubscriptionChange(event: Stripe.Event, supabase: any) {
   const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id;
   
   // Get customer email
-  const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_TEST") || "", { apiVersion: "2023-10-16" });
   const customer = await stripe.customers.retrieve(customerId);
   
   if (!customer || customer.deleted || !customer.email) {
@@ -169,6 +169,32 @@ async function handleSubscriptionChange(event: Stripe.Event, supabase: any) {
     endDate: subscriptionEnd
   });
 
+  // First, try to find the user by email
+  const { data: existingProfile, error: findError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('email', customer.email)
+    .single();
+
+  if (findError && findError.code !== 'PGRST116') {
+    logStep("Error finding profile by email", { error: findError });
+  }
+
+  // If no profile found by email, try to find by looking up auth users
+  let userId = null;
+  if (!existingProfile) {
+    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+    if (!authError && authUsers?.users) {
+      const matchingUser = authUsers.users.find(user => user.email === customer.email);
+      if (matchingUser) {
+        userId = matchingUser.id;
+        logStep("Found matching auth user", { userId, email: customer.email });
+      }
+    }
+  } else {
+    userId = existingProfile.id;
+  }
+
   // Update the profiles table
   const { error: profileError } = await supabase
     .from('profiles')
@@ -179,15 +205,36 @@ async function handleSubscriptionChange(event: Stripe.Event, supabase: any) {
     .eq('email', customer.email);
 
   if (profileError) {
-    logStep("Error updating profiles table", { error: profileError });
-    throw new Error(`Failed to update profiles: ${profileError.message}`);
+    logStep("Error updating profiles table by email, trying by ID", { error: profileError });
+    
+    // If email update failed and we have a userId, try updating by ID
+    if (userId) {
+      const { error: idUpdateError } = await supabase
+        .from('profiles')
+        .update({
+          subscription_tier: isActive ? subscriptionTier : "free",
+          subscription_started_at: isActive ? new Date().toISOString() : null,
+        })
+        .eq('id', userId);
+        
+      if (idUpdateError) {
+        logStep("Error updating profiles table by ID", { error: idUpdateError });
+        throw new Error(`Failed to update profiles: ${idUpdateError.message}`);
+      } else {
+        logStep("Successfully updated profile by ID");
+      }
+    } else {
+      throw new Error(`Failed to update profiles: ${profileError.message}`);
+    }
+  } else {
+    logStep("Successfully updated profile by email");
   }
 
   // Log the subscription change for audit purposes
   const { error: logError } = await supabase
     .from('api_usage_logs')
     .insert({
-      user_id: null, // We don't have user_id from webhook
+      user_id: userId,
       api_type: 'subscription_webhook',
       tokens_used: 0,
       function_name: `subscription_${event.type}`,
@@ -207,14 +254,13 @@ async function handleSubscriptionChange(event: Stripe.Event, supabase: any) {
   logStep("Subscription update completed successfully");
 }
 
-async function handleSubscriptionDeleted(event: Stripe.Event, supabase: any) {
+async function handleSubscriptionDeleted(event: Stripe.Event, supabase: any, stripe: Stripe) {
   const subscription = event.data.object as Stripe.Subscription;
   logStep("Processing subscription deletion", { subscriptionId: subscription.id });
 
   const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id;
   
   // Get customer email
-  const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_TEST") || "", { apiVersion: "2023-10-16" });
   const customer = await stripe.customers.retrieve(customerId);
   
   if (!customer || customer.deleted || !customer.email) {
@@ -293,8 +339,5 @@ async function handlePaymentFailed(event: Stripe.Event, supabase: any) {
     logStep("Error logging payment failure", { error });
   }
 
-  // Optionally, you could notify the user about the failed payment
-  // or temporarily restrict access until payment is resolved
-  
   logStep("Payment failure processed");
 }
