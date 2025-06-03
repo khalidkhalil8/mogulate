@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -41,10 +40,10 @@ serve(async (req) => {
       throw new Error("Missing Stripe signature");
     }
 
-    // Verify the webhook signature
+    // Verify the webhook signature using the ASYNC method
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
       logStep("Webhook signature verified", { eventType: event.type, eventId: event.id });
     } catch (err) {
       logStep("Webhook signature verification failed", { error: err.message });
