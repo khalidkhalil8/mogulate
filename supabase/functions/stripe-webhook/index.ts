@@ -138,24 +138,22 @@ async function handleSubscriptionChange(event: Stripe.Event, supabase: any, stri
   let subscriptionTier = "free";
   if (subscription.items.data.length > 0) {
     const priceId = subscription.items.data[0].price.id;
-    const price = await stripe.prices.retrieve(priceId);
-    const amount = price.unit_amount || 0;
+    logStep("Processing price ID", { priceId });
     
     // Test price IDs mapping
     if (priceId === "price_1RVMj6Ft7oRBKHCK2GDGVwii") {
       subscriptionTier = "starter";
     } else if (priceId === "price_1RVMjMFt7oRBKHCKCAkHfofU") {
       subscriptionTier = "pro";
-    } else if (priceId === "price_1RSedFFt7oRBKHCKJ6srGnT2") {
-      // Legacy live price ID for starter
-      subscriptionTier = "starter";
-    } else if (priceId === "price_1RSpgaFt7oRBKHCKlLpPke8Z") {
-      // Legacy live price ID for pro
-      subscriptionTier = "pro";
-    } else if (amount <= 999) {
-      subscriptionTier = "starter";
     } else {
-      subscriptionTier = "pro";
+      // Fallback based on amount
+      const price = await stripe.prices.retrieve(priceId);
+      const amount = price.unit_amount || 0;
+      if (amount <= 1099) {
+        subscriptionTier = "starter";
+      } else {
+        subscriptionTier = "pro";
+      }
     }
   }
 
@@ -169,9 +167,10 @@ async function handleSubscriptionChange(event: Stripe.Event, supabase: any, stri
     endDate: subscriptionEnd
   });
 
-  // First, try to find the user by looking up auth users to get the user ID
-  let userId = null;
+  // Find user by email first
   const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+  let userId = null;
+  
   if (!authError && authUsers?.users) {
     const matchingUser = authUsers.users.find(user => user.email === customer.email);
     if (matchingUser) {
@@ -185,13 +184,17 @@ async function handleSubscriptionChange(event: Stripe.Event, supabase: any, stri
     return;
   }
 
-  // Update the profiles table by user ID
+  // Update the profiles table by user ID with the correct tier
+  const updateData = {
+    subscription_tier: isActive ? subscriptionTier : "free",
+    subscription_started_at: isActive ? new Date().toISOString() : null,
+  };
+  
+  logStep("Updating profile with data", { userId, updateData });
+
   const { error: profileError } = await supabase
     .from('profiles')
-    .update({
-      subscription_tier: isActive ? subscriptionTier : "free",
-      subscription_started_at: isActive ? new Date().toISOString() : null,
-    })
+    .update(updateData)
     .eq('id', userId);
 
   if (profileError) {
