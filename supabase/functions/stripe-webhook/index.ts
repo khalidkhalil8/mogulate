@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -168,65 +169,36 @@ async function handleSubscriptionChange(event: Stripe.Event, supabase: any, stri
     endDate: subscriptionEnd
   });
 
-  // First, try to find the user by email
-  const { data: existingProfile, error: findError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('email', customer.email)
-    .single();
-
-  if (findError && findError.code !== 'PGRST116') {
-    logStep("Error finding profile by email", { error: findError });
-  }
-
-  // If no profile found by email, try to find by looking up auth users
+  // First, try to find the user by looking up auth users to get the user ID
   let userId = null;
-  if (!existingProfile) {
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-    if (!authError && authUsers?.users) {
-      const matchingUser = authUsers.users.find(user => user.email === customer.email);
-      if (matchingUser) {
-        userId = matchingUser.id;
-        logStep("Found matching auth user", { userId, email: customer.email });
-      }
+  const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+  if (!authError && authUsers?.users) {
+    const matchingUser = authUsers.users.find(user => user.email === customer.email);
+    if (matchingUser) {
+      userId = matchingUser.id;
+      logStep("Found matching auth user", { userId, email: customer.email });
     }
-  } else {
-    userId = existingProfile.id;
   }
 
-  // Update the profiles table
+  if (!userId) {
+    logStep("No matching user found for email", { email: customer.email });
+    return;
+  }
+
+  // Update the profiles table by user ID
   const { error: profileError } = await supabase
     .from('profiles')
     .update({
       subscription_tier: isActive ? subscriptionTier : "free",
       subscription_started_at: isActive ? new Date().toISOString() : null,
     })
-    .eq('email', customer.email);
+    .eq('id', userId);
 
   if (profileError) {
-    logStep("Error updating profiles table by email, trying by ID", { error: profileError });
-    
-    // If email update failed and we have a userId, try updating by ID
-    if (userId) {
-      const { error: idUpdateError } = await supabase
-        .from('profiles')
-        .update({
-          subscription_tier: isActive ? subscriptionTier : "free",
-          subscription_started_at: isActive ? new Date().toISOString() : null,
-        })
-        .eq('id', userId);
-        
-      if (idUpdateError) {
-        logStep("Error updating profiles table by ID", { error: idUpdateError });
-        throw new Error(`Failed to update profiles: ${idUpdateError.message}`);
-      } else {
-        logStep("Successfully updated profile by ID");
-      }
-    } else {
-      throw new Error(`Failed to update profiles: ${profileError.message}`);
-    }
+    logStep("Error updating profiles table", { error: profileError });
+    throw new Error(`Failed to update profiles: ${profileError.message}`);
   } else {
-    logStep("Successfully updated profile by email");
+    logStep("Successfully updated profile");
   }
 
   // Log the subscription change for audit purposes
@@ -269,6 +241,21 @@ async function handleSubscriptionDeleted(event: Stripe.Event, supabase: any, str
 
   logStep("Setting subscription to free tier", { email: customer.email });
 
+  // Find user by email
+  const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+  let userId = null;
+  if (!authError && authUsers?.users) {
+    const matchingUser = authUsers.users.find(user => user.email === customer.email);
+    if (matchingUser) {
+      userId = matchingUser.id;
+    }
+  }
+
+  if (!userId) {
+    logStep("No matching user found for deletion", { email: customer.email });
+    return;
+  }
+
   // Revert to free tier
   const { error } = await supabase
     .from('profiles')
@@ -276,7 +263,7 @@ async function handleSubscriptionDeleted(event: Stripe.Event, supabase: any, str
       subscription_tier: "free",
       subscription_started_at: null,
     })
-    .eq('email', customer.email);
+    .eq('id', userId);
 
   if (error) {
     logStep("Error updating profiles for deleted subscription", { error });

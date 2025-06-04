@@ -66,14 +66,22 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
       if (data?.url) {
         console.log(`[SubscriptionPicker] Checkout URL received: ${data.url}`);
         
-        // Add a small delay to ensure the toast shows, then redirect
-        toast.success("Redirecting to Stripe checkout...");
+        // Open Stripe checkout in a new tab (consistent with other components)
+        const newTab = window.open(data.url, '_blank');
         
-        // Use a more reliable redirect method with a slight delay
-        setTimeout(() => {
-          console.log(`[SubscriptionPicker] Redirecting to: ${data.url}`);
-          window.location.href = data.url;
-        }, 100);
+        if (newTab) {
+          console.log(`[SubscriptionPicker] Successfully opened checkout in new tab`);
+          toast.success("Stripe checkout opened in new tab");
+        } else {
+          console.log(`[SubscriptionPicker] Popup blocked, trying same tab redirect`);
+          toast.success("Redirecting to Stripe checkout...");
+          
+          // Fallback to same tab redirect
+          setTimeout(() => {
+            console.log(`[SubscriptionPicker] Redirecting to: ${data.url}`);
+            window.location.href = data.url;
+          }, 500);
+        }
       } else {
         console.error(`[SubscriptionPicker] No checkout URL received in response:`, data);
         throw new Error("No checkout URL received from Stripe. Please check your Stripe configuration.");
@@ -146,7 +154,7 @@ const SubscriptionPicker: React.FC<SubscriptionPickerProps> = ({
         </div>
       </CardContent>
       <CardFooter className="text-sm text-gray-500">
-        All paid plans redirect to Stripe for secure payment processing.
+        All paid plans open in a new tab for secure payment processing.
       </CardFooter>
     </Card>
   );
