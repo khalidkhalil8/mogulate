@@ -66,18 +66,21 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          stripe_customer_id: string | null
           subscription_started_at: string
           subscription_tier: string
         }
         Insert: {
           created_at?: string
           id: string
+          stripe_customer_id?: string | null
           subscription_started_at?: string
           subscription_tier?: string
         }
         Update: {
           created_at?: string
           id?: string
+          stripe_customer_id?: string | null
           subscription_started_at?: string
           subscription_tier?: string
         }
