@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
@@ -67,83 +67,75 @@ const SignupForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Create Account</CardTitle>
-        <CardDescription>
-          Enter your details to create a new account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {validationErrors.length > 0 && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              <ul className="list-disc list-inside">
-                {validationErrors.map((error, index) => (
-                  <li key={index}>{error}</li>
-                ))}
-              </ul>
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="signup-email">Email</Label>
-            <Input
-              id="signup-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              disabled={isLoading}
-              autoComplete="email"
-              className={validationErrors.some(error => error.toLowerCase().includes('email')) ? 'border-red-500' : ''}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="signup-password">Password</Label>
-            <Input
-              id="signup-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Create a password"
-              disabled={isLoading}
-              autoComplete="new-password"
-              className={validationErrors.some(error => error.toLowerCase().includes('password') && !error.toLowerCase().includes('confirm')) ? 'border-red-500' : ''}
-            />
-            <p className="text-sm text-gray-600">
-              Must be at least 8 characters with uppercase, lowercase, and number
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm Password</Label>
-            <Input
-              id="confirm-password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm your password"
-              disabled={isLoading}
-              autoComplete="new-password"
-              className={validationErrors.some(error => error.toLowerCase().includes('confirm') || error.toLowerCase().includes('match')) ? 'border-red-500' : ''}
-            />
-          </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full" 
+    <CardContent>
+      {validationErrors.length > 0 && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <ul className="list-disc list-inside">
+              {validationErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="signup-email">Email</Label>
+          <Input
+            id="signup-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
             disabled={isLoading}
-          >
-            {isLoading ? "Creating account..." : "Create Account"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+            autoComplete="email"
+            className={validationErrors.some(error => error.toLowerCase().includes('email')) ? 'border-red-500' : ''}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="signup-password">Password</Label>
+          <Input
+            id="signup-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Create a password"
+            disabled={isLoading}
+            autoComplete="new-password"
+            className={validationErrors.some(error => error.toLowerCase().includes('password') && !error.toLowerCase().includes('confirm')) ? 'border-red-500' : ''}
+          />
+          <p className="text-sm text-gray-600">
+            Must be at least 8 characters with uppercase, lowercase, and number
+          </p>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="confirm-password">Confirm Password</Label>
+          <Input
+            id="confirm-password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm your password"
+            disabled={isLoading}
+            autoComplete="new-password"
+            className={validationErrors.some(error => error.toLowerCase().includes('confirm') || error.toLowerCase().includes('match')) ? 'border-red-500' : ''}
+          />
+        </div>
+        
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading}
+        >
+          {isLoading ? "Creating account..." : "Create Account"}
+        </Button>
+      </form>
+    </CardContent>
   );
 };
 
