@@ -22,6 +22,10 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+const logError = (step: string, error: any) => {
+  console.error(`[CREATE-CHECKOUT] ERROR at ${step}:`, error);
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -47,7 +51,7 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     
     if (!supabaseUrl || !supabaseAnonKey) {
-      logStep("Missing Supabase configuration");
+      logError("Configuration", "Missing Supabase configuration");
       return new Response(
         JSON.stringify({ error: 'Server configuration error' }),
         { 
@@ -62,7 +66,7 @@ serve(async (req) => {
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      logStep("No authorization header");
+      logError("Authentication", "No authorization header");
       return new Response(
         JSON.stringify({ error: 'Authorization required' }),
         { 
@@ -76,7 +80,7 @@ serve(async (req) => {
     const { data: userData, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !userData.user?.email) {
-      logStep("Invalid token or missing email", { error: userError?.message });
+      logError("Authentication", { error: userError?.message });
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { 
@@ -93,7 +97,9 @@ serve(async (req) => {
     let requestData: CheckoutRequest;
     try {
       requestData = await req.json();
-    } catch {
+      logStep("Request body parsed", requestData);
+    } catch (parseError) {
+      logError("Request parsing", parseError);
       return new Response(
         JSON.stringify({ error: 'Invalid JSON in request body' }),
         { 
@@ -105,7 +111,7 @@ serve(async (req) => {
 
     // Validate tier if provided
     if (requestData.tier && !validTiers.includes(requestData.tier)) {
-      logStep("Invalid tier provided", { tier: requestData.tier });
+      logError("Validation", { tier: requestData.tier, validTiers });
       return new Response(
         JSON.stringify({ error: 'Invalid subscription tier' }),
         { 
@@ -115,8 +121,11 @@ serve(async (req) => {
       );
     }
 
-    // Use USE_LIVE_STRIPE flag to determine environment (preserving existing logic)
+    // Determine which Stripe environment to use
     const useLiveStripe = Deno.env.get('USE_LIVE_STRIPE') === 'true';
+    logStep("Environment check", { useLiveStripe, envValue: Deno.env.get('USE_LIVE_STRIPE') });
+    
+    // Get the appropriate keys based on environment
     const stripeKey = useLiveStripe 
       ? Deno.env.get('STRIPE_SECRET_KEY')
       : Deno.env.get('STRIPE_SECRET_KEY_TEST');
@@ -129,10 +138,21 @@ serve(async (req) => {
       ? Deno.env.get('STRIPE_PRICE_ID_PRO')
       : Deno.env.get('STRIPE_PRICE_ID_PRO_TEST');
 
-    if (!stripeKey || !starterPriceId || !proPriceId) {
-      logStep("Missing Stripe configuration", { useLiveStripe });
+    // Log what we found (without exposing the full keys)
+    logStep("Stripe configuration", { 
+      useLiveStripe,
+      hasStripeKey: !!stripeKey,
+      stripeKeyPrefix: stripeKey ? stripeKey.substring(0, 7) + '...' : 'missing',
+      hasStarterPriceId: !!starterPriceId,
+      hasProPriceId: !!proPriceId,
+      starterPriceId: starterPriceId ? starterPriceId.substring(0, 10) + '...' : 'missing',
+      proPriceId: proPriceId ? proPriceId.substring(0, 10) + '...' : 'missing'
+    });
+
+    if (!stripeKey) {
+      logError("Configuration", `Missing Stripe secret key for ${useLiveStripe ? 'live' : 'test'} environment`);
       return new Response(
-        JSON.stringify({ error: 'Payment system configuration error' }),
+        JSON.stringify({ error: 'Payment system configuration error - missing secret key' }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
           status: 500 
@@ -140,9 +160,32 @@ serve(async (req) => {
       );
     }
 
-    logStep("Using Stripe environment", { live: useLiveStripe });
+    if (!starterPriceId || !proPriceId) {
+      logError("Configuration", `Missing price IDs for ${useLiveStripe ? 'live' : 'test'} environment`);
+      return new Response(
+        JSON.stringify({ error: 'Payment system configuration error - missing price IDs' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
+    }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
+    // Initialize Stripe with proper error handling
+    let stripe;
+    try {
+      stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
+      logStep("Stripe initialized successfully");
+    } catch (stripeError) {
+      logError("Stripe initialization", stripeError);
+      return new Response(
+        JSON.stringify({ error: 'Payment system initialization failed' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
+    }
 
     // Determine price ID
     let priceId = requestData.priceId;
@@ -153,42 +196,98 @@ serve(async (req) => {
       priceId = starterPriceId; // Default to starter
     }
 
-    logStep("Creating checkout session", { priceId, tier: requestData.tier });
+    logStep("Price ID determined", { priceId, tier: requestData.tier });
 
-    // Check if customer exists
-    const customers = await stripe.customers.list({
-      email: user.email,
-      limit: 1,
-    });
-
+    // Check if customer exists with error handling
     let customerId;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      logStep("Found existing customer", { customerId });
-    } else {
-      logStep("Will create new customer during checkout");
+    try {
+      const customers = await stripe.customers.list({
+        email: user.email,
+        limit: 1,
+      });
+
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        logStep("Found existing customer", { customerId });
+      } else {
+        logStep("No existing customer found, will create during checkout");
+      }
+    } catch (customerError) {
+      logError("Customer lookup", customerError);
+      // Continue without customerId - Stripe will create a new customer
+      logStep("Continuing without customer lookup due to error");
     }
 
-    // Create checkout session
-    const origin = req.headers.get('origin') || 'http://localhost:5173';
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `${origin}/pricing?success=true`,
-      cancel_url: `${origin}/pricing?canceled=true`,
-      metadata: {
-        user_id: user.id,
-      },
+    // Create checkout session with comprehensive error handling
+    const origin = req.headers.get('origin') || req.headers.get('referer') || 'http://localhost:5173';
+    logStep("Creating checkout session", { 
+      priceId, 
+      tier: requestData.tier, 
+      customerId: customerId || 'new customer',
+      origin 
     });
 
-    logStep("Checkout session created", { sessionId: session.id });
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        success_url: `${origin}/pricing?success=true`,
+        cancel_url: `${origin}/pricing?canceled=true`,
+        metadata: {
+          user_id: user.id,
+          environment: useLiveStripe ? 'live' : 'test',
+        },
+        billing_address_collection: 'required',
+        allow_promotion_codes: true,
+      });
+
+      logStep("Checkout session created successfully", { 
+        sessionId: session.id, 
+        url: session.url ? 'URL generated' : 'No URL',
+        mode: session.mode,
+        customer: session.customer
+      });
+    } catch (sessionError) {
+      logError("Checkout session creation", {
+        error: sessionError,
+        message: sessionError instanceof Error ? sessionError.message : 'Unknown error',
+        priceId,
+        useLiveStripe
+      });
+      
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to create checkout session',
+          details: sessionError instanceof Error ? sessionError.message : 'Unknown error',
+          environment: useLiveStripe ? 'live' : 'test'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
+    }
+
+    if (!session.url) {
+      logError("Session validation", "No checkout URL in session response");
+      return new Response(
+        JSON.stringify({ error: 'No checkout URL generated' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
+    }
+
+    logStep("Success - returning checkout URL", { sessionId: session.id });
 
     return new Response(
       JSON.stringify({ url: session.url }),
@@ -198,9 +297,17 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    logStep("Unexpected error", { message: error instanceof Error ? error.message : String(error) });
+    logError("Unexpected error", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      type: typeof error
+    });
+    
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
         status: 500 
