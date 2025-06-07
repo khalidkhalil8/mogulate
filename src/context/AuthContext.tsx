@@ -63,6 +63,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
 
+        // Log authentication events for security monitoring
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('User signed in:', { userId: session.user.id, email: session.user.email });
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+          setUserProfile(null);
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed for user:', session?.user?.id);
+        }
+
         // Safely fetch user profile data using setTimeout to avoid deadlocks
         if (session?.user) {
           setTimeout(() => {
@@ -91,52 +101,124 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [fetchUserProfile]);
 
   const login = async (email: string, password: string) => {
+    // Input validation
+    if (!email?.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+    
+    if (!password) {
+      toast.error("Password is required");
+      return;
+    }
+
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
       if (error) {
-        toast.error("Login failed", {
-          description: error.message,
-        });
+        console.error("Login error:", error);
+        
+        // More specific error messages
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error("Invalid email or password", {
+            description: "Please check your credentials and try again",
+          });
+        } else if (error.message.includes('too_many_requests')) {
+          toast.error("Too many login attempts", {
+            description: "Please wait a moment before trying again",
+          });
+        } else {
+          toast.error("Login failed", {
+            description: error.message,
+          });
+        }
         return;
       }
 
-      toast.success("Logged in successfully");
-      navigate("/");
+      if (data.user) {
+        toast.success("Logged in successfully");
+        navigate("/");
+      }
     } catch (error) {
-      toast.error("An unexpected error occurred");
-      console.error(error);
+      console.error("Unexpected login error:", error);
+      toast.error("An unexpected error occurred during login");
     }
   };
 
   const signUp = async (email: string, password: string) => {
+    // Input validation
+    if (!email?.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+    
+    if (!password) {
+      toast.error("Password is required");
+      return;
+    }
+
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Password strength validation
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
       if (error) {
-        toast.error("Sign up failed", {
-          description: error.message,
-        });
+        console.error("Sign up error:", error);
+        
+        // More specific error messages
+        if (error.message.includes('already_registered')) {
+          toast.error("Account already exists", {
+            description: "Please try logging in instead",
+          });
+        } else if (error.message.includes('weak_password')) {
+          toast.error("Password is too weak", {
+            description: "Please choose a stronger password",
+          });
+        } else {
+          toast.error("Sign up failed", {
+            description: error.message,
+          });
+        }
         return;
       }
 
-      toast.success("Sign up successful", {
-        description: "You can now log in with your credentials",
-      });
-      
-      // With email confirmation disabled, we can log the user in immediately
-      if (data.session) {
-        navigate("/");
+      if (data.user) {
+        toast.success("Account created successfully", {
+          description: "You can now log in with your credentials",
+        });
+        
+        // With email confirmation disabled, we can log the user in immediately
+        if (data.session) {
+          navigate("/");
+        }
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
-      console.error(error);
+      console.error("Unexpected sign up error:", error);
+      toast.error("An unexpected error occurred during sign up");
     }
   };
 
@@ -145,17 +227,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signOut();
       
       if (error) {
+        console.error("Logout error:", error);
         toast.error("Failed to log out", {
           description: error.message,
         });
         return;
       }
       
+      // Clear any cached data
+      setUserProfile(null);
+      localStorage.removeItem('last_subscription_update');
+      
       toast.success("Logged out successfully");
       navigate("/");
     } catch (error) {
-      toast.error("An unexpected error occurred");
-      console.error(error);
+      console.error("Unexpected logout error:", error);
+      toast.error("An unexpected error occurred during logout");
     }
   };
 

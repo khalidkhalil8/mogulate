@@ -1,12 +1,21 @@
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
+interface CheckoutRequest {
+  priceId?: string;
+  tier?: string;
+}
+
+// CORS headers with restricted origins
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') || 'http://localhost:5173',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+
+const validTiers = ['starter', 'pro'];
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -14,72 +23,155 @@ const logStep = (step: string, details?: any) => {
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-  );
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        status: 405 
+      }
+    );
+  }
 
   try {
     logStep("Function started");
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
-    if (!user?.email) {
-      logStep("Authentication failed - no user or email");
-      throw new Error("User not authenticated or email not available");
+    if (!supabaseUrl || !supabaseAnonKey) {
+      logStep("Missing Supabase configuration");
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
     }
 
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    // Verify JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      logStep("No authorization header");
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 401 
+        }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !userData.user?.email) {
+      logStep("Invalid token or missing email", { error: userError?.message });
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 401 
+        }
+      );
+    }
+
+    const user = userData.user;
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { tier } = await req.json();
-    logStep("Request body parsed", { tier });
-    
-    // Use test secret key for testing
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY_TEST");
-    if (!stripeKey) {
-      logStep("Missing Stripe test secret key");
-      throw new Error("Stripe test secret key not configured");
+    // Parse and validate request body
+    let requestData: CheckoutRequest;
+    try {
+      requestData = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 400 
+        }
+      );
     }
+
+    // Validate tier if provided
+    if (requestData.tier && !validTiers.includes(requestData.tier)) {
+      logStep("Invalid tier provided", { tier: requestData.tier });
+      return new Response(
+        JSON.stringify({ error: 'Invalid subscription tier' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 400 
+        }
+      );
+    }
+
+    // Use USE_LIVE_STRIPE flag to determine environment (preserving existing logic)
+    const useLiveStripe = Deno.env.get('USE_LIVE_STRIPE') === 'true';
+    const stripeKey = useLiveStripe 
+      ? Deno.env.get('STRIPE_SECRET_KEY')
+      : Deno.env.get('STRIPE_SECRET_KEY_TEST');
     
-    const stripe = new Stripe(stripeKey, { 
-      apiVersion: "2023-10-16" 
-    });
+    const starterPriceId = useLiveStripe
+      ? Deno.env.get('STRIPE_PRICE_ID_STARTER')
+      : Deno.env.get('STRIPE_PRICE_ID_STARTER_TEST');
     
-    logStep("Stripe client initialized with test key");
-    
+    const proPriceId = useLiveStripe
+      ? Deno.env.get('STRIPE_PRICE_ID_PRO')
+      : Deno.env.get('STRIPE_PRICE_ID_PRO_TEST');
+
+    if (!stripeKey || !starterPriceId || !proPriceId) {
+      logStep("Missing Stripe configuration", { useLiveStripe });
+      return new Response(
+        JSON.stringify({ error: 'Payment system configuration error' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
+    }
+
+    logStep("Using Stripe environment", { live: useLiveStripe });
+
+    const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
+
+    // Determine price ID
+    let priceId = requestData.priceId;
+    if (!priceId && requestData.tier) {
+      priceId = requestData.tier === 'starter' ? starterPriceId : proPriceId;
+    }
+    if (!priceId) {
+      priceId = starterPriceId; // Default to starter
+    }
+
+    logStep("Creating checkout session", { priceId, tier: requestData.tier });
+
     // Check if customer exists
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
-      logStep("Existing customer found", { customerId });
+      logStep("Found existing customer", { customerId });
     } else {
-      logStep("No existing customer found, will create new one during checkout");
+      logStep("Will create new customer during checkout");
     }
 
-    // Map tier to test Price IDs
-    let priceId;
-    if (tier === "starter") {
-      priceId = "price_1RVMj6Ft7oRBKHCK2GDGVwii";
-    } else if (tier === "pro") {
-      priceId = "price_1RVMjMFt7oRBKHCKCAkHfofU";
-    } else {
-      logStep("Invalid tier provided", { tier });
-      throw new Error("Invalid tier. Only 'starter' and 'pro' are supported.");
-    }
-
-    logStep("Using test Stripe Price ID", { tier, priceId });
-
-    const origin = req.headers.get("origin") || "https://mogulate.com";
-    logStep("Origin detected", { origin });
-
-    const sessionConfig = {
+    // Create checkout session
+    const origin = req.headers.get('origin') || 'http://localhost:5173';
+    const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
@@ -88,30 +180,31 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: "subscription" as const,
-      success_url: `${origin}/profile?success=true`,
-      cancel_url: `${origin}/pricing`,
-    };
-
-    logStep("Creating Stripe checkout session", sessionConfig);
-
-    const session = await stripe.checkout.sessions.create(sessionConfig);
-
-    logStep("Stripe checkout session created successfully", { 
-      sessionId: session.id, 
-      url: session.url 
+      mode: 'subscription',
+      success_url: `${origin}/pricing?success=true`,
+      cancel_url: `${origin}/pricing?canceled=true`,
+      metadata: {
+        user_id: user.id,
+      },
     });
 
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    logStep("Checkout session created", { sessionId: session.id });
+
+    return new Response(
+      JSON.stringify({ url: session.url }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        status: 200 
+      }
+    );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout", { message: errorMessage, stack: error instanceof Error ? error.stack : undefined });
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    logStep("Unexpected error", { message: error instanceof Error ? error.message : String(error) });
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        status: 500 
+      }
+    );
   }
 });

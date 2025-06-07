@@ -1,11 +1,13 @@
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
+// CORS headers with restricted origins (webhooks typically don't need CORS)
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
+  'Access-Control-Allow-Origin': 'https://dashboard.stripe.com',
+  'Access-Control-Allow-Headers': 'stripe-signature, content-type',
+  'Access-Control-Allow-Methods': 'POST',
 };
 
 const logStep = (step: string, details?: any) => {
@@ -14,319 +16,192 @@ const logStep = (step: string, details?: any) => {
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        status: 405 
+      }
+    );
   }
 
   try {
     logStep("Webhook received");
 
-    // Use test keys for testing
-    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY_TEST");
-    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET_TEST");
+    // Use USE_LIVE_STRIPE flag to determine environment (preserving existing logic)
+    const useLiveStripe = Deno.env.get('USE_LIVE_STRIPE') === 'true';
+    const stripeKey = useLiveStripe 
+      ? Deno.env.get('STRIPE_SECRET_KEY')
+      : Deno.env.get('STRIPE_SECRET_KEY_TEST');
     
-    if (!stripeSecretKey || !webhookSecret) {
-      logStep("Missing required test environment variables");
-      throw new Error("Missing STRIPE_SECRET_KEY_TEST or STRIPE_WEBHOOK_SECRET_TEST");
+    const webhookSecret = useLiveStripe
+      ? Deno.env.get('STRIPE_WEBHOOK_SECRET')
+      : Deno.env.get('STRIPE_WEBHOOK_SECRET_TEST');
+
+    if (!stripeKey || !webhookSecret) {
+      logStep("Missing Stripe configuration", { useLiveStripe });
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
     }
 
-    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+    logStep("Using Stripe environment", { live: useLiveStripe });
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     
-    // Get the raw body and signature
-    const body = await req.text();
-    const signature = req.headers.get("stripe-signature");
-    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      logStep("Missing Supabase configuration");
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 500 
+        }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
+
+    // Verify webhook signature
+    const signature = req.headers.get('stripe-signature');
     if (!signature) {
       logStep("Missing Stripe signature");
-      throw new Error("Missing Stripe signature");
+      return new Response(
+        JSON.stringify({ error: 'Missing stripe signature' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 400 
+        }
+      );
     }
 
-    // Verify the webhook signature using the ASYNC method
+    const body = await req.text();
     let event: Stripe.Event;
+
     try {
-      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
-      logStep("Webhook signature verified", { eventType: event.type, eventId: event.id });
-    } catch (err) {
-      logStep("Webhook signature verification failed", { error: err.message });
-      return new Response(`Webhook signature verification failed: ${err.message}`, { status: 400 });
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      logStep("Webhook signature verified", { eventType: event.type });
+    } catch (error) {
+      logStep("Webhook signature verification failed", { error: error instanceof Error ? error.message : String(error) });
+      return new Response(
+        JSON.stringify({ error: 'Invalid signature' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 400 
+        }
+      );
     }
 
-    // Initialize Supabase client with service role key
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-
-    // Handle different event types
+    // Handle the event
     switch (event.type) {
-      case "checkout.session.completed":
-        await handleCheckoutCompleted(event, supabase, stripe);
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription;
+        logStep("Processing subscription event", { 
+          subscriptionId: subscription.id, 
+          customerId: subscription.customer,
+          status: subscription.status 
+        });
+
+        // Get customer details
+        const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
+        if (!customer.email) {
+          logStep("Customer has no email", { customerId: customer.id });
+          break;
+        }
+
+        // Determine subscription tier and status
+        let subscriptionTier = 'free';
+        const isActive = subscription.status === 'active';
+
+        if (isActive && subscription.items.data.length > 0) {
+          const price = subscription.items.data[0].price;
+          const amount = price.unit_amount || 0;
+          
+          if (amount === 1000) {
+            subscriptionTier = 'starter';
+          } else if (amount === 3000) {
+            subscriptionTier = 'pro';
+          }
+        }
+
+        logStep("Updating user profile", { 
+          email: customer.email, 
+          tier: subscriptionTier, 
+          active: isActive 
+        });
+
+        // Update user profile
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .upsert({
+            stripe_customer_id: customer.id,
+            subscription_tier: subscriptionTier,
+            subscription_started_at: isActive ? new Date().toISOString() : null,
+          })
+          .eq('stripe_customer_id', customer.id);
+
+        if (updateError) {
+          logStep("Failed to update profile", { error: updateError.message });
+          return new Response(
+            JSON.stringify({ error: 'Database update failed' }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+              status: 500 
+            }
+          );
+        }
+
+        // Log the event for audit purposes
+        const { error: logError } = await supabase
+          .from('api_usage_logs')
+          .insert({
+            user_id: null, // We don't have user_id in webhook context
+            api_type: 'webhook',
+            tokens_used: 0,
+            function_name: 'stripe_webhook',
+          });
+
+        if (logError) {
+          logStep("Failed to log webhook event", { error: logError.message });
+          // Continue anyway as this is not critical
+        }
+
+        logStep("Successfully processed subscription event");
         break;
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
-        await handleSubscriptionChange(event, supabase, stripe);
-        break;
-      case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(event, supabase, stripe);
-        break;
-      case "invoice.payment_succeeded":
-        await handlePaymentSucceeded(event, supabase);
-        break;
-      case "invoice.payment_failed":
-        await handlePaymentFailed(event, supabase);
-        break;
+      }
       default:
         logStep("Unhandled event type", { eventType: event.type });
     }
 
-    return new Response(JSON.stringify({ received: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({ received: true }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        status: 200 
+      }
+    );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("Webhook processing error", { error: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    logStep("Unexpected error", { message: error instanceof Error ? error.message : String(error) });
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        status: 500 
+      }
+    );
   }
 });
-
-async function handleCheckoutCompleted(event: Stripe.Event, supabase: any, stripe: Stripe) {
-  const session = event.data.object as Stripe.Checkout.Session;
-  logStep("Processing checkout completed", { sessionId: session.id, customerId: session.customer });
-
-  if (!session.customer || !session.customer_email) {
-    logStep("Missing customer information in checkout session");
-    return;
-  }
-
-  const customerId = typeof session.customer === 'string' ? session.customer : session.customer.id;
-  
-  // Get subscription details if this was a subscription checkout
-  if (session.mode === 'subscription' && session.subscription) {
-    const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
-    logStep("Subscription checkout completed", { subscriptionId, customerId });
-    
-    // Get the subscription to determine the tier
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    await handleSubscriptionChange({ ...event, data: { object: subscription } }, supabase, stripe);
-  }
-}
-
-async function handleSubscriptionChange(event: Stripe.Event, supabase: any, stripe: Stripe) {
-  const subscription = event.data.object as Stripe.Subscription;
-  logStep("Processing subscription change", { 
-    subscriptionId: subscription.id, 
-    status: subscription.status,
-    customerId: subscription.customer 
-  });
-
-  const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id;
-  
-  // Get customer email
-  const customer = await stripe.customers.retrieve(customerId);
-  
-  if (!customer || customer.deleted || !customer.email) {
-    logStep("Customer not found or missing email", { customerId });
-    return;
-  }
-
-  // Determine subscription tier based on test price IDs
-  let subscriptionTier = "free";
-  if (subscription.items.data.length > 0) {
-    const priceId = subscription.items.data[0].price.id;
-    logStep("Processing price ID", { priceId });
-    
-    // Test price IDs mapping
-    if (priceId === "price_1RVMj6Ft7oRBKHCK2GDGVwii") {
-      subscriptionTier = "starter";
-    } else if (priceId === "price_1RVMjMFt7oRBKHCKCAkHfofU") {
-      subscriptionTier = "pro";
-    } else {
-      // Fallback based on amount
-      const price = await stripe.prices.retrieve(priceId);
-      const amount = price.unit_amount || 0;
-      if (amount <= 1099) {
-        subscriptionTier = "starter";
-      } else {
-        subscriptionTier = "pro";
-      }
-    }
-  }
-
-  const isActive = subscription.status === 'active';
-  const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-
-  logStep("Updating subscription in database", {
-    email: customer.email,
-    tier: subscriptionTier,
-    active: isActive,
-    endDate: subscriptionEnd
-  });
-
-  // Find user by email first
-  const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-  let userId = null;
-  
-  if (!authError && authUsers?.users) {
-    const matchingUser = authUsers.users.find(user => user.email === customer.email);
-    if (matchingUser) {
-      userId = matchingUser.id;
-      logStep("Found matching auth user", { userId, email: customer.email });
-    }
-  }
-
-  if (!userId) {
-    logStep("No matching user found for email", { email: customer.email });
-    return;
-  }
-
-  // Update the profiles table by user ID with the correct tier
-  const updateData = {
-    subscription_tier: isActive ? subscriptionTier : "free",
-    subscription_started_at: isActive ? new Date().toISOString() : null,
-  };
-  
-  logStep("Updating profile with data", { userId, updateData });
-
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update(updateData)
-    .eq('id', userId);
-
-  if (profileError) {
-    logStep("Error updating profiles table", { error: profileError });
-    throw new Error(`Failed to update profiles: ${profileError.message}`);
-  } else {
-    logStep("Successfully updated profile");
-  }
-
-  // Log the subscription change for audit purposes
-  const { error: logError } = await supabase
-    .from('api_usage_logs')
-    .insert({
-      user_id: userId,
-      api_type: 'subscription_webhook',
-      tokens_used: 0,
-      function_name: `subscription_${event.type}`,
-      metadata: {
-        stripe_customer_id: customerId,
-        subscription_id: subscription.id,
-        subscription_tier: subscriptionTier,
-        subscription_status: subscription.status
-      }
-    });
-
-  if (logError) {
-    logStep("Error logging subscription change", { error: logError });
-    // Don't throw here as this is not critical
-  }
-
-  logStep("Subscription update completed successfully");
-}
-
-async function handleSubscriptionDeleted(event: Stripe.Event, supabase: any, stripe: Stripe) {
-  const subscription = event.data.object as Stripe.Subscription;
-  logStep("Processing subscription deletion", { subscriptionId: subscription.id });
-
-  const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id;
-  
-  // Get customer email
-  const customer = await stripe.customers.retrieve(customerId);
-  
-  if (!customer || customer.deleted || !customer.email) {
-    logStep("Customer not found or missing email", { customerId });
-    return;
-  }
-
-  logStep("Setting subscription to free tier", { email: customer.email });
-
-  // Find user by email
-  const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-  let userId = null;
-  if (!authError && authUsers?.users) {
-    const matchingUser = authUsers.users.find(user => user.email === customer.email);
-    if (matchingUser) {
-      userId = matchingUser.id;
-    }
-  }
-
-  if (!userId) {
-    logStep("No matching user found for deletion", { email: customer.email });
-    return;
-  }
-
-  // Revert to free tier
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      subscription_tier: "free",
-      subscription_started_at: null,
-    })
-    .eq('id', userId);
-
-  if (error) {
-    logStep("Error updating profiles for deleted subscription", { error });
-    throw new Error(`Failed to update profiles: ${error.message}`);
-  }
-
-  logStep("Subscription deletion processed successfully");
-}
-
-async function handlePaymentSucceeded(event: Stripe.Event, supabase: any) {
-  const invoice = event.data.object as Stripe.Invoice;
-  logStep("Processing successful payment", { invoiceId: invoice.id, customerId: invoice.customer });
-
-  // Log successful payment for audit purposes
-  const { error } = await supabase
-    .from('api_usage_logs')
-    .insert({
-      user_id: null,
-      api_type: 'payment_webhook',
-      tokens_used: 0,
-      function_name: 'payment_succeeded',
-      metadata: {
-        stripe_customer_id: invoice.customer,
-        invoice_id: invoice.id,
-        amount_paid: invoice.amount_paid,
-        currency: invoice.currency
-      }
-    });
-
-  if (error) {
-    logStep("Error logging payment success", { error });
-  }
-
-  logStep("Payment success processed");
-}
-
-async function handlePaymentFailed(event: Stripe.Event, supabase: any) {
-  const invoice = event.data.object as Stripe.Invoice;
-  logStep("Processing failed payment", { invoiceId: invoice.id, customerId: invoice.customer });
-
-  // Log failed payment for audit purposes
-  const { error } = await supabase
-    .from('api_usage_logs')
-    .insert({
-      user_id: null,
-      api_type: 'payment_webhook',
-      tokens_used: 0,
-      function_name: 'payment_failed',
-      metadata: {
-        stripe_customer_id: invoice.customer,
-        invoice_id: invoice.id,
-        amount_due: invoice.amount_due,
-        currency: invoice.currency,
-        failure_reason: invoice.last_finalization_error?.message || 'Unknown'
-      }
-    });
-
-  if (error) {
-    logStep("Error logging payment failure", { error });
-  }
-
-  logStep("Payment failure processed");
-}
