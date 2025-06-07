@@ -34,24 +34,34 @@ const ProfilePage = () => {
 
     setIsCheckingSubscription(true);
     try {
-      // 1) Get current access token
+      // Get current access token with detailed logging
       const {
         data: { session },
       } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
+      
+      console.log('Session check:', { 
+        hasSession: !!session, 
+        hasToken: !!accessToken,
+        tokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : 'none'
+      });
+      
       if (!accessToken) {
         console.error("No Supabase session; skipping check-subscription");
         setIsCheckingSubscription(false);
         return;
       }
 
-      // 2) Invoke check-subscription with Authorization header
+      // Invoke check-subscription with proper Authorization header
+      console.log('Calling check-subscription function...');
       const { data, error } = await supabase.functions.invoke("check-subscription", {
         headers: {
           "Authorization": `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
       });
+
+      console.log('Check-subscription response:', { data, error });
 
       if (error) {
         console.error("Error checking subscription:", error);
@@ -77,24 +87,34 @@ const ProfilePage = () => {
 
     setIsCheckingSubscription(true);
     try {
-      // 1) Get current access token
+      // Get current access token with detailed logging
       const {
         data: { session },
       } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
+      
+      console.log('Manual subscription check:', { 
+        hasSession: !!session, 
+        hasToken: !!accessToken,
+        tokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : 'none'
+      });
+      
       if (!accessToken) {
         toast.error("You must be logged in to check subscription status");
         setIsCheckingSubscription(false);
         return;
       }
 
-      // 2) Invoke check-subscription with Authorization header
+      // Invoke check-subscription with proper Authorization header
+      console.log('Calling check-subscription function manually...');
       const { data, error } = await supabase.functions.invoke("check-subscription", {
         headers: {
           "Authorization": `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
       });
+
+      console.log('Manual check-subscription response:', { data, error });
 
       if (error) {
         console.error("Error checking subscription:", error);

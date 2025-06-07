@@ -8,9 +8,9 @@ interface CheckoutRequest {
   tier?: string;
 }
 
-// CORS headers with restricted origins
+// CORS headers with support for live domain
 const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') || 'http://localhost:5173',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
@@ -46,7 +46,25 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Initialize Supabase client
+    // Log and verify authorization header
+    const authHeader = req.headers.get('Authorization');
+    logStep("Authorization header check", { 
+      hasHeader: !!authHeader,
+      headerPreview: authHeader ? authHeader.substring(0, 20) + '...' : 'none'
+    });
+    
+    if (!authHeader) {
+      logError("Authentication", "No authorization header");
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 401 
+        }
+      );
+    }
+
+    // Initialize Supabase client with proper configuration
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     
@@ -61,23 +79,33 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { 
+        headers: { 
+          Authorization: authHeader 
+        } 
+      }
+    });
 
     // Verify JWT token
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      logError("Authentication", "No authorization header");
+    const token = authHeader.replace('Bearer ', '');
+    logStep("Authenticating user");
+    
+    let userData, userError;
+    try {
+      const authResult = await supabase.auth.getUser(token);
+      userData = authResult.data;
+      userError = authResult.error;
+    } catch (authException) {
+      logError("Authentication", `Exception during getUser: ${authException}`);
       return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
+        JSON.stringify({ error: 'Authentication failed' }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
           status: 401 
         }
       );
     }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !userData.user?.email) {
       logError("Authentication", { error: userError?.message });
@@ -219,7 +247,7 @@ serve(async (req) => {
     }
 
     // Create checkout session with comprehensive error handling
-    const origin = req.headers.get('origin') || req.headers.get('referer') || 'http://localhost:5173';
+    const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://mogulate.com';
     logStep("Creating checkout session", { 
       priceId, 
       tier: requestData.tier, 

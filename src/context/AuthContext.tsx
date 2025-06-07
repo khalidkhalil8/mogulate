@@ -224,6 +224,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      // Check if there's an active session before attempting logout
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!currentSession) {
+        console.log('No active session found, clearing local state');
+        setUserProfile(null);
+        localStorage.removeItem('last_subscription_update');
+        toast.success("Logged out successfully");
+        navigate("/");
+        return;
+      }
+
+      console.log('Attempting logout for session:', currentSession.access_token.substring(0, 10) + '...');
+      
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -242,7 +256,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       navigate("/");
     } catch (error) {
       console.error("Unexpected logout error:", error);
+      // Even if logout fails, clear local state
+      setUserProfile(null);
+      localStorage.removeItem('last_subscription_update');
       toast.error("An unexpected error occurred during logout");
+      navigate("/");
     }
   };
 
