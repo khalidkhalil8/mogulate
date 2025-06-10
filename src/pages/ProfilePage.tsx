@@ -171,7 +171,7 @@ const ProfilePage = () => {
           <Tabs defaultValue="subscription">
             <TabsList className="mb-4">
               <TabsTrigger value="subscription">Subscription</TabsTrigger>
-              <TabsTrigger value="features">Feature Waitlists</TabsTrigger>
+              <TabsTrigger value="features">Feature Waitlist</TabsTrigger>
             </TabsList>
 
             <TabsContent value="subscription">

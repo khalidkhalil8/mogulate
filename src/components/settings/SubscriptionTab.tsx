@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import SubscriptionDetails from "@/components/settings/SubscriptionDetails";
 import UsageProgress from "@/components/settings/UsageProgress";
 import SubscriptionPicker from "@/components/settings/SubscriptionPicker";
@@ -139,13 +139,7 @@ const SubscriptionTab: React.FC<SubscriptionTabProps> = ({
       />
       
       <Card>
-        <CardHeader>
-          <CardTitle>Upgrade Your Plan</CardTitle>
-          <CardDescription>
-            Choose the plan that best fits your needs
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <SubscriptionPicker 
             currentTier={usageData?.tier || userSubscriptionTier || 'free'}
             isUpdating={isUpdatingSubscription}

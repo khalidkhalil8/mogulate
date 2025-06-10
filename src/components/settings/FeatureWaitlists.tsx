@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, PlusCircle, XCircle, MessageSquareShare, Sparkles, Map, LineChart, Mail, User } from "lucide-react";
+import { CalendarIcon, PlusCircle, XCircle, MessageSquareShare, Sparkles, Map, LineChart, Mail, User, MessageCircle } from "lucide-react";
 import { joinFeatureWaitlist, leaveFeatureWaitlist, getUserWaitlistEntry } from "@/lib/api/waitlist";
 import { format, parseISO } from "date-fns";
 
@@ -28,6 +28,11 @@ const UPCOMING_FEATURES = [
     icon: LineChart,
     name: "Financial Projections",
     description: "Generate financial models and projections to determine the viability of your idea"
+  },
+  {
+    icon: MessageCircle,
+    name: "Feedback Tracking",
+    description: "Centralized hub for collecting, managing, and analyzing user feedback to guide your roadmap"
   }
 ];
 

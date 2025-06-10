@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Sparkles, MessageSquareShare, Map, LineChart } from "lucide-react";
+import { Sparkles, MessageSquareShare, Map, LineChart, MessageCircle } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/sonner';
 import { isOnFeatureWaitlist, joinFeatureWaitlist } from '@/lib/api/waitlist';
@@ -103,6 +103,16 @@ const UpcomingFeaturesSection: React.FC = () => {
               </div>
               <p className="text-gray-600">
                 Generate financial models and projections to determine the viability of your idea.
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow transition-shadow">
+              <div className="flex items-center mb-4">
+                <MessageCircle className="w-6 h-6 text-teal-600 mr-2" />
+                <h3 className="font-semibold text-xl">Feedback Tracking</h3>
+              </div>
+              <p className="text-gray-600">
+                Centralized hub for collecting, managing, and analyzing user feedback to guide your roadmap.
               </p>
             </div>
           </div>
