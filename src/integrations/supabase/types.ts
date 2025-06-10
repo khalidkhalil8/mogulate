@@ -121,6 +121,20 @@ export type Database = {
           user_id: string | null
           user_type: string | null
         }
+        Insert: {
+          email?: string | null
+          id?: string | null
+          joined_at?: string | null
+          user_id?: string | null
+          user_type?: never
+        }
+        Update: {
+          email?: string | null
+          id?: string | null
+          joined_at?: string | null
+          user_id?: string | null
+          user_type?: never
+        }
         Relationships: [
           {
             foreignKeyName: "feature_waitlists_user_id_fkey"
@@ -140,14 +154,28 @@ export type Database = {
       }
       profiles_complete: {
         Row: {
-          auth_created_at: string | null
           created_at: string | null
           email: string | null
           id: string | null
-          last_sign_in_at: string | null
           stripe_customer_id: string | null
           subscription_started_at: string | null
           subscription_tier: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          stripe_customer_id?: string | null
+          subscription_started_at?: string | null
+          subscription_tier?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          stripe_customer_id?: string | null
+          subscription_started_at?: string | null
+          subscription_tier?: string | null
         }
         Relationships: []
       }
