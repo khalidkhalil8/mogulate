@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -109,7 +108,7 @@ export const leaveFeatureWaitlist = async (): Promise<boolean> => {
     console.error('Error leaving waitlist:', error);
     toast.error('Could not leave waitlist', {
       description: error instanceof Error ? error.message : 'An unexpected error occurred'
-    );
+    });
     return false;
   }
 };
