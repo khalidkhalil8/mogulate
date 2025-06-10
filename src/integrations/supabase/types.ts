@@ -38,19 +38,22 @@ export type Database = {
       }
       feature_waitlists: {
         Row: {
+          email: string | null
           id: string
           joined_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
+          email?: string | null
           id?: string
           joined_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
+          email?: string | null
           id?: string
           joined_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
