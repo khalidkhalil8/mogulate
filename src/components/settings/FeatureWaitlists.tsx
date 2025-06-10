@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, PlusCircle, XCircle, MessageSquareShare, Sparkles, Map, LineChart, Mail } from "lucide-react";
+import { CalendarIcon, PlusCircle, XCircle, MessageSquareShare, Sparkles, Map, LineChart, Mail, User } from "lucide-react";
 import { joinFeatureWaitlist, leaveFeatureWaitlist, getUserWaitlistEntry } from "@/lib/api/waitlist";
 import { format, parseISO } from "date-fns";
 
@@ -32,7 +32,12 @@ const UPCOMING_FEATURES = [
 ];
 
 const FeatureWaitlists: React.FC = () => {
-  const [waitlistEntry, setWaitlistEntry] = useState<{ id: string, joined_at: string, email: string | null } | null>(null);
+  const [waitlistEntry, setWaitlistEntry] = useState<{ 
+    id: string, 
+    joined_at: string, 
+    email: string | null,
+    user_type?: string 
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -111,6 +116,11 @@ const FeatureWaitlists: React.FC = () => {
                     <Badge variant={isOnWaitlist ? "default" : "outline"}>
                       {isOnWaitlist ? "Joined" : "Not Joined"}
                     </Badge>
+                    {waitlistEntry?.user_type && (
+                      <Badge variant="secondary" className="text-xs">
+                        {waitlistEntry.user_type}
+                      </Badge>
+                    )}
                   </div>
                   
                   {waitlistEntry && (
@@ -123,6 +133,12 @@ const FeatureWaitlists: React.FC = () => {
                         <div className="flex items-center text-xs text-muted-foreground">
                           <Mail className="h-3 w-3 mr-1" />
                           {waitlistEntry.email}
+                        </div>
+                      )}
+                      {waitlistEntry.user_type === 'authenticated' && (
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <User className="h-3 w-3 mr-1" />
+                          Linked to your account
                         </div>
                       )}
                     </div>

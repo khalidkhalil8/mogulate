@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -6,6 +7,7 @@ export interface FeatureWaitlist {
   user_id: string | null;
   email: string | null;
   joined_at: string;
+  user_type?: string;
 }
 
 /**
@@ -13,9 +15,20 @@ export interface FeatureWaitlist {
  */
 export const joinFeatureWaitlist = async (): Promise<boolean> => {
   try {
+    // Get the current user's ID first
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error('Authentication required', {
+        description: 'You must be logged in to join the waitlist'
+      });
+      return false;
+    }
+
+    // Check if user is already on the waitlist using the new view
     const { data: existingEntry, error: checkError } = await supabase
-      .from('feature_waitlists')
+      .from('feature_waitlists_with_emails')
       .select('id')
+      .eq('user_id', user.id)
       .maybeSingle();
 
     if (checkError && checkError.code !== 'PGRST116') {
@@ -31,20 +44,12 @@ export const joinFeatureWaitlist = async (): Promise<boolean> => {
       return true;
     }
 
-    // Get the current user's ID and email
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error('Authentication required', {
-        description: 'You must be logged in to join the waitlist'
-      });
-      return false;
-    }
-
+    // Add user to waitlist (only user_id, email will be pulled from auth.users via view)
     const { error } = await supabase
       .from('feature_waitlists')
       .insert({ 
         user_id: user.id,
-        email: user.email || null
+        email: null // For authenticated users, email comes from auth.users
       });
 
     if (error) {
@@ -104,7 +109,7 @@ export const leaveFeatureWaitlist = async (): Promise<boolean> => {
     console.error('Error leaving waitlist:', error);
     toast.error('Could not leave waitlist', {
       description: error instanceof Error ? error.message : 'An unexpected error occurred'
-    });
+    );
     return false;
   }
 };
@@ -114,9 +119,13 @@ export const leaveFeatureWaitlist = async (): Promise<boolean> => {
  */
 export const isOnFeatureWaitlist = async (): Promise<boolean> => {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
     const { data, error } = await supabase
-      .from('feature_waitlists')
+      .from('feature_waitlists_with_emails')
       .select('id')
+      .eq('user_id', user.id)
       .maybeSingle();
 
     if (error) {
@@ -136,9 +145,13 @@ export const isOnFeatureWaitlist = async (): Promise<boolean> => {
  */
 export const getUserWaitlistEntry = async (): Promise<FeatureWaitlist | null> => {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
     const { data, error } = await supabase
-      .from('feature_waitlists')
-      .select('id, user_id, email, joined_at')
+      .from('feature_waitlists_with_emails')
+      .select('id, user_id, email, joined_at, user_type')
+      .eq('user_id', user.id)
       .maybeSingle();
 
     if (error) {

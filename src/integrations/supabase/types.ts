@@ -63,11 +63,19 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "feature_waitlists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_complete"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
         Row: {
           created_at: string
+          email: string | null
           id: string
           stripe_customer_id: string | null
           subscription_started_at: string
@@ -75,6 +83,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id: string
           stripe_customer_id?: string | null
           subscription_started_at?: string
@@ -82,6 +91,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: string
           stripe_customer_id?: string | null
           subscription_started_at?: string
@@ -91,7 +101,56 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      api_usage_with_emails: {
+        Row: {
+          api_type: string | null
+          email: string | null
+          function_name: string | null
+          id: string | null
+          timestamp: string | null
+          tokens_used: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      feature_waitlists_with_emails: {
+        Row: {
+          email: string | null
+          id: string | null
+          joined_at: string | null
+          user_id: string | null
+          user_type: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_waitlists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feature_waitlists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_complete"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles_complete: {
+        Row: {
+          auth_created_at: string | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          last_sign_in_at: string | null
+          stripe_customer_id: string | null
+          subscription_started_at: string | null
+          subscription_tier: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
