@@ -37,12 +37,12 @@ export const joinFeatureWaitlist = async (): Promise<boolean> => {
       return true;
     }
 
-    // Add user to waitlist (only user_id, email will be pulled from auth.users via view)
+    // Add user to waitlist with their email from auth
     const { error } = await supabase
       .from('feature_waitlists')
       .insert({ 
         user_id: user.id,
-        email: null // For authenticated users, email comes from auth.users
+        email: user.email // Store the user's email directly
       });
 
     if (error) {
