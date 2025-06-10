@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface FeatureWaitlist {
   id: string;
-  user_id: string;
+  user_id: string | null;
+  email: string | null;
   joined_at: string;
 }
 
 /**
- * Joins the unified feature waitlist
+ * Joins the unified feature waitlist for authenticated users
  */
 export const joinFeatureWaitlist = async (): Promise<boolean> => {
   try {
@@ -31,7 +32,7 @@ export const joinFeatureWaitlist = async (): Promise<boolean> => {
       return true;
     }
 
-    // Get the current user's ID
+    // Get the current user's ID and email
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error('Authentication required', {
@@ -42,7 +43,10 @@ export const joinFeatureWaitlist = async (): Promise<boolean> => {
 
     const { error } = await supabase
       .from('feature_waitlists')
-      .insert({ user_id: user.id });
+      .insert({ 
+        user_id: user.id,
+        email: user.email || null
+      });
 
     if (error) {
       console.error('Error joining waitlist:', error);

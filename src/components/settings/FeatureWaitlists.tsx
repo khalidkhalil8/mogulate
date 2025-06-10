@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, PlusCircle, XCircle, MessageSquareShare, Sparkles, Map, LineChart } from "lucide-react";
+import { CalendarIcon, PlusCircle, XCircle, MessageSquareShare, Sparkles, Map, LineChart, Mail } from "lucide-react";
 import { joinFeatureWaitlist, leaveFeatureWaitlist, getUserWaitlistEntry } from "@/lib/api/waitlist";
 import { format, parseISO } from "date-fns";
 
@@ -32,7 +32,7 @@ const UPCOMING_FEATURES = [
 ];
 
 const FeatureWaitlists: React.FC = () => {
-  const [waitlistEntry, setWaitlistEntry] = useState<{ id: string, joined_at: string } | null>(null);
+  const [waitlistEntry, setWaitlistEntry] = useState<{ id: string, joined_at: string, email: string | null } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -114,9 +114,17 @@ const FeatureWaitlists: React.FC = () => {
                   </div>
                   
                   {waitlistEntry && (
-                    <div className="flex items-center text-xs text-muted-foreground mt-2">
-                      <CalendarIcon className="h-3 w-3 mr-1" />
-                      Joined on {format(parseISO(waitlistEntry.joined_at), 'PP')}
+                    <div className="space-y-1 mt-2">
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <CalendarIcon className="h-3 w-3 mr-1" />
+                        Joined on {format(parseISO(waitlistEntry.joined_at), 'PP')}
+                      </div>
+                      {waitlistEntry.email && (
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Mail className="h-3 w-3 mr-1" />
+                          {waitlistEntry.email}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

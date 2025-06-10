@@ -4,20 +4,33 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { toast } from '@/components/ui/sonner';
 import { isOnFeatureWaitlist, joinFeatureWaitlist } from '@/lib/api/waitlist';
+import { useAuth } from '@/context/AuthContext';
+import EmailWaitlistDialog from '../features/EmailWaitlistDialog';
 
 const SocialInsightsWaitlist: React.FC = () => {
+  const { user } = useAuth();
   const [isJoining, setIsJoining] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
   
   useEffect(() => {
-    const checkWaitlistStatus = async () => {
-      const onWaitlist = await isOnFeatureWaitlist();
-      setHasJoined(onWaitlist);
-    };
-    checkWaitlistStatus();
-  }, []);
+    if (user) {
+      const checkWaitlistStatus = async () => {
+        const onWaitlist = await isOnFeatureWaitlist();
+        setHasJoined(onWaitlist);
+      };
+      checkWaitlistStatus();
+    }
+  }, [user]);
 
   const handleJoinWaitlist = async () => {
+    // If user is not authenticated, show email popup
+    if (!user) {
+      setShowEmailDialog(true);
+      return;
+    }
+    
+    // For authenticated users, join directly
     setIsJoining(true);
     
     try {
@@ -34,6 +47,10 @@ const SocialInsightsWaitlist: React.FC = () => {
     } finally {
       setIsJoining(false);
     }
+  };
+
+  const handleAnonymousSuccess = () => {
+    setHasJoined(true);
   };
 
   return (
@@ -86,6 +103,12 @@ const SocialInsightsWaitlist: React.FC = () => {
           )}
         </Button>
       )}
+      
+      <EmailWaitlistDialog
+        open={showEmailDialog}
+        onOpenChange={setShowEmailDialog}
+        onSuccess={handleAnonymousSuccess}
+      />
     </div>
   );
 };

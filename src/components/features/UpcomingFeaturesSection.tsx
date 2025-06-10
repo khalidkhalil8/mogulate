@@ -6,11 +6,13 @@ import { Sparkles, MessageSquareShare, Map, LineChart } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/sonner';
 import { isOnFeatureWaitlist, joinFeatureWaitlist } from '@/lib/api/waitlist';
+import EmailWaitlistDialog from './EmailWaitlistDialog';
 
 const UpcomingFeaturesSection: React.FC = () => {
   const { user } = useAuth();
   const [isJoining, setIsJoining] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
   
   useEffect(() => {
     if (user) {
@@ -23,13 +25,13 @@ const UpcomingFeaturesSection: React.FC = () => {
   }, [user]);
   
   const handleJoinWaitlist = async () => {
+    // If user is not authenticated, show email popup
     if (!user) {
-      toast.error("Authentication required", {
-        description: "Please sign in to join the waitlist",
-      });
+      setShowEmailDialog(true);
       return;
     }
     
+    // For authenticated users, join directly
     setIsJoining(true);
     
     try {
@@ -46,6 +48,10 @@ const UpcomingFeaturesSection: React.FC = () => {
     } finally {
       setIsJoining(false);
     }
+  };
+
+  const handleAnonymousSuccess = () => {
+    setHasJoined(true);
   };
 
   return (
@@ -132,6 +138,12 @@ const UpcomingFeaturesSection: React.FC = () => {
           )}
         </div>
       </div>
+      
+      <EmailWaitlistDialog
+        open={showEmailDialog}
+        onOpenChange={setShowEmailDialog}
+        onSuccess={handleAnonymousSuccess}
+      />
     </section>
   );
 };
