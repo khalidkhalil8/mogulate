@@ -10,6 +10,9 @@ verify_jwt = false
 [functions.joinWaitlist]
 verify_jwt = true
 
+[functions.join-anonymous-waitlist]
+verify_jwt = false
+
 [functions.create-checkout]
 verify_jwt = false
 

@@ -6,7 +6,7 @@ import { toast } from "@/components/ui/sonner";
  */
 export const joinAnonymousWaitlist = async (email: string): Promise<boolean> => {
   try {
-    const response = await fetch('/functions/v1/join-anonymous-waitlist', {
+    const response = await fetch('https://thpsoempfyxnjhaflyha.supabase.co/functions/v1/join-anonymous-waitlist', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

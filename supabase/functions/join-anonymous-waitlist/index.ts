@@ -1,8 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.5";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Setup CORS headers for the function
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -11,132 +10,113 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // Create Supabase client using service role key for admin access
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Input validation
+    if (req.method !== 'POST') {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Method not allowed' }),
+        { 
+          status: 405, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
-    // Parse request body
     const { email } = await req.json();
 
-    // Validate email
-    if (!email || typeof email !== 'string') {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Valid email is required' 
-        }),
-        { 
-          status: 400, 
-          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
-        }
-      );
-    }
-
-    // Basic email validation
+    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
+    if (!email || typeof email !== 'string' || !emailRegex.test(email)) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Please enter a valid email address' 
-        }),
+        JSON.stringify({ success: false, error: 'Valid email address is required' }),
         { 
           status: 400, 
-          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    const trimmedEmail = email.trim().toLowerCase();
+    // Sanitize email (basic sanitization)
+    const sanitizedEmail = email.toLowerCase().trim();
 
-    // Check if email is already on the waitlist
+    // Create Supabase client with service role for database operations
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Check if email already exists in waitlist
     const { data: existingEntry, error: checkError } = await supabase
       .from('feature_waitlists')
       .select('id')
-      .eq('email', trimmedEmail)
+      .eq('email', sanitizedEmail)
       .maybeSingle();
 
     if (checkError) {
-      console.error('Error checking existing waitlist entry:', checkError);
+      console.error('Error checking existing entry:', checkError);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Error checking waitlist status' 
-        }),
+        JSON.stringify({ success: false, error: 'Database error occurred' }),
         { 
           status: 500, 
-          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    // If email is already in the waitlist, return success
+    // If email already exists, return success but indicate it was already joined
     if (existingEntry) {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'This email is already on the waitlist',
-          alreadyJoined: true
+          alreadyJoined: true,
+          message: 'Email is already on the waitlist' 
         }),
         { 
-          status: 200, 
-          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    // Insert the new waitlist entry (anonymous signup, no user_id)
-    const { data, error } = await supabase
+    // Add email to waitlist (anonymous entry - no user_id)
+    const { error: insertError } = await supabase
       .from('feature_waitlists')
       .insert({
-        email: trimmedEmail,
-        user_id: null, // Anonymous signup
-        // joined_at will use the default now() value from the table definition
-      })
-      .select();
+        email: sanitizedEmail,
+        user_id: null // Anonymous entry
+      });
 
-    if (error) {
-      console.error('Error joining waitlist:', error);
+    if (insertError) {
+      console.error('Error inserting waitlist entry:', insertError);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Failed to join waitlist' 
-        }),
+        JSON.stringify({ success: false, error: 'Failed to join waitlist' }),
         { 
           status: 500, 
-          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    // Return success response
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "✅ You've joined the waitlist! We'll notify you when these features launch.",
-        data
-      }),
-      { 
-        status: 200, 
-        headers: { 'Content-Type': 'application/json', ...corsHeaders } 
-      }
-    );
-  } catch (err) {
-    // Handle any unexpected errors
-    console.error('Unexpected error in join-anonymous-waitlist function:', err);
     return new Response(
       JSON.stringify({ 
-        success: false, 
-        error: 'An unexpected error occurred' 
+        success: true, 
+        alreadyJoined: false,
+        message: 'Successfully joined the waitlist' 
       }),
       { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return new Response(
+      JSON.stringify({ success: false, error: 'An unexpected error occurred' }),
+      { 
         status: 500, 
-        headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }
