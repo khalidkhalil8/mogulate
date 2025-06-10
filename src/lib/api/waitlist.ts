@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -147,7 +146,12 @@ export const getUserWaitlistEntry = async (): Promise<FeatureWaitlist | null> =>
       return null;
     }
 
-    return data;
+    // If no data is found, return null
+    if (!data) {
+      return null;
+    }
+
+    return data as FeatureWaitlist;
   } catch (error) {
     console.error('Error fetching user waitlist:', error);
     return null;
