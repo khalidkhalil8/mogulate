@@ -2,7 +2,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import Header from './Header';
 import PricingSection from './pricing/PricingSection';
 import UpcomingFeaturesSection from './features/UpcomingFeaturesSection';
 import { useAuth } from '@/context/AuthContext';
@@ -25,8 +24,6 @@ const HomePage: React.FC = () => {
   
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header />
-      
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-16 md:py-24 px-4">
