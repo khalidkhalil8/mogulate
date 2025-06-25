@@ -10,7 +10,6 @@ import SetupNavigation from './setup/SetupNavigation';
 interface ValidationStep {
   id: string;
   title: string;
-  goal: string;
   description: string;
   priority: string;
 }
@@ -28,7 +27,6 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
     {
       id: '1',
       title: '',
-      goal: '',
       description: '',
       priority: ''
     }
@@ -39,7 +37,6 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
     const newStep: ValidationStep = {
       id: Date.now().toString(),
       title: '',
-      goal: '',
       description: '',
       priority: ''
     };
@@ -63,7 +60,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
     
     // Convert steps to a formatted string for backwards compatibility
     const validationPlan = steps.map((step, index) => 
-      `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.goal} ${step.description}\nPriority: ${step.priority}`
+      `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.description}\nPriority: ${step.priority}`
     ).join('\n\n');
     
     onValidationPlanSubmit(validationPlan);
@@ -116,8 +113,8 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
                       Goal/Description:
                     </label>
                     <Textarea
-                      value={step.goal + ' ' + step.description}
-                      onChange={(e) => updateStep(step.id, 'goal', e.target.value)}
+                      value={step.description}
+                      onChange={(e) => updateStep(step.id, 'description', e.target.value)}
                       placeholder="What do you want to achieve with this step?"
                       className="min-h-[80px]"
                       required
@@ -164,7 +161,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
                 type="submit" 
                 className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
               >
-                <span>Save Project</span>
+                <span>Next</span>
                 <ArrowRight size={18} />
               </Button>
             </div>
