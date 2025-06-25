@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useProjects } from '@/hooks/useProjects';
 import HomePage from '@/components/HomePage';
 import IdeaEntryPage from '@/components/IdeaEntryPage';
 import CompetitorDiscoveryPage from '@/components/CompetitorDiscoveryPage';
@@ -14,6 +15,7 @@ const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { createProject } = useProjects();
   
   const [ideaData, setIdeaData] = useState<IdeaData>({
     idea: '',
@@ -36,6 +38,23 @@ const Index = () => {
   
   const handleValidationPlanSubmit = (validationPlan: string) => {
     setIdeaData(prev => ({ ...prev, validationPlan }));
+  };
+  
+  const handleSaveProject = async () => {
+    if (!ideaData.idea) {
+      throw new Error('Project idea is required');
+    }
+    
+    // Create the project with all the collected data
+    const project = await createProject(ideaData.idea, ideaData.idea);
+    
+    if (!project) {
+      throw new Error('Failed to create project');
+    }
+    
+    // Update the project with all the additional data
+    // Note: This would require updating the project with competitors, market gaps, etc.
+    // For now, the project is created with the basic idea
   };
   
   const handleReset = () => {
@@ -87,7 +106,7 @@ const Index = () => {
     return (
       <SummaryPage 
         data={ideaData}
-        onReset={handleReset}
+        onSaveProject={handleSaveProject}
       />
     );
   } else {
