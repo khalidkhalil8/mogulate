@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import SetupNavigation from './setup/SetupNavigation';
 
 interface IdeaEntryPageProps {
   initialIdea?: string;
@@ -48,6 +49,8 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
   
   return (
     <div className="min-h-screen bg-white">
+      <SetupNavigation />
+      
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
@@ -86,17 +89,7 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
               </div>
             </div>
             
-            <div className="flex justify-between">
-              <Button 
-                type="button" 
-                variant="outline"
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft size={18} />
-                <span>Back to Dashboard</span>
-              </Button>
-              
+            <div className="flex justify-end">
               <Button 
                 type="submit" 
                 className="flex items-center gap-2"

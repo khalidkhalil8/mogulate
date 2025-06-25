@@ -1,7 +1,5 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from './Header';
 import LoadingState from './ui/LoadingState';
 import { analyzeMarketGaps } from '@/lib/api/marketGaps';
 import type { Competitor, MarketGapAnalysis } from '@/lib/types';
@@ -12,6 +10,7 @@ import SocialInsightsWaitlist from './market-gaps/SocialInsightsWaitlist';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from './ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import SetupNavigation from './setup/SetupNavigation';
 
 interface MarketGapPageProps {
   idea: string;
@@ -62,65 +61,63 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <Header />
+    <div className="min-h-screen bg-white">
+      <SetupNavigation />
       
-      <main className="flex-1 py-8 px-4">
-        <div className="container-width max-w-3xl mx-auto">
-          <div className="bg-white rounded-xl p-6 md:p-8">
-            <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center">
-              What Will You Do Differently?
-            </h1>
-            
-            {isLoading ? (
-              <LoadingState message="Hang tight - our AI is generating an analysis" />
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-8">
-                <MarketGapForm
-                  marketGaps={marketGaps}
-                  analysis={analysis}
-                  setMarketGaps={setMarketGaps}
-                  onGetAiSuggestions={() => setIsDialogOpen(true)}
-                  onSubmit={handleSubmit}
-                  isCompetitorsAvailable={competitors.length > 0}
-                />
-                
-                <div className="flex justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleBack}
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft size={18} />
-                    <span>Back</span>
-                  </Button>
-                  
-                  <Button 
-                    type="submit" 
-                    className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
-                  >
-                    <span>Next</span>
-                    <ArrowRight size={18} />
-                  </Button>
-                </div>
-              </form>
-            )}
-            
-            {user && (
-              <div className="mt-12 pt-8 border-t border-gray-200">
-                <SocialInsightsWaitlist />
-              </div>
-            )}
+      <div className="p-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">What Will You Do Differently?</h1>
           </div>
+          
+          {isLoading ? (
+            <LoadingState message="Hang tight - our AI is generating an analysis" />
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <MarketGapForm
+                marketGaps={marketGaps}
+                analysis={analysis}
+                setMarketGaps={setMarketGaps}
+                onGetAiSuggestions={() => setIsDialogOpen(true)}
+                onSubmit={handleSubmit}
+                isCompetitorsAvailable={competitors.length > 0}
+              />
+              
+              <div className="flex justify-between">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft size={18} />
+                  <span>Back</span>
+                </Button>
+                
+                <Button 
+                  type="submit" 
+                  className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
+                >
+                  <span>Next</span>
+                  <ArrowRight size={18} />
+                </Button>
+              </div>
+            </form>
+          )}
+          
+          {user && (
+            <div className="mt-12 pt-8 border-t border-gray-200">
+              <SocialInsightsWaitlist />
+            </div>
+          )}
+          
+          <AISuggestionDialog
+            isOpen={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            onGenerateAnalysis={handleGetAiSuggestions}
+          />
         </div>
-      </main>
-      
-      <AISuggestionDialog
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onGenerateAnalysis={handleGetAiSuggestions}
-      />
+      </div>
     </div>
   );
 };
