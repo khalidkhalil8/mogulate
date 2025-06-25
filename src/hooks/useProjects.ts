@@ -41,7 +41,14 @@ export const useProjects = () => {
         return;
       }
 
-      setProjects(data || []);
+      // Transform the data to match our Project interface
+      const transformedData: Project[] = (data || []).map(item => ({
+        ...item,
+        competitors: Array.isArray(item.competitors) ? item.competitors : [],
+        market_gap_analysis: item.market_gap_analysis || undefined,
+      }));
+
+      setProjects(transformedData);
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast.error('Failed to load projects');
@@ -73,9 +80,16 @@ export const useProjects = () => {
         return null;
       }
 
-      setProjects(prev => [data, ...prev]);
+      // Transform the returned data to match our Project interface
+      const transformedProject: Project = {
+        ...data,
+        competitors: Array.isArray(data.competitors) ? data.competitors : [],
+        market_gap_analysis: data.market_gap_analysis || undefined,
+      };
+
+      setProjects(prev => [transformedProject, ...prev]);
       toast.success('Project created successfully');
-      return data;
+      return transformedProject;
     } catch (error) {
       console.error('Error creating project:', error);
       toast.error('Failed to create project');
