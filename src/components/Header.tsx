@@ -30,7 +30,7 @@ const Header: React.FC = () => {
 
   const handleGetStartedClick = () => {
     if (user) {
-      navigate('/idea');
+      navigate('/dashboard');
     } else {
       navigate('/auth');
     }

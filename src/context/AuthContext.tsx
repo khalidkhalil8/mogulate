@@ -147,7 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data.user) {
         toast.success("Logged in successfully");
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch (error) {
       console.error("Unexpected login error:", error);
@@ -213,7 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // With email confirmation disabled, we can log the user in immediately
         if (data.session) {
-          navigate("/");
+          navigate("/dashboard");
         }
       }
     } catch (error) {

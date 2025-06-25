@@ -99,6 +99,45 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          competitors: Json | null
+          created_at: string
+          id: string
+          idea: string | null
+          market_gap_analysis: Json | null
+          market_gaps: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          validation_plan: string | null
+        }
+        Insert: {
+          competitors?: Json | null
+          created_at?: string
+          id?: string
+          idea?: string | null
+          market_gap_analysis?: Json | null
+          market_gaps?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          validation_plan?: string | null
+        }
+        Update: {
+          competitors?: Json | null
+          created_at?: string
+          id?: string
+          idea?: string | null
+          market_gap_analysis?: Json | null
+          market_gaps?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          validation_plan?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       api_usage_with_emails: {

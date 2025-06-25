@@ -11,6 +11,7 @@ import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import ProfilePage from "./pages/ProfilePage";
 import PricingPage from "./pages/PricingPage";
+import DashboardPage from "./pages/DashboardPage";
 import { useAuth } from "./context/AuthContext";
 import HomePage from "./components/HomePage";
 
@@ -41,6 +42,14 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/auth" element={<AuthPage />} />
+      <Route 
+        path="/dashboard" 
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        } 
+      />
       <Route path="/idea" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/competitors" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/market-gaps" element={<ProtectedRoute><Index /></ProtectedRoute>} />
