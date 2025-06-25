@@ -37,10 +37,23 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Landing page route that redirects authenticated users to dashboard
+const LandingPageRoute = () => {
+  const { user, isLoading } = useAuth();
+  
+  // Show nothing while authentication state is loading
+  if (isLoading) return null;
+  
+  // Redirect to dashboard if authenticated
+  if (user) return <Navigate to="/dashboard" replace />;
+  
+  return <HomePage />;
+};
+
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={<LandingPageRoute />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route 
         path="/dashboard" 
