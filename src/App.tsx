@@ -110,6 +110,7 @@ const AppRoutes = () => {
       <Route path="/idea" element={<SetupRoute><Index /></SetupRoute>} />
       <Route path="/competitors" element={<SetupRoute><Index /></SetupRoute>} />
       <Route path="/market-gaps" element={<SetupRoute><Index /></SetupRoute>} />
+      <Route path="/features" element={<SetupRoute><Index /></SetupRoute>} />
       <Route path="/validation-plan" element={<SetupRoute><Index /></SetupRoute>} />
       <Route path="/summary" element={<SetupRoute><Index /></SetupRoute>} />
       <Route 

@@ -1,4 +1,3 @@
-
 export interface Competitor {
   id: string;
   name: string;
@@ -16,8 +15,16 @@ export interface IdeaData {
   idea: string;
   competitors: Competitor[];
   marketGaps: string;
-  validationPlan: string;
   marketGapAnalysis?: MarketGapAnalysis;
+  features: Feature[];
+  validationPlan: string;
+}
+
+export interface Feature {
+  id: string;
+  title: string;
+  description: string;
+  priority: string;
 }
 
 // API response types

@@ -7,9 +7,10 @@ import HomePage from '@/components/HomePage';
 import IdeaEntryPage from '@/components/IdeaEntryPage';
 import CompetitorDiscoveryPage from '@/components/CompetitorDiscoveryPage';
 import MarketGapPage from '@/components/MarketGapPage';
+import FeatureEntryPage from '@/components/FeatureEntryPage';
 import ValidationPlanPage from '@/components/ValidationPlanPage';
 import SummaryPage from '@/components/SummaryPage';
-import type { IdeaData, Competitor, MarketGapAnalysis } from '@/lib/types';
+import type { IdeaData, Competitor, MarketGapAnalysis, Feature } from '@/lib/types';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const Index = () => {
     idea: '',
     competitors: [],
     marketGaps: '',
+    features: [],
     validationPlan: '',
   });
   
@@ -34,6 +36,10 @@ const Index = () => {
   
   const handleMarketGapsSubmit = (marketGaps: string, analysis: MarketGapAnalysis | undefined) => {
     setIdeaData(prev => ({ ...prev, marketGaps, marketGapAnalysis: analysis }));
+  };
+  
+  const handleFeaturesSubmit = (features: Feature[]) => {
+    setIdeaData(prev => ({ ...prev, features }));
   };
   
   const handleValidationPlanSubmit = (validationPlan: string) => {
@@ -53,7 +59,7 @@ const Index = () => {
     }
     
     // Update the project with all the additional data
-    // Note: This would require updating the project with competitors, market gaps, etc.
+    // Note: This would require updating the project with competitors, market gaps, features, etc.
     // For now, the project is created with the basic idea
   };
   
@@ -62,6 +68,7 @@ const Index = () => {
       idea: '',
       competitors: [],
       marketGaps: '',
+      features: [],
       validationPlan: '',
     });
   };
@@ -93,6 +100,13 @@ const Index = () => {
         initialMarketGaps={ideaData.marketGaps}
         initialAnalysis={ideaData.marketGapAnalysis}
         onMarketGapsSubmit={handleMarketGapsSubmit}
+      />
+    );
+  } else if (currentPath === '/features') {
+    return (
+      <FeatureEntryPage 
+        initialFeatures={ideaData.features}
+        onFeaturesSubmit={handleFeaturesSubmit}
       />
     );
   } else if (currentPath === '/validation-plan') {
