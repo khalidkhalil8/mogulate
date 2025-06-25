@@ -60,12 +60,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ onNewProject }) => 
   };
 
   const handleNewProject = () => {
-    // Only show new project button on dashboard
-    if (location.pathname === "/dashboard") {
-      onNewProject();
-    } else {
-      navigate("/dashboard");
-    }
+    navigate("/idea");
   };
 
   return (

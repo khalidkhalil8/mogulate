@@ -1,10 +1,14 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { useProjects } from '@/hooks/useProjects';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import Header from './Header';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 
 interface IdeaEntryPageProps {
   initialIdea?: string;
@@ -15,70 +19,96 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
   initialIdea = "", 
   onIdeaSubmit 
 }) => {
+  const [projectTitle, setProjectTitle] = useState("");
   const [idea, setIdea] = useState(initialIdea);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { createProject } = useProjects();
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (idea.trim()) {
+    
+    if (!projectTitle.trim()) {
+      toast.error('Please enter a project title');
+      return;
+    }
+    
+    if (!idea.trim()) {
+      toast.error('Please describe your idea');
+      return;
+    }
+
+    // Create the project in the database
+    const project = await createProject(projectTitle, idea);
+    if (project) {
       onIdeaSubmit(idea);
       navigate('/competitors');
     }
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <Header />
-      
-      <main className="flex-1 py-8 px-4">
-        <div className="container-width max-w-2xl mx-auto">
-          <div className="bg-white rounded-xl p-6 md:p-8">
-            <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center">
-              Enter Your Idea
-            </h1>
-            
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="space-y-4">
-                <label 
-                  htmlFor="idea" 
-                  className="block text-lg font-medium text-charcoal"
-                >
-                  Describe your idea below
-                </label>
+    <div className="min-h-screen bg-white">
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Create New Project</h1>
+            <p className="text-gray-600">Start by giving your project a name and describing your idea</p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="bg-white rounded-lg border p-6 space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="projectTitle" className="text-sm font-medium">
+                  Project Title *
+                </Label>
+                <Input
+                  id="projectTitle"
+                  placeholder="Enter your project title"
+                  value={projectTitle}
+                  onChange={(e) => setProjectTitle(e.target.value)}
+                  className="w-full"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="idea" className="text-sm font-medium">
+                  Describe your idea *
+                </Label>
                 <Textarea
                   id="idea"
                   placeholder="An AI-powered fitness app that analyzes the users form through the phone camera"
                   value={idea}
                   onChange={(e) => setIdea(e.target.value)}
-                  className="min-h-[150px] resize-y"
+                  className="min-h-[120px] resize-y w-full"
                   required
                 />
               </div>
+            </div>
+            
+            <div className="flex justify-between">
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft size={18} />
+                <span>Back to Dashboard</span>
+              </Button>
               
-              <div className="flex justify-between">
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={() => navigate('/')}
-                  className="flex items-center gap-2"
-                >
-                  <ArrowLeft size={18} />
-                  <span>Back to Home</span>
-                </Button>
-                
-                <Button 
-                  type="submit" 
-                  className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
-                  disabled={!idea.trim()}
-                >
-                  <span>Next</span>
-                  <ArrowRight size={18} />
-                </Button>
-              </div>
-            </form>
-          </div>
+              <Button 
+                type="submit" 
+                className="flex items-center gap-2"
+                disabled={!projectTitle.trim() || !idea.trim()}
+              >
+                <span>Next</span>
+                <ArrowRight size={18} />
+              </Button>
+            </div>
+          </form>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

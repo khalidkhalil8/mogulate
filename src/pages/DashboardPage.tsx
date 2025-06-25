@@ -1,38 +1,18 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useProjects } from "@/hooks/useProjects";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Plus, FileText, Calendar, Trash2 } from "lucide-react";
 import LoadingState from "@/components/ui/LoadingState";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { projects, isLoading, createProject, deleteProject } = useProjects();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [newProjectTitle, setNewProjectTitle] = useState("");
-  const [newProjectIdea, setNewProjectIdea] = useState("");
-
-  const handleCreateProject = async () => {
-    if (!newProjectTitle.trim()) return;
-    
-    const project = await createProject(newProjectTitle, newProjectIdea);
-    if (project) {
-      setIsCreateDialogOpen(false);
-      setNewProjectTitle("");
-      setNewProjectIdea("");
-      // Navigate to the idea entry page with the project context
-      navigate("/idea");
-    }
-  };
+  const { projects, isLoading, deleteProject } = useProjects();
 
   const handleProjectClick = (project: any) => {
     // Navigate to the appropriate step based on project completion
@@ -50,7 +30,7 @@ const DashboardPage = () => {
   };
 
   const handleNewProject = () => {
-    setIsCreateDialogOpen(true);
+    navigate("/idea");
   };
 
   if (isLoading) {
@@ -117,7 +97,7 @@ const DashboardPage = () => {
                     )}
                     <div className="flex items-center text-xs text-gray-500">
                       <Calendar className="h-3 w-3 mr-1" />
-                      {new Date(project.created_at).toLocaleDateString()}
+                      Last edited: {new Date(project.updated_at).toLocaleDateString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -126,43 +106,6 @@ const DashboardPage = () => {
           )}
         </div>
       </div>
-
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Project</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="title">Project Title *</Label>
-              <Input
-                id="title"
-                value={newProjectTitle}
-                onChange={(e) => setNewProjectTitle(e.target.value)}
-                placeholder="Enter project title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="idea">Initial Idea (Optional)</Label>
-              <Textarea
-                id="idea"
-                value={newProjectIdea}
-                onChange={(e) => setNewProjectIdea(e.target.value)}
-                placeholder="Describe your business idea..."
-                rows={3}
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleCreateProject} disabled={!newProjectTitle.trim()}>
-                Create Project
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
