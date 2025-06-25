@@ -14,6 +14,8 @@ import PricingPage from "./pages/PricingPage";
 import DashboardPage from "./pages/DashboardPage";
 import { useAuth } from "./context/AuthContext";
 import HomePage from "./components/HomePage";
+import DashboardSidebar from "./components/dashboard/DashboardSidebar";
+import Header from "./components/Header";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,7 +26,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Protected route component that redirects to auth page if user isn't authenticated
+// Protected route component that provides sidebar layout for authenticated users
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
@@ -34,7 +36,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   // Redirect to auth page if not authenticated
   if (!user) return <Navigate to="/auth" replace />;
   
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen flex">
+      <DashboardSidebar onNewProject={() => {}} />
+      <main className="flex-1 ml-64">
+        {children}
+      </main>
+    </div>
+  );
 };
 
 // Landing page route that redirects authenticated users to dashboard
@@ -47,14 +56,37 @@ const LandingPageRoute = () => {
   // Redirect to dashboard if authenticated
   if (user) return <Navigate to="/dashboard" replace />;
   
-  return <HomePage />;
+  return (
+    <>
+      <Header />
+      <HomePage />
+    </>
+  );
+};
+
+// Auth page route that redirects authenticated users to dashboard
+const AuthPageRoute = () => {
+  const { user, isLoading } = useAuth();
+  
+  // Show nothing while authentication state is loading
+  if (isLoading) return null;
+  
+  // Redirect to dashboard if authenticated
+  if (user) return <Navigate to="/dashboard" replace />;
+  
+  return (
+    <>
+      <Header />
+      <AuthPage />
+    </>
+  );
 };
 
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<LandingPageRoute />} />
-      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/auth" element={<AuthPageRoute />} />
       <Route 
         path="/dashboard" 
         element={

@@ -4,22 +4,19 @@ import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useProjects } from "@/hooks/useProjects";
-import { useUsageData } from "@/hooks/useUsageData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, FileText, Calendar, Trash2 } from "lucide-react";
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import LoadingState from "@/components/ui/LoadingState";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { projects, isLoading, createProject, deleteProject } = useProjects();
-  const { usageData } = useUsageData(user?.id);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newProjectTitle, setNewProjectTitle] = useState("");
   const [newProjectIdea, setNewProjectIdea] = useState("");
@@ -61,14 +58,12 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen">
       <Helmet>
         <title>Dashboard | Mogulate</title>
       </Helmet>
 
-      <DashboardSidebar onNewProject={handleNewProject} />
-
-      <main className="flex-1 p-6 ml-64">
+      <div className="p-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold">Your Projects</h1>
@@ -130,7 +125,7 @@ const DashboardPage = () => {
             </div>
           )}
         </div>
-      </main>
+      </div>
 
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent>

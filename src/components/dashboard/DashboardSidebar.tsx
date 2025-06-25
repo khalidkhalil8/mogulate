@@ -56,6 +56,16 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ onNewProject }) => 
 
   const handleLogout = async () => {
     await logout();
+    navigate("/");
+  };
+
+  const handleNewProject = () => {
+    // Only show new project button on dashboard
+    if (location.pathname === "/dashboard") {
+      onNewProject();
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   return (
@@ -67,13 +77,15 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ onNewProject }) => 
         </div>
       </div>
 
-      {/* New Project Button */}
-      <div className="p-4">
-        <Button onClick={onNewProject} className="w-full gap-2">
-          <Plus className="h-4 w-4" />
-          New Project
-        </Button>
-      </div>
+      {/* New Project Button - only show on dashboard */}
+      {location.pathname === "/dashboard" && (
+        <div className="p-4">
+          <Button onClick={handleNewProject} className="w-full gap-2">
+            <Plus className="h-4 w-4" />
+            New Project
+          </Button>
+        </div>
+      )}
 
       {/* User Email */}
       <div className="px-4 py-2">

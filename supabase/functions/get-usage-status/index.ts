@@ -15,7 +15,22 @@ serve(async (req) => {
   }
 
   try {
-    // Get Supabase client with service role key
+    // Get the authorization header
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Authorization header is required',
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 401 
+        }
+      );
+    }
+
+    // Get Supabase client with service role key for admin operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     
@@ -33,26 +48,43 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get the user ID from the request
-    const { userId } = await req.json();
-    
-    if (!userId) {
+    // Also create a client with the user's token to verify authentication
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader,
+        },
+      },
+    });
+
+    // Verify the user's authentication
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseUser.auth.getUser();
+
+    if (userError || !user) {
+      console.error('User authentication failed:', userError);
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'User ID is required',
+          error: 'Authentication failed',
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
-          status: 400 
+          status: 401 
         }
       );
     }
 
+    const userId = user.id;
+    console.log('Authenticated user:', userId);
+
     // Get the user's profile to determine subscription tier
-    const { data: profileData, error: profileError } = await supabase
+    const { data: profileData, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('subscription_tier, subscription_started_at, created_at')
       .eq('id', userId)
@@ -111,8 +143,8 @@ serve(async (req) => {
       monthsDiff
     });
 
-    // Count API usage since the billing cycle started
-    const { count: used, error: usageError } = await supabase
+    // Count API usage since the billing cycle started using admin client
+    const { count: used, error: usageError } = await supabaseAdmin
       .from("api_usage_logs")
       .select("*", { count: 'exact' })
       .eq("user_id", userId)

@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/context/AuthContext";
-import Header from "@/components/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SubscriptionTab from "@/components/settings/SubscriptionTab";
 import FeatureWaitlists from "@/components/settings/FeatureWaitlists";
@@ -162,10 +160,9 @@ const ProfilePage = () => {
       <Helmet>
         <title>Profile | Mogulate</title>
       </Helmet>
-      <Header />
 
-      <main className="flex-1 py-8 px-4">
-        <div className="container-width max-w-4xl mx-auto">
+      <main className="flex-1 py-8 px-6">
+        <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Profile</h1>
 
           <Tabs defaultValue="subscription">
