@@ -2,9 +2,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, X } from 'lucide-react';
 import SetupNavigation from './setup/SetupNavigation';
+
+interface ValidationStep {
+  id: string;
+  title: string;
+  goal: string;
+  description: string;
+  priority: string;
+}
 
 interface ValidationPlanPageProps {
   initialValidationPlan?: string;
@@ -15,11 +24,48 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
   initialValidationPlan = "", 
   onValidationPlanSubmit 
 }) => {
-  const [validationPlan, setValidationPlan] = useState(initialValidationPlan);
+  const [steps, setSteps] = useState<ValidationStep[]>([
+    {
+      id: '1',
+      title: '',
+      goal: '',
+      description: '',
+      priority: ''
+    }
+  ]);
   const navigate = useNavigate();
+  
+  const addStep = () => {
+    const newStep: ValidationStep = {
+      id: Date.now().toString(),
+      title: '',
+      goal: '',
+      description: '',
+      priority: ''
+    };
+    setSteps([...steps, newStep]);
+  };
+  
+  const removeStep = (id: string) => {
+    if (steps.length > 1) {
+      setSteps(steps.filter(step => step.id !== id));
+    }
+  };
+  
+  const updateStep = (id: string, field: keyof ValidationStep, value: string) => {
+    setSteps(steps.map(step => 
+      step.id === id ? { ...step, [field]: value } : step
+    ));
+  };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Convert steps to a formatted string for backwards compatibility
+    const validationPlan = steps.map((step, index) => 
+      `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.goal} ${step.description}\nPriority: ${step.priority}`
+    ).join('\n\n');
+    
     onValidationPlanSubmit(validationPlan);
     navigate('/summary');
   };
@@ -30,28 +76,80 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
       
       <div className="p-6">
         <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">How Will You Validate Your Idea?</h1>
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold mb-2">Validation Plan</h1>
+            <p className="text-gray-600">
+              List the steps to validate your idea before investing heavily
+            </p>
           </div>
           
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="space-y-4">
-              <label 
-                htmlFor="validationPlan" 
-                className="block text-lg font-medium text-charcoal"
-              >
-                Outline your plan for testing your idea before investing heavily
-              </label>
-              <Textarea
-                id="validationPlan"
-                placeholder="Landing page, customer interviews, building an MVP"
-                value={validationPlan}
-                onChange={(e) => setValidationPlan(e.target.value)}
-                className="min-h-[150px] resize-y"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {steps.map((step, index) => (
+              <div key={step.id} className="border rounded-lg p-6 space-y-4 relative">
+                {steps.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeStep(step.id)}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Step Title:
+                    </label>
+                    <Input
+                      value={step.title}
+                      onChange={(e) => updateStep(step.id, 'title', e.target.value)}
+                      placeholder="e.g., Create Landing Page"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Goal/Description:
+                    </label>
+                    <Textarea
+                      value={step.goal + ' ' + step.description}
+                      onChange={(e) => updateStep(step.id, 'goal', e.target.value)}
+                      placeholder="What do you want to achieve with this step?"
+                      className="min-h-[80px]"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Priority:
+                    </label>
+                    <Input
+                      value={step.priority}
+                      onChange={(e) => updateStep(step.id, 'priority', e.target.value)}
+                      placeholder="High, Medium, Low"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
             
-            <div className="flex justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addStep}
+              className="w-full flex items-center justify-center gap-2 py-3 border-dashed"
+            >
+              <Plus className="h-4 w-4" />
+              Add another step
+            </Button>
+            
+            <div className="flex justify-between pt-6">
               <Button
                 type="button" 
                 variant="outline"
@@ -66,7 +164,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
                 type="submit" 
                 className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
               >
-                <span>Next</span>
+                <span>Save Project</span>
                 <ArrowRight size={18} />
               </Button>
             </div>

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -44,6 +43,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       </main>
     </div>
   );
+};
+
+// Setup route component that provides authentication but no sidebar
+const SetupRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  
+  // Show nothing while authentication state is loading
+  if (isLoading) return null;
+  
+  // Redirect to auth page if not authenticated
+  if (!user) return <Navigate to="/auth" replace />;
+  
+  return <>{children}</>;
 };
 
 // Landing page route that redirects authenticated users to dashboard
@@ -95,11 +107,11 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
-      <Route path="/idea" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-      <Route path="/competitors" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-      <Route path="/market-gaps" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-      <Route path="/validation-plan" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-      <Route path="/summary" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+      <Route path="/idea" element={<SetupRoute><Index /></SetupRoute>} />
+      <Route path="/competitors" element={<SetupRoute><Index /></SetupRoute>} />
+      <Route path="/market-gaps" element={<SetupRoute><Index /></SetupRoute>} />
+      <Route path="/validation-plan" element={<SetupRoute><Index /></SetupRoute>} />
+      <Route path="/summary" element={<SetupRoute><Index /></SetupRoute>} />
       <Route 
         path="/profile" 
         element={
