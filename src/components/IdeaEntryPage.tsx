@@ -1,13 +1,11 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { useProjects } from '@/hooks/useProjects';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import SetupNavigation from './setup/SetupNavigation';
 
@@ -23,8 +21,6 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
   const [projectTitle, setProjectTitle] = useState("");
   const [idea, setIdea] = useState(initialIdea);
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { createProject } = useProjects();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +35,9 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
       return;
     }
 
-    // Create the project in the database
-    const project = await createProject(projectTitle, idea);
-    if (project) {
-      onIdeaSubmit(idea);
-      navigate('/competitors');
-    }
+    // Just submit the idea without creating a project yet
+    onIdeaSubmit(idea);
+    navigate('/competitors');
   };
   
   return (
