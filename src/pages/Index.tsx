@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useProjects } from '@/hooks/useProjects';
+import { toast } from '@/components/ui/sonner';
 import HomePage from '@/components/HomePage';
 import IdeaEntryPage from '@/components/IdeaEntryPage';
 import CompetitorDiscoveryPage from '@/components/CompetitorDiscoveryPage';
@@ -57,7 +58,7 @@ const Index = () => {
       }
     } else if (projectId) {
       // Update existing project
-      await updateProject(projectId, { idea });
+      await updateProject(projectId, { idea, title });
     }
   };
   
@@ -101,15 +102,26 @@ const Index = () => {
       throw new Error('No project to save');
     }
     
-    // Final save to ensure all data is persisted
-    await updateProject(projectId, {
-      idea: ideaData.idea,
-      competitors: ideaData.competitors,
-      market_gaps: ideaData.marketGaps,
-      features: ideaData.features,
-      validation_plan: ideaData.validationPlan,
-      market_gap_analysis: ideaData.marketGapAnalysis,
-    });
+    try {
+      // Final save to ensure all data is persisted
+      await updateProject(projectId, {
+        idea: ideaData.idea,
+        competitors: ideaData.competitors,
+        market_gaps: ideaData.marketGaps,
+        features: ideaData.features,
+        validation_plan: ideaData.validationPlan,
+        market_gap_analysis: ideaData.marketGapAnalysis,
+      });
+      
+      // Show success toast and redirect to dashboard
+      toast.success('Project created successfully!');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+    } catch (error) {
+      toast.error('Failed to save project. Please try again.');
+      throw error;
+    }
   };
   
   const handleReset = () => {
@@ -185,16 +197,12 @@ const Index = () => {
       );
     case '/':
     default:
-      // For the root path, show the home page if user is not logged in, otherwise idea entry
+      // For the root path, show the home page if user is not logged in, otherwise redirect to dashboard
       if (!user) {
         return <HomePage />;
       } else {
-        return (
-          <IdeaEntryPage 
-            initialIdea={ideaData.idea} 
-            onIdeaSubmit={handleIdeaSubmit} 
-          />
-        );
+        navigate('/dashboard');
+        return null;
       }
   }
 };

@@ -19,15 +19,8 @@ const queryClient = new QueryClient();
 function AppContent() {
   const location = useLocation();
   
-  // Don't show header on setup flow pages or project pages
-  const hideHeader = [
-    '/idea', 
-    '/competitors', 
-    '/market-gaps', 
-    '/features', 
-    '/validation-plan', 
-    '/summary'
-  ].includes(location.pathname) || location.pathname.startsWith('/project/');
+  // Only show header on landing page for unauthenticated users
+  const showHeader = location.pathname === '/' && !location.search;
 
   return (
     <>
@@ -36,7 +29,7 @@ function AppContent() {
         <meta name="description" content="Validate your business ideas with AI-powered market research and competitor analysis." />
       </Helmet>
       <div className="min-h-screen bg-white">
-        {!hideHeader && <Header />}
+        {showHeader && <Header />}
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/idea" element={<Index />} />
