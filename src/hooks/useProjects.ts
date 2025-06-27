@@ -46,6 +46,7 @@ export const useProjects = () => {
       const transformedData: Project[] = (data || []).map(item => ({
         ...item,
         competitors: Array.isArray(item.competitors) ? item.competitors : [],
+        features: Array.isArray(item.features) ? item.features : [],
         market_gap_analysis: item.market_gap_analysis || undefined,
       }));
 
@@ -71,6 +72,8 @@ export const useProjects = () => {
           user_id: user.id,
           title,
           idea: idea || '',
+          features: [],
+          competitors: [],
         })
         .select()
         .single();
@@ -85,6 +88,7 @@ export const useProjects = () => {
       const transformedProject: Project = {
         ...data,
         competitors: Array.isArray(data.competitors) ? data.competitors : [],
+        features: Array.isArray(data.features) ? data.features : [],
         market_gap_analysis: data.market_gap_analysis || undefined,
       };
 
@@ -94,6 +98,48 @@ export const useProjects = () => {
     } catch (error) {
       console.error('Error creating project:', error);
       toast.error('Failed to create project');
+      return null;
+    }
+  };
+
+  const updateProject = async (projectId: string, updates: Partial<Project>) => {
+    if (!user?.id) {
+      toast.error('You must be logged in to update a project');
+      return null;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', projectId)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating project:', error);
+        toast.error('Failed to update project');
+        return null;
+      }
+
+      // Transform the returned data
+      const transformedProject: Project = {
+        ...data,
+        competitors: Array.isArray(data.competitors) ? data.competitors : [],
+        features: Array.isArray(data.features) ? data.features : [],
+        market_gap_analysis: data.market_gap_analysis || undefined,
+      };
+
+      setProjects(prev => prev.map(p => p.id === projectId ? transformedProject : p));
+      toast.success('Project updated successfully');
+      return transformedProject;
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast.error('Failed to update project');
       return null;
     }
   };
@@ -127,6 +173,7 @@ export const useProjects = () => {
     projects,
     isLoading,
     createProject,
+    updateProject,
     deleteProject,
     refetchProjects: fetchProjects,
   };

@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useProjects } from '@/hooks/useProjects';
 import SetupNavigation from './setup/SetupNavigation';
 import FeatureList from './features/FeatureList';
 import FeaturePageNavigation from './features/FeaturePageNavigation';
@@ -21,15 +22,31 @@ const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({
   initialFeatures = [], 
   onFeaturesSubmit 
 }) => {
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('projectId');
+  const { projects, updateProject } = useProjects();
+  const project = projects.find(p => p.id === projectId);
+  
   const [features, setFeatures] = useState<Feature[]>(
-    initialFeatures.length > 0 ? initialFeatures : [{
-      id: '1',
-      title: '',
-      description: '',
-      priority: ''
-    }]
+    project?.features && project.features.length > 0 
+      ? project.features 
+      : initialFeatures.length > 0 
+        ? initialFeatures 
+        : [{
+            id: '1',
+            title: '',
+            description: '',
+            priority: ''
+          }]
   );
   const navigate = useNavigate();
+  
+  // Update features when project data loads
+  useEffect(() => {
+    if (project?.features && project.features.length > 0) {
+      setFeatures(project.features);
+    }
+  }, [project]);
   
   const addFeature = () => {
     const newFeature: Feature = {
@@ -53,13 +70,24 @@ const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({
     ));
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Save to project if we have a project ID
+    if (projectId && project) {
+      await updateProject(projectId, { features });
+    }
+    
     onFeaturesSubmit(features);
     navigate('/validation-plan');
   };
   
-  const handleBack = () => {
+  const handleBack = async () => {
+    // Save to project if we have a project ID
+    if (projectId && project) {
+      await updateProject(projectId, { features });
+    }
+    
     onFeaturesSubmit(features);
     navigate('/market-gaps');
   };

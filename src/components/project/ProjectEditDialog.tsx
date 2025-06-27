@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/sonner';
+import { useProjects } from '@/hooks/useProjects';
 import type { Project } from '@/hooks/useProjects';
 
 interface ProjectEditDialogProps {
@@ -27,6 +28,7 @@ const ProjectEditDialog: React.FC<ProjectEditDialogProps> = ({
   const [title, setTitle] = useState(project.title);
   const [description, setDescription] = useState(project.idea || '');
   const [isLoading, setIsLoading] = useState(false);
+  const { updateProject } = useProjects();
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -36,9 +38,10 @@ const ProjectEditDialog: React.FC<ProjectEditDialogProps> = ({
 
     setIsLoading(true);
     try {
-      // TODO: Implement project update functionality
-      // For now, just show success message
-      toast.success('Project updated successfully');
+      await updateProject(project.id, {
+        title: title.trim(),
+        idea: description.trim(),
+      });
       onOpenChange(false);
     } catch (error) {
       toast.error('Failed to update project');

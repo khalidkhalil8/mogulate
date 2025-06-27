@@ -1,3 +1,4 @@
+
 export interface Competitor {
   id: string;
   name: string;
@@ -24,7 +25,8 @@ export interface Feature {
   id: string;
   title: string;
   description: string;
-  priority: string;
+  status: 'Planned' | 'In Progress' | 'Done';
+  priority: 'Low' | 'Medium' | 'High';
 }
 
 // API response types

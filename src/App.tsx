@@ -1,162 +1,48 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+
+import { Helmet, HelmetProvider } from "react-helmet-async";
+import { Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { HelmetProvider } from "react-helmet-async";
-import { AuthProvider } from "./context/AuthContext";
-import Index from "./pages/Index";
-import AuthPage from "./pages/AuthPage";
-import NotFound from "./pages/NotFound";
-import ProfilePage from "./pages/ProfilePage";
-import PricingPage from "./pages/PricingPage";
-import DashboardPage from "./pages/DashboardPage";
-import ProjectEditPage from "./pages/ProjectEditPage";
-import { useAuth } from "./context/AuthContext";
-import HomePage from "./components/HomePage";
-import DashboardSidebar from "./components/dashboard/DashboardSidebar";
-import Header from "./components/Header";
+import { AuthProvider } from "@/context/AuthContext";
+import Header from "@/components/Header";
+import Index from "@/pages/Index";
+import AuthPage from "@/pages/AuthPage";
+import ProfilePage from "@/pages/ProfilePage";
+import DashboardPage from "@/pages/DashboardPage";
+import ProjectEditPage from "@/pages/ProjectEditPage";
+import FeaturesPage from "@/pages/FeaturesPage";
+import PricingPage from "@/pages/PricingPage";
+import NotFound from "@/pages/NotFound";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
-// Protected route component that provides sidebar layout for authenticated users
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
-  
-  // Show nothing while authentication state is loading
-  if (isLoading) return null;
-  
-  // Redirect to auth page if not authenticated
-  if (!user) return <Navigate to="/auth" replace />;
-  
+function App() {
   return (
-    <div className="min-h-screen flex">
-      <DashboardSidebar onNewProject={() => {}} />
-      <main className="flex-1 ml-64">
-        {children}
-      </main>
-    </div>
-  );
-};
-
-// Setup route component that provides authentication but no sidebar
-const SetupRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
-  
-  // Show nothing while authentication state is loading
-  if (isLoading) return null;
-  
-  // Redirect to auth page if not authenticated
-  if (!user) return <Navigate to="/auth" replace />;
-  
-  return <>{children}</>;
-};
-
-// Landing page route that redirects authenticated users to dashboard
-const LandingPageRoute = () => {
-  const { user, isLoading } = useAuth();
-  
-  // Show nothing while authentication state is loading
-  if (isLoading) return null;
-  
-  // Redirect to dashboard if authenticated
-  if (user) return <Navigate to="/dashboard" replace />;
-  
-  return (
-    <>
-      <Header />
-      <HomePage />
-    </>
-  );
-};
-
-// Auth page route that redirects authenticated users to dashboard
-const AuthPageRoute = () => {
-  const { user, isLoading } = useAuth();
-  
-  // Show nothing while authentication state is loading
-  if (isLoading) return null;
-  
-  // Redirect to dashboard if authenticated
-  if (user) return <Navigate to="/dashboard" replace />;
-  
-  return (
-    <>
-      <Header />
-      <AuthPage />
-    </>
-  );
-};
-
-const AppRoutes = () => {
-  return (
-    <Routes>
-      <Route path="/" element={<LandingPageRoute />} />
-      <Route path="/auth" element={<AuthPageRoute />} />
-      <Route 
-        path="/dashboard" 
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/project/:id" 
-        element={
-          <ProtectedRoute>
-            <ProjectEditPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route path="/idea" element={<SetupRoute><Index /></SetupRoute>} />
-      <Route path="/competitors" element={<SetupRoute><Index /></SetupRoute>} />
-      <Route path="/market-gaps" element={<SetupRoute><Index /></SetupRoute>} />
-      <Route path="/features" element={<SetupRoute><Index /></SetupRoute>} />
-      <Route path="/validation-plan" element={<SetupRoute><Index /></SetupRoute>} />
-      <Route path="/summary" element={<SetupRoute><Index /></SetupRoute>} />
-      <Route 
-        path="/profile" 
-        element={
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/pricing" 
-        element={
-          <ProtectedRoute>
-            <PricingPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+    <QueryClientProvider client={queryClient}>
       <HelmetProvider>
-        <Toaster />
-        <Sonner position="top-right" closeButton />
-        <BrowserRouter>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </BrowserRouter>
+        <AuthProvider>
+          <Helmet>
+            <title>Mogulate - Validate Your Business Ideas</title>
+            <meta name="description" content="Validate your business ideas with AI-powered market research and competitor analysis." />
+          </Helmet>
+          <div className="min-h-screen bg-white">
+            <Header />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/project/:id" element={<ProjectEditPage />} />
+              <Route path="/project/:id/features" element={<FeaturesPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+          </div>
+        </AuthProvider>
       </HelmetProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+}
 
 export default App;

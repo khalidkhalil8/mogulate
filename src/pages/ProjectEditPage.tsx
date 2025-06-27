@@ -38,7 +38,7 @@ const ProjectEditPage = () => {
     {
       title: 'Features',
       icon: List,
-      onClick: () => navigate('/features'),
+      onClick: () => navigate(`/project/${project.id}/features`),
       preview: `${project.features?.length || 0} features added`,
     },
     {

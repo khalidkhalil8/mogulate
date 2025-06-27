@@ -103,6 +103,7 @@ export type Database = {
         Row: {
           competitors: Json | null
           created_at: string
+          features: Json | null
           id: string
           idea: string | null
           market_gap_analysis: Json | null
@@ -115,6 +116,7 @@ export type Database = {
         Insert: {
           competitors?: Json | null
           created_at?: string
+          features?: Json | null
           id?: string
           idea?: string | null
           market_gap_analysis?: Json | null
@@ -127,6 +129,7 @@ export type Database = {
         Update: {
           competitors?: Json | null
           created_at?: string
+          features?: Json | null
           id?: string
           idea?: string | null
           market_gap_analysis?: Json | null
