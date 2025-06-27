@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useProjects } from '@/hooks/useProjects';
 import HomePage from '@/components/HomePage';
@@ -72,64 +73,70 @@ const Index = () => {
     });
   };
   
-  // Determine which component to show based on the current path
+  // Get the current path from the URL
   const currentPath = location.pathname;
   
-  // Prevent access to steps if idea is empty
-  useEffect(() => {
-    if (currentPath !== '/idea' && !ideaData.idea) {
-      navigate('/idea');
-    }
-  }, [currentPath, ideaData.idea, navigate]);
-  
-  // Render the correct component based on the current path
-  if (currentPath === '/competitors') {
-    return (
-      <CompetitorDiscoveryPage 
-        idea={ideaData.idea}
-        initialCompetitors={ideaData.competitors}
-        onCompetitorsSubmit={handleCompetitorsSubmit}
-      />
-    );
-  } else if (currentPath === '/market-gaps') {
-    return (
-      <MarketGapPage 
-        idea={ideaData.idea}
-        competitors={ideaData.competitors}
-        initialMarketGaps={ideaData.marketGaps}
-        initialAnalysis={ideaData.marketGapAnalysis}
-        onMarketGapsSubmit={handleMarketGapsSubmit}
-      />
-    );
-  } else if (currentPath === '/features') {
-    return (
-      <FeatureEntryPage 
-        initialFeatures={ideaData.features}
-        onFeaturesSubmit={handleFeaturesSubmit}
-      />
-    );
-  } else if (currentPath === '/validation-plan') {
-    return (
-      <ValidationPlanPage 
-        initialValidationPlan={ideaData.validationPlan}
-        onValidationPlanSubmit={handleValidationPlanSubmit}
-      />
-    );
-  } else if (currentPath === '/summary') {
-    return (
-      <SummaryPage 
-        data={ideaData}
-        onSaveProject={handleSaveProject}
-      />
-    );
-  } else {
-    // Default to idea entry page
-    return (
-      <IdeaEntryPage 
-        initialIdea={ideaData.idea} 
-        onIdeaSubmit={handleIdeaSubmit} 
-      />
-    );
+  // Show the appropriate component based on the current path
+  switch (currentPath) {
+    case '/competitors':
+      return (
+        <CompetitorDiscoveryPage 
+          idea={ideaData.idea}
+          initialCompetitors={ideaData.competitors}
+          onCompetitorsSubmit={handleCompetitorsSubmit}
+        />
+      );
+    case '/market-gaps':
+      return (
+        <MarketGapPage 
+          idea={ideaData.idea}
+          competitors={ideaData.competitors}
+          initialMarketGaps={ideaData.marketGaps}
+          initialAnalysis={ideaData.marketGapAnalysis}
+          onMarketGapsSubmit={handleMarketGapsSubmit}
+        />
+      );
+    case '/features':
+      return (
+        <FeatureEntryPage 
+          initialFeatures={ideaData.features}
+          onFeaturesSubmit={handleFeaturesSubmit}
+        />
+      );
+    case '/validation-plan':
+      return (
+        <ValidationPlanPage 
+          initialValidationPlan={ideaData.validationPlan}
+          onValidationPlanSubmit={handleValidationPlanSubmit}
+        />
+      );
+    case '/summary':
+      return (
+        <SummaryPage 
+          data={ideaData}
+          onSaveProject={handleSaveProject}
+        />
+      );
+    case '/idea':
+      return (
+        <IdeaEntryPage 
+          initialIdea={ideaData.idea} 
+          onIdeaSubmit={handleIdeaSubmit} 
+        />
+      );
+    case '/':
+    default:
+      // For the root path, show the home page if user is not logged in, otherwise idea entry
+      if (!user) {
+        return <HomePage />;
+      } else {
+        return (
+          <IdeaEntryPage 
+            initialIdea={ideaData.idea} 
+            onIdeaSubmit={handleIdeaSubmit} 
+          />
+        );
+      }
   }
 };
 
