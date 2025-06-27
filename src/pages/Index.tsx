@@ -15,7 +15,7 @@ import type { IdeaData, Competitor, MarketGapAnalysis, Feature } from '@/lib/typ
 const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { createProject } = useProjects();
   
   const [ideaData, setIdeaData] = useState<IdeaData>({
@@ -72,6 +72,15 @@ const Index = () => {
       validationPlan: '',
     });
   };
+  
+  // Show loading spinner while auth is loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+      </div>
+    );
+  }
   
   // Get the current path from the URL
   const currentPath = location.pathname;
