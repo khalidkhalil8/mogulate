@@ -19,8 +19,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children, showSidebar = true })
   
   const shouldShowSidebar = user && showSidebar && 
     !setupFlowPaths.includes(location.pathname) && 
-    !noSidebarPaths.includes(location.pathname) &&
-    !location.pathname.startsWith('/project/') === false; // Show on project pages
+    !noSidebarPaths.includes(location.pathname);
 
   if (!shouldShowSidebar) {
     return <>{children}</>;
