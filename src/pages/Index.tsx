@@ -22,6 +22,7 @@ const Index = () => {
   const projectId = searchParams.get('projectId');
   const existingProject = projects.find(p => p.id === projectId);
 
+  const [projectTitle, setProjectTitle] = useState('');
   const [ideaData, setIdeaData] = useState<IdeaData>({
     idea: existingProject?.idea || '',
     competitors: existingProject?.competitors || [],
@@ -30,6 +31,18 @@ const Index = () => {
     validationPlan: existingProject?.validation_plan || '',
     marketGapAnalysis: existingProject?.market_gap_analysis,
   });
+
+  // Warn on exit if project has not been saved
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!projectId) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [projectId]);
 
   useEffect(() => {
     if (existingProject) {
@@ -41,59 +54,47 @@ const Index = () => {
         validationPlan: existingProject.validation_plan || '',
         marketGapAnalysis: existingProject.market_gap_analysis,
       });
+      setProjectTitle(existingProject.title || '');
     }
   }, [existingProject]);
 
   const handleIdeaSubmit = async (idea: string, title: string) => {
     setIdeaData(prev => ({ ...prev, idea }));
-
-    if (!projectId && user) {
-      const newProject = await createProject(title, idea);
-      if (newProject) {
-        setSearchParams({ projectId: newProject.id });
-      }
-    } else if (projectId) {
-      await updateProject(projectId, { idea, title });
-    }
+    setProjectTitle(title);
+    navigate('/competitors');
   };
 
   const handleCompetitorsSubmit = async (competitors: Competitor[]) => {
     setIdeaData(prev => ({ ...prev, competitors }));
-    if (projectId) {
-      await updateProject(projectId, { competitors });
-    }
+    navigate('/market-gaps');
   };
 
   const handleMarketGapsSubmit = async (marketGaps: string, analysis: MarketGapAnalysis | undefined) => {
     setIdeaData(prev => ({ ...prev, marketGaps, marketGapAnalysis: analysis }));
-    if (projectId) {
-      await updateProject(projectId, {
-        market_gaps: marketGaps,
-        market_gap_analysis: analysis
-      });
-    }
+    navigate('/features');
   };
 
   const handleFeaturesSubmit = async (features: Feature[]) => {
     setIdeaData(prev => ({ ...prev, features }));
-    if (projectId) {
-      await updateProject(projectId, { features });
-    }
+    navigate('/validation-plan');
   };
 
   const handleValidationPlanSubmit = async (validationPlan: string) => {
     setIdeaData(prev => ({ ...prev, validationPlan }));
-    if (projectId) {
-      await updateProject(projectId, { validation_plan: validationPlan });
-    }
+    navigate('/summary');
   };
 
   const handleSaveProject = async () => {
-    if (!projectId) throw new Error('No project to save');
+    if (!user) {
+      toast.error('You must be logged in to save a project');
+      return;
+    }
 
     try {
-      await updateProject(projectId, {
-        idea: ideaData.idea,
+      const newProject = await createProject(projectTitle, ideaData.idea);
+      if (!newProject) throw new Error('Project creation failed');
+
+      await updateProject(newProject.id, {
         competitors: ideaData.competitors,
         market_gaps: ideaData.marketGaps,
         features: ideaData.features,
@@ -106,7 +107,6 @@ const Index = () => {
       }, 1000);
     } catch (error) {
       toast.error('Failed to save project. Please try again.');
-      throw error;
     }
   };
 
