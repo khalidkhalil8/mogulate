@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -19,11 +18,10 @@ const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, isLoading } = useAuth();
   const { createProject, updateProject, projects } = useProjects();
-  
-  // Get project ID from URL params if it exists
+
   const projectId = searchParams.get('projectId');
   const existingProject = projects.find(p => p.id === projectId);
-  
+
   const [ideaData, setIdeaData] = useState<IdeaData>({
     idea: existingProject?.idea || '',
     competitors: existingProject?.competitors || [],
@@ -32,8 +30,7 @@ const Index = () => {
     validationPlan: existingProject?.validation_plan || '',
     marketGapAnalysis: existingProject?.market_gap_analysis,
   });
-  
-  // Update ideaData when project loads
+
   useEffect(() => {
     if (existingProject) {
       setIdeaData({
@@ -46,64 +43,55 @@ const Index = () => {
       });
     }
   }, [existingProject]);
-  
+
   const handleIdeaSubmit = async (idea: string, title: string) => {
     setIdeaData(prev => ({ ...prev, idea }));
-    
-    // Create project if it doesn't exist
+
     if (!projectId && user) {
       const newProject = await createProject(title, idea);
       if (newProject) {
         setSearchParams({ projectId: newProject.id });
       }
     } else if (projectId) {
-      // Update existing project
       await updateProject(projectId, { idea, title });
     }
   };
-  
+
   const handleCompetitorsSubmit = async (competitors: Competitor[]) => {
     setIdeaData(prev => ({ ...prev, competitors }));
-    
     if (projectId) {
       await updateProject(projectId, { competitors });
     }
   };
-  
+
   const handleMarketGapsSubmit = async (marketGaps: string, analysis: MarketGapAnalysis | undefined) => {
     setIdeaData(prev => ({ ...prev, marketGaps, marketGapAnalysis: analysis }));
-    
     if (projectId) {
-      await updateProject(projectId, { 
+      await updateProject(projectId, {
         market_gaps: marketGaps,
-        market_gap_analysis: analysis 
+        market_gap_analysis: analysis
       });
     }
   };
-  
+
   const handleFeaturesSubmit = async (features: Feature[]) => {
     setIdeaData(prev => ({ ...prev, features }));
-    
     if (projectId) {
       await updateProject(projectId, { features });
     }
   };
-  
+
   const handleValidationPlanSubmit = async (validationPlan: string) => {
     setIdeaData(prev => ({ ...prev, validationPlan }));
-    
     if (projectId) {
       await updateProject(projectId, { validation_plan: validationPlan });
     }
   };
-  
+
   const handleSaveProject = async () => {
-    if (!projectId) {
-      throw new Error('No project to save');
-    }
-    
+    if (!projectId) throw new Error('No project to save');
+
     try {
-      // Final save to ensure all data is persisted
       await updateProject(projectId, {
         idea: ideaData.idea,
         competitors: ideaData.competitors,
@@ -112,9 +100,7 @@ const Index = () => {
         validation_plan: ideaData.validationPlan,
         market_gap_analysis: ideaData.marketGapAnalysis,
       });
-      
-      // Show success toast and redirect to dashboard
-      toast.success('Project created successfully!');
+
       setTimeout(() => {
         navigate('/dashboard');
       }, 1000);
@@ -123,7 +109,7 @@ const Index = () => {
       throw error;
     }
   };
-  
+
   const handleReset = () => {
     setIdeaData({
       idea: '',
@@ -134,8 +120,7 @@ const Index = () => {
     });
     setSearchParams({});
   };
-  
-  // Show loading spinner while auth is loading
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -143,15 +128,13 @@ const Index = () => {
       </div>
     );
   }
-  
-  // Get the current path from the URL
+
   const currentPath = location.pathname;
-  
-  // Show the appropriate component based on the current path
+
   switch (currentPath) {
     case '/competitors':
       return (
-        <CompetitorDiscoveryPage 
+        <CompetitorDiscoveryPage
           idea={ideaData.idea}
           initialCompetitors={ideaData.competitors}
           onCompetitorsSubmit={handleCompetitorsSubmit}
@@ -159,7 +142,7 @@ const Index = () => {
       );
     case '/market-gaps':
       return (
-        <MarketGapPage 
+        <MarketGapPage
           idea={ideaData.idea}
           competitors={ideaData.competitors}
           initialMarketGaps={ideaData.marketGaps}
@@ -169,35 +152,34 @@ const Index = () => {
       );
     case '/features':
       return (
-        <FeatureEntryPage 
+        <FeatureEntryPage
           initialFeatures={ideaData.features}
           onFeaturesSubmit={handleFeaturesSubmit}
         />
       );
     case '/validation-plan':
       return (
-        <ValidationPlanPage 
+        <ValidationPlanPage
           initialValidationPlan={ideaData.validationPlan}
           onValidationPlanSubmit={handleValidationPlanSubmit}
         />
       );
     case '/summary':
       return (
-        <SummaryPage 
+        <SummaryPage
           data={ideaData}
           onSaveProject={handleSaveProject}
         />
       );
     case '/idea':
       return (
-        <IdeaEntryPage 
-          initialIdea={ideaData.idea} 
-          onIdeaSubmit={handleIdeaSubmit} 
+        <IdeaEntryPage
+          initialIdea={ideaData.idea}
+          onIdeaSubmit={handleIdeaSubmit}
         />
       );
     case '/':
     default:
-      // For the root path, show the home page if user is not logged in, otherwise redirect to dashboard
       if (!user) {
         return <HomePage />;
       } else {
