@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -42,7 +41,6 @@ export const useProjects = () => {
         return;
       }
 
-      // Transform the data to match our Project interface
       const transformedData: Project[] = (data || []).map(item => ({
         ...item,
         competitors: Array.isArray(item.competitors) ? item.competitors : [],
@@ -84,7 +82,6 @@ export const useProjects = () => {
         return null;
       }
 
-      // Transform the returned data to match our Project interface
       const transformedProject: Project = {
         ...data,
         competitors: Array.isArray(data.competitors) ? data.competitors : [],
@@ -93,7 +90,6 @@ export const useProjects = () => {
       };
 
       setProjects(prev => [transformedProject, ...prev]);
-      toast.success('Project created successfully');
       return transformedProject;
     } catch (error) {
       console.error('Error creating project:', error);
@@ -126,7 +122,6 @@ export const useProjects = () => {
         return null;
       }
 
-      // Transform the returned data
       const transformedProject: Project = {
         ...data,
         competitors: Array.isArray(data.competitors) ? data.competitors : [],
@@ -135,7 +130,6 @@ export const useProjects = () => {
       };
 
       setProjects(prev => prev.map(p => p.id === projectId ? transformedProject : p));
-      toast.success('Project updated successfully');
       return transformedProject;
     } catch (error) {
       console.error('Error updating project:', error);
