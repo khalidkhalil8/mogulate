@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
@@ -15,18 +14,8 @@ const DashboardPage = () => {
   const { projects, isLoading, deleteProject } = useProjects();
 
   const handleProjectClick = (project: any) => {
-    // Navigate to the appropriate step based on project completion
-    if (!project.idea) {
-      navigate("/idea");
-    } else if (!project.competitors || project.competitors.length === 0) {
-      navigate("/competitors");
-    } else if (!project.market_gaps) {
-      navigate("/market-gaps");
-    } else if (!project.validation_plan) {
-      navigate("/validation-plan");
-    } else {
-      navigate("/summary");
-    }
+    // Navigate to the project edit page
+    navigate(`/project/${project.id}`);
   };
 
   const handleNewProject = () => {

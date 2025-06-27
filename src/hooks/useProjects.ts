@@ -12,6 +12,7 @@ export interface Project {
   competitors?: any[];
   market_gaps?: string;
   market_gap_analysis?: any;
+  features?: any[];
   validation_plan?: string;
   created_at: string;
   updated_at: string;

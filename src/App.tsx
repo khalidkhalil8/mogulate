@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import ProfilePage from "./pages/ProfilePage";
 import PricingPage from "./pages/PricingPage";
 import DashboardPage from "./pages/DashboardPage";
+import ProjectEditPage from "./pages/ProjectEditPage";
 import { useAuth } from "./context/AuthContext";
 import HomePage from "./components/HomePage";
 import DashboardSidebar from "./components/dashboard/DashboardSidebar";
@@ -104,6 +105,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/project/:id" 
+        element={
+          <ProtectedRoute>
+            <ProjectEditPage />
           </ProtectedRoute>
         } 
       />
