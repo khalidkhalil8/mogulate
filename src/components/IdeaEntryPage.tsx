@@ -35,7 +35,7 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
       return;
     }
 
-    // Submit the idea with title
+    // Submit the idea with title - no success toast here
     onIdeaSubmit(idea, projectTitle);
     navigate('/competitors');
   };
