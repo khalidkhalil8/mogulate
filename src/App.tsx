@@ -20,8 +20,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
-        <AuthProvider>
-          <BrowserRouter>
+        <BrowserRouter>
+          <AuthProvider>
             <Helmet>
               <title>Mogulate - Validate Your Business Ideas</title>
               <meta name="description" content="Validate your business ideas with AI-powered market research and competitor analysis." />
@@ -46,8 +46,8 @@ function App() {
               </Routes>
               <Toaster />
             </div>
-          </BrowserRouter>
-        </AuthProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </HelmetProvider>
     </QueryClientProvider>
   );
