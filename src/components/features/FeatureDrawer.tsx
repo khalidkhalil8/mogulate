@@ -35,8 +35,8 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
 }) => {
   const [title, setTitle] = useState(feature?.title || '');
   const [description, setDescription] = useState(feature?.description || '');
-  const [status, setStatus] = useState(feature?.status || 'Planned');
-  const [priority, setPriority] = useState(feature?.priority || 'Medium');
+  const [status, setStatus] = useState<'Planned' | 'In Progress' | 'Done'>(feature?.status || 'Planned');
+  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High'>(feature?.priority || 'Medium');
 
   const handleSave = () => {
     if (!title.trim()) {
@@ -65,6 +65,14 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
     setDescription(feature?.description || '');
     setStatus(feature?.status || 'Planned');
     setPriority(feature?.priority || 'Medium');
+  };
+
+  const handleStatusChange = (value: string) => {
+    setStatus(value as 'Planned' | 'In Progress' | 'Done');
+  };
+
+  const handlePriorityChange = (value: string) => {
+    setPriority(value as 'Low' | 'Medium' | 'High');
   };
 
   return (
@@ -100,7 +108,7 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={status} onValueChange={setStatus}>
+            <Select value={status} onValueChange={handleStatusChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
@@ -114,7 +122,7 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="priority">Priority</Label>
-            <Select value={priority} onValueChange={setPriority}>
+            <Select value={priority} onValueChange={handlePriorityChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
