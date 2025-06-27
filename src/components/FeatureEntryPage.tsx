@@ -29,7 +29,12 @@ const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({
   
   const [features, setFeatures] = useState<Feature[]>(
     project?.features && project.features.length > 0 
-      ? project.features 
+      ? project.features.map(f => ({
+          id: f.id,
+          title: f.title,
+          description: f.description,
+          priority: f.priority
+        }))
       : initialFeatures.length > 0 
         ? initialFeatures 
         : [{
@@ -44,7 +49,12 @@ const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({
   // Update features when project data loads
   useEffect(() => {
     if (project?.features && project.features.length > 0) {
-      setFeatures(project.features);
+      setFeatures(project.features.map(f => ({
+        id: f.id,
+        title: f.title,
+        description: f.description,
+        priority: f.priority
+      })));
     }
   }, [project]);
   
@@ -73,23 +83,47 @@ const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Convert to full Feature objects for database storage
+    const fullFeatures = features.map(f => ({
+      id: f.id,
+      title: f.title,
+      description: f.description,
+      status: 'Planned' as const,
+      priority: f.priority as 'Low' | 'Medium' | 'High'
+    }));
+    
     // Save to project if we have a project ID
     if (projectId && project) {
-      await updateProject(projectId, { features });
+      await updateProject(projectId, { features: fullFeatures });
     }
     
     onFeaturesSubmit(features);
-    navigate('/validation-plan');
+    
+    // Navigate with projectId preserved
+    const nextUrl = projectId ? `/validation-plan?projectId=${projectId}` : '/validation-plan';
+    navigate(nextUrl);
   };
   
   const handleBack = async () => {
+    // Convert to full Feature objects for database storage
+    const fullFeatures = features.map(f => ({
+      id: f.id,
+      title: f.title,
+      description: f.description,
+      status: 'Planned' as const,
+      priority: f.priority as 'Low' | 'Medium' | 'High'
+    }));
+    
     // Save to project if we have a project ID
     if (projectId && project) {
-      await updateProject(projectId, { features });
+      await updateProject(projectId, { features: fullFeatures });
     }
     
     onFeaturesSubmit(features);
-    navigate('/market-gaps');
+    
+    // Navigate with projectId preserved
+    const backUrl = projectId ? `/market-gaps?projectId=${projectId}` : '/market-gaps';
+    navigate(backUrl);
   };
 
   const handleAskAI = () => {

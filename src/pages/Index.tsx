@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useProjects } from '@/hooks/useProjects';
 import HomePage from '@/components/HomePage';
@@ -15,52 +15,101 @@ import type { IdeaData, Competitor, MarketGapAnalysis, Feature } from '@/lib/typ
 const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, isLoading } = useAuth();
-  const { createProject } = useProjects();
+  const { createProject, updateProject, projects } = useProjects();
+  
+  // Get project ID from URL params if it exists
+  const projectId = searchParams.get('projectId');
+  const existingProject = projects.find(p => p.id === projectId);
   
   const [ideaData, setIdeaData] = useState<IdeaData>({
-    idea: '',
-    competitors: [],
-    marketGaps: '',
-    features: [],
-    validationPlan: '',
+    idea: existingProject?.idea || '',
+    competitors: existingProject?.competitors || [],
+    marketGaps: existingProject?.market_gaps || '',
+    features: existingProject?.features || [],
+    validationPlan: existingProject?.validation_plan || '',
+    marketGapAnalysis: existingProject?.market_gap_analysis,
   });
   
-  const handleIdeaSubmit = (idea: string) => {
+  // Update ideaData when project loads
+  useEffect(() => {
+    if (existingProject) {
+      setIdeaData({
+        idea: existingProject.idea || '',
+        competitors: existingProject.competitors || [],
+        marketGaps: existingProject.market_gaps || '',
+        features: existingProject.features || [],
+        validationPlan: existingProject.validation_plan || '',
+        marketGapAnalysis: existingProject.market_gap_analysis,
+      });
+    }
+  }, [existingProject]);
+  
+  const handleIdeaSubmit = async (idea: string, title: string) => {
     setIdeaData(prev => ({ ...prev, idea }));
+    
+    // Create project if it doesn't exist
+    if (!projectId && user) {
+      const newProject = await createProject(title, idea);
+      if (newProject) {
+        setSearchParams({ projectId: newProject.id });
+      }
+    } else if (projectId) {
+      // Update existing project
+      await updateProject(projectId, { idea });
+    }
   };
   
-  const handleCompetitorsSubmit = (competitors: Competitor[]) => {
+  const handleCompetitorsSubmit = async (competitors: Competitor[]) => {
     setIdeaData(prev => ({ ...prev, competitors }));
+    
+    if (projectId) {
+      await updateProject(projectId, { competitors });
+    }
   };
   
-  const handleMarketGapsSubmit = (marketGaps: string, analysis: MarketGapAnalysis | undefined) => {
+  const handleMarketGapsSubmit = async (marketGaps: string, analysis: MarketGapAnalysis | undefined) => {
     setIdeaData(prev => ({ ...prev, marketGaps, marketGapAnalysis: analysis }));
+    
+    if (projectId) {
+      await updateProject(projectId, { 
+        market_gaps: marketGaps,
+        market_gap_analysis: analysis 
+      });
+    }
   };
   
-  const handleFeaturesSubmit = (features: Feature[]) => {
+  const handleFeaturesSubmit = async (features: Feature[]) => {
     setIdeaData(prev => ({ ...prev, features }));
+    
+    if (projectId) {
+      await updateProject(projectId, { features });
+    }
   };
   
-  const handleValidationPlanSubmit = (validationPlan: string) => {
+  const handleValidationPlanSubmit = async (validationPlan: string) => {
     setIdeaData(prev => ({ ...prev, validationPlan }));
+    
+    if (projectId) {
+      await updateProject(projectId, { validation_plan: validationPlan });
+    }
   };
   
   const handleSaveProject = async () => {
-    if (!ideaData.idea) {
-      throw new Error('Project idea is required');
+    if (!projectId) {
+      throw new Error('No project to save');
     }
     
-    // Create the project with all the collected data
-    const project = await createProject(ideaData.idea, ideaData.idea);
-    
-    if (!project) {
-      throw new Error('Failed to create project');
-    }
-    
-    // Update the project with all the additional data
-    // Note: This would require updating the project with competitors, market gaps, features, etc.
-    // For now, the project is created with the basic idea
+    // Final save to ensure all data is persisted
+    await updateProject(projectId, {
+      idea: ideaData.idea,
+      competitors: ideaData.competitors,
+      market_gaps: ideaData.marketGaps,
+      features: ideaData.features,
+      validation_plan: ideaData.validationPlan,
+      market_gap_analysis: ideaData.marketGapAnalysis,
+    });
   };
   
   const handleReset = () => {
@@ -71,6 +120,7 @@ const Index = () => {
       features: [],
       validationPlan: '',
     });
+    setSearchParams({});
   };
   
   // Show loading spinner while auth is loading

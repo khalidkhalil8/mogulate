@@ -11,7 +11,7 @@ import SetupNavigation from './setup/SetupNavigation';
 
 interface IdeaEntryPageProps {
   initialIdea?: string;
-  onIdeaSubmit: (idea: string) => void;
+  onIdeaSubmit: (idea: string, title: string) => void;
 }
 
 const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({ 
@@ -35,8 +35,8 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
       return;
     }
 
-    // Just submit the idea without creating a project yet
-    onIdeaSubmit(idea);
+    // Submit the idea with title
+    onIdeaSubmit(idea, projectTitle);
     navigate('/competitors');
   };
   

@@ -1,6 +1,6 @@
 
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { Routes, Route, BrowserRouter, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
@@ -16,36 +16,56 @@ import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function AppContent() {
+  const location = useLocation();
+  
+  // Don't show header on setup flow pages or project pages
+  const hideHeader = [
+    '/idea', 
+    '/competitors', 
+    '/market-gaps', 
+    '/features', 
+    '/validation-plan', 
+    '/summary'
+  ].includes(location.pathname) || location.pathname.startsWith('/project/');
+
+  return (
+    <>
+      <Helmet>
+        <title>Mogulate - Validate Your Business Ideas</title>
+        <meta name="description" content="Validate your business ideas with AI-powered market research and competitor analysis." />
+      </Helmet>
+      <div className="min-h-screen bg-white">
+        {!hideHeader && <Header />}
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/idea" element={<Index />} />
+          <Route path="/competitors" element={<Index />} />
+          <Route path="/market-gaps" element={<Index />} />
+          <Route path="/features" element={<Index />} />
+          <Route path="/validation-plan" element={<Index />} />
+          <Route path="/summary" element={<Index />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/project/:id" element={<ProjectEditPage />} />
+          <Route path="/project/:id/features" element={<FeaturesPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+      </div>
+    </>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
         <BrowserRouter>
           <AuthProvider>
-            <Helmet>
-              <title>Mogulate - Validate Your Business Ideas</title>
-              <meta name="description" content="Validate your business ideas with AI-powered market research and competitor analysis." />
-            </Helmet>
-            <div className="min-h-screen bg-white">
-              <Header />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/idea" element={<Index />} />
-                <Route path="/competitors" element={<Index />} />
-                <Route path="/market-gaps" element={<Index />} />
-                <Route path="/features" element={<Index />} />
-                <Route path="/validation-plan" element={<Index />} />
-                <Route path="/summary" element={<Index />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/project/:id" element={<ProjectEditPage />} />
-                <Route path="/project/:id/features" element={<FeaturesPage />} />
-                <Route path="/pricing" element={<PricingPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <Toaster />
-            </div>
+            <AppContent />
           </AuthProvider>
         </BrowserRouter>
       </HelmetProvider>
