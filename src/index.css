@@ -54,11 +54,32 @@
   }
 
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground font-inter text-left;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-inter font-semibold text-charcoal;
+    @apply font-inter font-semibold text-charcoal text-left;
+  }
+
+  p, div, span, label, input, textarea, button {
+    @apply text-left;
+  }
+
+  /* Exception for landing page - preserve center alignment */
+  .homepage-content {
+    @apply text-center;
+  }
+
+  .homepage-content h1,
+  .homepage-content h2,
+  .homepage-content h3,
+  .homepage-content h4,
+  .homepage-content h5,
+  .homepage-content h6,
+  .homepage-content p,
+  .homepage-content div,
+  .homepage-content span {
+    @apply text-center;
   }
 }
 
