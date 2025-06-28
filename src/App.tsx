@@ -1,4 +1,3 @@
-
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Routes, Route, BrowserRouter, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
@@ -11,6 +10,7 @@ import ProfilePage from "@/pages/ProfilePage";
 import DashboardPage from "@/pages/DashboardPage";
 import ProjectEditPage from "@/pages/ProjectEditPage";
 import ProjectCompetitorsPage from "@/pages/ProjectCompetitorsPage";
+import ProjectMarketAnalysisPage from "@/pages/ProjectMarketAnalysisPage";
 import ProjectFeedbackTrackingPage from "@/pages/ProjectFeedbackTrackingPage";
 import FeaturesPage from "@/pages/FeaturesPage";
 import PricingPage from "@/pages/PricingPage";
@@ -45,6 +45,7 @@ function AppContent() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/project/:id" element={<ProjectEditPage />} />
           <Route path="/project/:id/competitors" element={<ProjectCompetitorsPage />} />
+          <Route path="/project/:id/market-analysis" element={<ProjectMarketAnalysisPage />} />
           <Route path="/project/:id/features" element={<FeaturesPage />} />
           <Route path="/project/:id/feedback-tracking" element={<ProjectFeedbackTrackingPage />} />
           <Route path="/pricing" element={<PricingPage />} />
