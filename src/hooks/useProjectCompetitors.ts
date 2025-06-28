@@ -30,7 +30,9 @@ export const useProjectCompetitors = (projectId: string) => {
         return;
       }
 
-      setCompetitors(data?.competitors || []);
+      // Safely parse the Json data as Competitor[]
+      const competitorsData = Array.isArray(data?.competitors) ? data.competitors as Competitor[] : [];
+      setCompetitors(competitorsData);
     } catch (error) {
       console.error('Error fetching competitors:', error);
       toast.error('Failed to load competitors');
@@ -49,7 +51,7 @@ export const useProjectCompetitors = (projectId: string) => {
       const { error } = await supabase
         .from('projects')
         .update({
-          competitors: updatedCompetitors,
+          competitors: updatedCompetitors as any, // Cast to any to satisfy Json type
           updated_at: new Date().toISOString(),
         })
         .eq('id', projectId)

@@ -1,10 +1,10 @@
-
 export interface Competitor {
   id: string;
   name: string;
   website: string;
   description: string;
   isAiGenerated?: boolean;
+  [key: string]: any; // Add index signature to make it Json-compatible
 }
 
 export interface MarketGapAnalysis {
