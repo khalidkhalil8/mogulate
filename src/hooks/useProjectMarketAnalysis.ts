@@ -31,8 +31,18 @@ export const useProjectMarketAnalysis = (projectId: string) => {
         return;
       }
 
-      // Safely parse the Json data
-      const analysisData = data?.market_gap_analysis as MarketGapAnalysis | null;
+      // Safely parse the JSON data with proper type checking
+      let analysisData: MarketGapAnalysis | null = null;
+      if (data?.market_gap_analysis && typeof data.market_gap_analysis === 'object' && !Array.isArray(data.market_gap_analysis)) {
+        const rawAnalysis = data.market_gap_analysis as Record<string, any>;
+        if (rawAnalysis.marketGaps && rawAnalysis.positioningSuggestions) {
+          analysisData = {
+            marketGaps: Array.isArray(rawAnalysis.marketGaps) ? rawAnalysis.marketGaps : [],
+            positioningSuggestions: Array.isArray(rawAnalysis.positioningSuggestions) ? rawAnalysis.positioningSuggestions : [],
+          };
+        }
+      }
+      
       setMarketAnalysis(analysisData);
       setMarketGaps(data?.market_gaps || '');
     } catch (error) {
