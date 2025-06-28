@@ -1,12 +1,15 @@
 
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import TodoList from '@/components/todos/TodoList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 const ProjectTodoPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   if (!id) {
     return (
@@ -25,6 +28,18 @@ const ProjectTodoPage: React.FC = () => {
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
+            <div className="flex items-center gap-4 mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
+            </div>
+            
             <h1 className="text-3xl font-bold text-gray-900">Project Todo List</h1>
             <p className="text-gray-600 mt-2">
               Keep track of tasks and action items for your project
