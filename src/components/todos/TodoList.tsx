@@ -1,11 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useTodos, TodoItem } from '@/hooks/useTodos';
 import { Plus, Trash2, Check, X } from 'lucide-react';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface TodoListProps {
   projectId: string;
