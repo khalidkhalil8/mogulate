@@ -3,8 +3,18 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import SetupNavigation from './setup/SetupNavigation';
-import FeatureList from './features/FeatureList';
-import FeaturePageNavigation from './features/FeaturePageNavigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface Feature {
   id: string;
@@ -148,18 +158,96 @@ const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
-            <FeatureList
-              features={features}
-              onAddFeature={addFeature}
-              onUpdateFeature={updateFeature}
-              onRemoveFeature={removeFeature}
-            />
+            <div className="space-y-4">
+              {features.map((feature, index) => (
+                <div key={feature.id} className="border rounded-lg p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium">Feature {index + 1}</h3>
+                    {features.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFeature(feature.id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor={`title-${feature.id}`}>Feature Title</Label>
+                    <Input
+                      id={`title-${feature.id}`}
+                      value={feature.title}
+                      onChange={(e) => updateFeature(feature.id, 'title', e.target.value)}
+                      placeholder="e.g., User Authentication"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor={`description-${feature.id}`}>Description</Label>
+                    <Textarea
+                      id={`description-${feature.id}`}
+                      value={feature.description}
+                      onChange={(e) => updateFeature(feature.id, 'description', e.target.value)}
+                      placeholder="Describe the feature..."
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor={`priority-${feature.id}`}>Priority</Label>
+                    <Select
+                      value={feature.priority}
+                      onValueChange={(value) => updateFeature(feature.id, 'priority', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Low">Low</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="High">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              ))}
+            </div>
             
-            <FeaturePageNavigation
-              onBack={handleBack}
-              onNext={() => {}}
-              onAskAI={handleAskAI}
-            />
+            <Button
+              type="button"
+              onClick={addFeature}
+              variant="outline"
+              className="w-full gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Another Feature
+            </Button>
+            
+            <div className="flex gap-4 pt-6">
+              <Button
+                type="button"
+                onClick={handleBack}
+                variant="outline"
+                className="flex-1"
+              >
+                Back
+              </Button>
+              <Button
+                type="button"
+                onClick={handleAskAI}
+                variant="secondary"
+                className="flex-1"
+              >
+                Ask AI
+              </Button>
+              <Button type="submit" className="flex-1">
+                Next
+              </Button>
+            </div>
           </form>
         </div>
       </div>
