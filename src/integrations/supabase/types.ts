@@ -72,6 +72,42 @@ export type Database = {
           },
         ]
       }
+      feedback_entries: {
+        Row: {
+          created_at: string
+          date: string
+          feedback_source: string
+          feedback_summary: string
+          id: string
+          project_id: string
+          source_username: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          feedback_source: string
+          feedback_summary: string
+          id?: string
+          project_id: string
+          source_username?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          feedback_source?: string
+          feedback_summary?: string
+          id?: string
+          project_id?: string
+          source_username?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
