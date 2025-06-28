@@ -1,3 +1,4 @@
+
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Routes, Route, BrowserRouter, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
@@ -13,6 +14,7 @@ import ProjectCompetitorsPage from "@/pages/ProjectCompetitorsPage";
 import ProjectMarketAnalysisPage from "@/pages/ProjectMarketAnalysisPage";
 import ProjectValidationPlanPage from "@/pages/ProjectValidationPlanPage";
 import ProjectFeedbackTrackingPage from "@/pages/ProjectFeedbackTrackingPage";
+import ProjectTodoPage from "@/pages/ProjectTodoPage";
 import FeaturesPage from "@/pages/FeaturesPage";
 import PricingPage from "@/pages/PricingPage";
 import NotFound from "@/pages/NotFound";
@@ -50,6 +52,7 @@ function AppContent() {
           <Route path="/project/:id/validation-plan" element={<ProjectValidationPlanPage />} />
           <Route path="/project/:id/features" element={<FeaturesPage />} />
           <Route path="/project/:id/feedback-tracking" element={<ProjectFeedbackTrackingPage />} />
+          <Route path="/project/:id/todos" element={<ProjectTodoPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
