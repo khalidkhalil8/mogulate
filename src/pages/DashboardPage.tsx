@@ -36,7 +36,7 @@ const DashboardPage = () => {
 
         <div className="p-6">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4 mb-8">
               <h1 className="text-3xl font-bold">Your Projects</h1>
               <Button onClick={handleNewProject} className="gap-2">
                 <Plus className="h-4 w-4" />
