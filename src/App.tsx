@@ -10,6 +10,7 @@ import AuthPage from "@/pages/AuthPage";
 import ProfilePage from "@/pages/ProfilePage";
 import DashboardPage from "@/pages/DashboardPage";
 import ProjectEditPage from "@/pages/ProjectEditPage";
+import ProjectCompetitorsPage from "@/pages/ProjectCompetitorsPage";
 import ProjectFeedbackTrackingPage from "@/pages/ProjectFeedbackTrackingPage";
 import FeaturesPage from "@/pages/FeaturesPage";
 import PricingPage from "@/pages/PricingPage";
@@ -43,6 +44,7 @@ function AppContent() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/project/:id" element={<ProjectEditPage />} />
+          <Route path="/project/:id/competitors" element={<ProjectCompetitorsPage />} />
           <Route path="/project/:id/features" element={<FeaturesPage />} />
           <Route path="/project/:id/feedback-tracking" element={<ProjectFeedbackTrackingPage />} />
           <Route path="/pricing" element={<PricingPage />} />
