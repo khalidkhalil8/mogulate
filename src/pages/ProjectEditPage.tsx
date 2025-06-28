@@ -69,7 +69,7 @@ const ProjectEditPage = () => {
     {
       title: 'To-do List',
       icon: Plus,
-      onClick: () => navigate(`/project/${project.id}/todo-list`),
+      onClick: () => navigate(`/project/${project.id}/todos`),
       preview: 'Manage development tasks',
     },
   ];
