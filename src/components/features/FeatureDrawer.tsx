@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Drawer,
   DrawerContent,
@@ -33,10 +33,24 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
   onSave,
   feature,
 }) => {
-  const [title, setTitle] = useState(feature?.title || '');
-  const [description, setDescription] = useState(feature?.description || '');
-  const [status, setStatus] = useState<'Planned' | 'In Progress' | 'Done'>(feature?.status || 'Planned');
-  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High'>(feature?.priority || 'Medium');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [status, setStatus] = useState<'Planned' | 'In Progress' | 'Done'>('Planned');
+  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High'>('Medium');
+
+  useEffect(() => {
+    if (feature) {
+      setTitle(feature.title);
+      setDescription(feature.description);
+      setStatus(feature.status);
+      setPriority(feature.priority);
+    } else {
+      setTitle('');
+      setDescription('');
+      setStatus('Planned');
+      setPriority('Medium');
+    }
+  }, [feature, isOpen]);
 
   const handleSave = () => {
     if (!title.trim()) {
@@ -60,19 +74,6 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
 
   const handleClose = () => {
     onOpenChange(false);
-    // Reset form when closing
-    setTitle(feature?.title || '');
-    setDescription(feature?.description || '');
-    setStatus(feature?.status || 'Planned');
-    setPriority(feature?.priority || 'Medium');
-  };
-
-  const handleStatusChange = (value: string) => {
-    setStatus(value as 'Planned' | 'In Progress' | 'Done');
-  };
-
-  const handlePriorityChange = (value: string) => {
-    setPriority(value as 'Low' | 'Medium' | 'High');
   };
 
   return (
@@ -86,12 +87,12 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
         
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="title">Feature Title</Label>
+            <Label htmlFor="title">Feature Title *</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter feature title"
+              placeholder="Enter feature title (e.g., User Authentication, Dashboard)"
             />
           </div>
 
@@ -101,37 +102,51 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the feature in detail"
+              placeholder="Describe the feature in detail, including functionality and user benefits..."
               className="min-h-[120px]"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select value={status} onValueChange={handleStatusChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Planned">Planned</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Done">Done</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={status} onValueChange={(value) => setStatus(value as 'Planned' | 'In Progress' | 'Done')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Planned">Planned</SelectItem>
+                  <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Done">Done</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Select value={priority} onValueChange={(value) => setPriority(value as 'Low' | 'Medium' | 'High')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Low">Low</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="priority">Priority</Label>
-            <Select value={priority} onValueChange={handlePriorityChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Low">Low</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="High">High</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="font-medium mb-2">Feature Examples:</h4>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• User Authentication & Registration</li>
+              <li>• Dashboard with Analytics</li>
+              <li>• Real-time Notifications</li>
+              <li>• File Upload & Management</li>
+              <li>• Payment Integration</li>
+              <li>• Search & Filtering</li>
+            </ul>
           </div>
         </div>
 
@@ -149,7 +164,7 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
               disabled={!title.trim()}
               className="flex-1"
             >
-              {feature ? 'Update Feature' : '+ Add Feature'}
+              {feature ? 'Update Feature' : 'Add Feature'}
             </Button>
           </div>
         </DrawerFooter>
