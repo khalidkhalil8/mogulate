@@ -32,11 +32,11 @@ const ProjectTodoPage: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate(`/project/${id}`)}
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Dashboard
+                Back to Project
               </Button>
             </div>
             
