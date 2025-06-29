@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -79,7 +78,7 @@ const TodoList: React.FC<TodoListProps> = ({ projectId }) => {
           ref={inputRef}
           value={newTodoTitle}
           onChange={(e) => setNewTodoTitle(e.target.value)}
-          placeholder="Add a new todo..."
+          placeholder="Write a new task..."
           className="flex-1"
         />
         <Button type="submit" disabled={!newTodoTitle.trim()}>
@@ -91,7 +90,7 @@ const TodoList: React.FC<TodoListProps> = ({ projectId }) => {
       <div className="space-y-2">
         {todos.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <p>No todos yet. Add one above to get started!</p>
+            <p>You haven't added any tasks yet. Start by writing one above!</p>
           </div>
         ) : (
           todos.map((todo) => (

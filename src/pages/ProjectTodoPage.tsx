@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
@@ -39,9 +40,9 @@ const ProjectTodoPage: React.FC = () => {
               </Button>
             </div>
             
-            <h1 className="text-3xl font-bold text-gray-900">Project Todo List</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Project Tasks</h1>
             <p className="text-gray-600 mt-2">
-              Keep track of tasks and action items for your project
+              Keep track of key actions and milestones for this project.
             </p>
           </div>
 
