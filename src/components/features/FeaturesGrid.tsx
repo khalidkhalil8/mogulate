@@ -40,15 +40,15 @@ const FeaturesGrid: React.FC<FeaturesGridProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {features.map((feature) => (
-        <Card key={feature.id} className="hover:shadow-lg transition-shadow">
+        <Card key={feature.id} className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <CardTitle className="text-lg line-clamp-2">
                 {feature.title}
               </CardTitle>
-              <div className="flex gap-1">
+              <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -61,7 +61,7 @@ const FeaturesGrid: React.FC<FeaturesGridProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => onDeleteFeature(feature.id)}
-                  className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -70,7 +70,7 @@ const FeaturesGrid: React.FC<FeaturesGridProps> = ({
           </CardHeader>
           <CardContent>
             {feature.description && (
-              <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+              <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
                 {feature.description}
               </p>
             )}

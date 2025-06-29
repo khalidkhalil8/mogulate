@@ -6,9 +6,10 @@ import { useProjects } from '@/hooks/useProjects';
 import LoadingState from '@/components/ui/LoadingState';
 import FeatureDrawer from '@/components/features/FeatureDrawer';
 import FeaturesPageHeader from '@/components/features/FeaturesPageHeader';
-import FeaturesEmptyState from '@/components/features/FeaturesEmptyState';
 import FeaturesGrid from '@/components/features/FeaturesGrid';
 import PageLayout from '@/components/layout/PageLayout';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import { Feature } from '@/lib/types';
 
 const FeaturesPage = () => {
@@ -32,7 +33,16 @@ const FeaturesPage = () => {
   }
 
   if (!project) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-2">Project not found</h2>
+          <Button onClick={() => navigate('/dashboard')}>
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const handleAddFeature = () => {
@@ -68,8 +78,10 @@ const FeaturesPage = () => {
   };
 
   const handleDeleteFeature = async (featureId: string) => {
-    const updatedFeatures = features.filter(f => f.id !== featureId);
-    await updateProject(project.id, { features: updatedFeatures });
+    if (confirm('Are you sure you want to delete this feature?')) {
+      const updatedFeatures = features.filter(f => f.id !== featureId);
+      await updateProject(project.id, { features: updatedFeatures });
+    }
   };
 
   return (
@@ -86,9 +98,26 @@ const FeaturesPage = () => {
               onAddFeature={handleAddFeature}
             />
 
+            {/* Content */}
             {features.length === 0 ? (
-              <FeaturesEmptyState onAddFeature={handleAddFeature} />
+              // Empty State
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="max-w-md mx-auto">
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <Plus className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h2 className="text-2xl font-semibold mb-2">No features yet</h2>
+                  <p className="text-gray-600 mb-6">
+                    Start by adding your first feature to track development progress for this project.
+                  </p>
+                  <Button onClick={handleAddFeature} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Your First Feature
+                  </Button>
+                </div>
+              </div>
             ) : (
+              // Features Grid
               <FeaturesGrid
                 features={features}
                 onEditFeature={handleEditFeature}

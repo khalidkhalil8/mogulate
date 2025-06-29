@@ -32,15 +32,10 @@ const FeaturesPageHeader: React.FC<FeaturesPageHeaderProps> = ({
       
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
-          <p className="text-gray-600">
-            {project.idea}
-          </p>
-          <p className="text-gray-600 mt-2">
-            List features you want to implement in your project
-          </p>
+          <h1 className="text-3xl font-bold mb-2">Features</h1>
+          <p className="text-gray-600">Manage features for {project.title}</p>
         </div>
-        <Button onClick={onAddFeature} className="gap-2">
+        <Button onClick={onAddFeature} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Add Feature
         </Button>

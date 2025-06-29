@@ -1,12 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerFooter,
-} from '@/components/ui/drawer';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -77,99 +76,101 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={handleClose}>
-      <DrawerContent className="h-[80vh]">
-        <DrawerHeader>
-          <DrawerTitle>
+    <Sheet open={isOpen} onOpenChange={handleClose}>
+      <SheetContent className="w-[400px] sm:w-[540px]">
+        <SheetHeader>
+          <SheetTitle>
             {feature ? 'Edit Feature' : 'Add New Feature'}
-          </DrawerTitle>
-        </DrawerHeader>
+          </SheetTitle>
+        </SheetHeader>
         
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="title">Feature Title *</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter feature title (e.g., User Authentication, Dashboard)"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the feature in detail, including functionality and user benefits..."
-              className="min-h-[120px]"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col h-full">
+          <div className="flex-1 overflow-y-auto py-6 space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={status} onValueChange={(value) => setStatus(value as 'Planned' | 'In Progress' | 'Done')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Planned">Planned</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Done">Done</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="title">Feature Title *</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter feature title (e.g., User Authentication, Dashboard)"
+              />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
-              <Select value={priority} onValueChange={(value) => setPriority(value as 'Low' | 'Medium' | 'High')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe the feature in detail, including functionality and user benefits..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select value={status} onValueChange={(value) => setStatus(value as 'Planned' | 'In Progress' | 'Done')}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Planned">Planned</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Done">Done</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="priority">Priority</Label>
+                <Select value={priority} onValueChange={(value) => setPriority(value as 'Low' | 'Medium' | 'High')}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-medium mb-2">Feature Examples:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• User Authentication & Registration</li>
+                <li>• Dashboard with Analytics</li>
+                <li>• Real-time Notifications</li>
+                <li>• File Upload & Management</li>
+                <li>• Payment Integration</li>
+                <li>• Search & Filtering</li>
+              </ul>
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium mb-2">Feature Examples:</h4>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• User Authentication & Registration</li>
-              <li>• Dashboard with Analytics</li>
-              <li>• Real-time Notifications</li>
-              <li>• File Upload & Management</li>
-              <li>• Payment Integration</li>
-              <li>• Search & Filtering</li>
-            </ul>
+          <div className="border-t pt-4 mt-6">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleClose}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={!title.trim()}
+                className="flex-1"
+              >
+                {feature ? 'Update Feature' : 'Add Feature'}
+              </Button>
+            </div>
           </div>
         </div>
-
-        <DrawerFooter>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleClose}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={!title.trim()}
-              className="flex-1"
-            >
-              {feature ? 'Update Feature' : 'Add Feature'}
-            </Button>
-          </div>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+      </SheetContent>
+    </Sheet>
   );
 };
 
