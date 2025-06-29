@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -78,7 +79,7 @@ const MarketAnalysisDrawer: React.FC<MarketAnalysisDrawerProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[400px] sm:w-[500px] overflow-y-auto">
+      <SheetContent side="right" className="w-[400px] sm:w-[720px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Edit Market Analysis</SheetTitle>
         </SheetHeader>

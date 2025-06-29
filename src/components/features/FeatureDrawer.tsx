@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Sheet,
@@ -76,7 +77,7 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent className="w-[400px] sm:w-[500px]">
+      <SheetContent className="w-[400px] sm:w-[720px]">
         <SheetHeader>
           <SheetTitle>
             {feature ? 'Edit Feature' : 'Add New Feature'}
