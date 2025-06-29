@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
@@ -33,8 +34,8 @@ const DashboardPage = () => {
           <title>Dashboard | Mogulate</title>
         </Helmet>
 
-        <div className="pr-6 pt-6 pb-6">
-          <div className="max-w-6xl">
+        <div className="p-6">
+          <div className="max-w-6xl mx-auto">
             <div className="flex items-center gap-4 mb-8">
               <h1 className="text-3xl font-bold">Your Projects</h1>
               <Button onClick={handleNewProject} className="gap-2">
