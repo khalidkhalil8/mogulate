@@ -11,9 +11,7 @@ import {
   Settings, 
   CreditCard, 
   LogOut,
-  User,
-  Menu,
-  X
+  User
 } from "lucide-react";
 
 const AppSidebar: React.FC = () => {
@@ -79,7 +77,11 @@ const AppSidebar: React.FC = () => {
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="h-8 w-8 p-0"
         >
-          {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          <img 
+            src="/lovable-uploads/8694f8fa-d745-4527-b490-aa265fcfe134.png" 
+            alt="Toggle sidebar" 
+            className="h-4 w-4"
+          />
         </Button>
       </div>
 
