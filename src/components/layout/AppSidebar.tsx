@@ -65,7 +65,7 @@ const AppSidebar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
+    <div className={`fixed left-0 top-0 h-full bg-white flex flex-col transition-all duration-300 shadow-[1px_0_0_0_rgb(229,231,235)] ${isCollapsed ? 'w-16' : 'w-64'}`}>
       {/* Logo and Toggle */}
       <div className="p-4 border-b flex items-center justify-between">
         {!isCollapsed && (
