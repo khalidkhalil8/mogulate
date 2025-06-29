@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
@@ -14,7 +13,7 @@ const ProjectTodoPage: React.FC = () => {
   if (!id) {
     return (
       <PageLayout>
-        <div className="pl-6">
+        <div className="p-6">
           <div className="text-center text-red-600">
             Project ID not found
           </div>
@@ -25,8 +24,8 @@ const ProjectTodoPage: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="pl-6">
-        <div className="max-w-4xl">
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <div className="flex items-center gap-4 mb-4">
               <Button
