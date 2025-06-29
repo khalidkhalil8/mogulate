@@ -67,7 +67,7 @@ const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+      <SheetContent side="right" className="w-[400px] sm:w-[700px]">
         <SheetHeader>
           <SheetTitle>{entry ? 'Edit Feedback' : 'Add Feedback'}</SheetTitle>
         </SheetHeader>

@@ -77,7 +77,7 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent className="w-[400px] sm:w-[540px]">
+      <SheetContent className="w-[400px] sm:w-[700px]">
         <SheetHeader>
           <SheetTitle>
             {feature ? 'Edit Feature' : 'Add New Feature'}

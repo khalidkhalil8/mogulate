@@ -57,7 +57,7 @@ const CompetitorDrawer: React.FC<CompetitorDrawerProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+      <SheetContent side="right" className="w-[400px] sm:w-[700px]">
         <SheetHeader>
           <SheetTitle>{competitor ? 'Edit Competitor' : 'Add Competitor'}</SheetTitle>
         </SheetHeader>

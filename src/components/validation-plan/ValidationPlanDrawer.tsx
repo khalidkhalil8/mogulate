@@ -35,7 +35,7 @@ const ValidationPlanDrawer: React.FC<ValidationPlanDrawerProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[500px] sm:w-[600px] overflow-y-auto">
+      <SheetContent side="right" className="w-[400px] sm:w-[700px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Edit Validation Plan</SheetTitle>
         </SheetHeader>
