@@ -11,7 +11,9 @@ import {
   Settings, 
   CreditCard, 
   LogOut,
-  User
+  User,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 const AppSidebar: React.FC = () => {
@@ -77,11 +79,11 @@ const AppSidebar: React.FC = () => {
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="h-8 w-8 p-0"
         >
-          <img 
-            src="/lovable-uploads/8694f8fa-d745-4527-b490-aa265fcfe134.png" 
-            alt="Toggle sidebar" 
-            className="h-4 w-4"
-          />
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
         </Button>
       </div>
 
