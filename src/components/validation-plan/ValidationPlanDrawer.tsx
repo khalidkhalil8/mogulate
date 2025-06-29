@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -35,7 +34,7 @@ const ValidationPlanDrawer: React.FC<ValidationPlanDrawerProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[400px] sm:w-[700px] overflow-y-auto">
+      <SheetContent side="right" className="w-[400px] sm:w-[500px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Edit Validation Plan</SheetTitle>
         </SheetHeader>

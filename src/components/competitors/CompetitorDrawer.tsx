@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,7 +56,7 @@ const CompetitorDrawer: React.FC<CompetitorDrawerProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[400px] sm:w-[700px]">
+      <SheetContent side="right" className="w-[400px] sm:w-[500px]">
         <SheetHeader>
           <SheetTitle>{competitor ? 'Edit Competitor' : 'Add Competitor'}</SheetTitle>
         </SheetHeader>
