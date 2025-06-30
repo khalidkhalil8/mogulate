@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useUsageData } from "@/hooks/useUsageData";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { 
   Plus, 
   Home, 
@@ -107,15 +106,13 @@ const AppSidebar: React.FC = () => {
 
       {/* User Email */}
       {!isCollapsed && (
-        <div className="px-4 py-2">
+        <div className="px-4 py-2 border-b">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <User className="h-4 w-4" />
             <span className="truncate">{user?.email}</span>
           </div>
         </div>
       )}
-
-      <Separator className="mx-4" />
 
       {/* Navigation */}
       <nav className="flex-1 p-4">
