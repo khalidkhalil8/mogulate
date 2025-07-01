@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -175,6 +176,7 @@ const Index = () => {
       return (
         <IdeaEntryPage
           initialIdea={ideaData.idea}
+          initialTitle={projectTitle}
           onIdeaSubmit={handleIdeaSubmit}
         />
       );

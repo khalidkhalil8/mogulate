@@ -11,14 +11,16 @@ import SetupNavigation from './setup/SetupNavigation';
 
 interface IdeaEntryPageProps {
   initialIdea?: string;
+  initialTitle?: string;
   onIdeaSubmit: (idea: string, title: string) => void;
 }
 
 const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({ 
   initialIdea = "", 
+  initialTitle = "",
   onIdeaSubmit 
 }) => {
-  const [projectTitle, setProjectTitle] = useState("");
+  const [projectTitle, setProjectTitle] = useState(initialTitle);
   const [idea, setIdea] = useState(initialIdea);
   const navigate = useNavigate();
   
