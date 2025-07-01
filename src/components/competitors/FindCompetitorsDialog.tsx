@@ -38,7 +38,7 @@ const FindCompetitorsDialog: React.FC<FindCompetitorsDialogProps> = ({
             <Button variant="outline">Cancel</Button>
           </DialogClose>
           <Button onClick={onFindCompetitors}>
-            Find competitors
+            Let AI Suggest Competitors
           </Button>
         </DialogFooter>
       </DialogContent>

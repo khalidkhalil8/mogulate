@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import type { Competitor } from '@/lib/types';
@@ -24,6 +24,19 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
+  
+  // Ensure there's always at least one empty competitor field
+  useEffect(() => {
+    if (competitors.length === 0) {
+      const emptyCompetitor: Competitor = {
+        id: `manual-${Math.random().toString(36).substring(2, 9)}`,
+        name: '',
+        website: '',
+        description: '',
+      };
+      setCompetitors([emptyCompetitor]);
+    }
+  }, []);
   
   const addCompetitor = () => {
     const newCompetitor: Competitor = {
@@ -82,7 +95,8 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
       <div className="p-6">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Finding Competition</h1>
+            <h1 className="text-3xl font-bold mb-2">Discover Your Competitors</h1>
+            <p className="text-gray-600">Enter companies or tools that offer similar solutions — or let us find them for you.</p>
           </div>
           
           {isLoading ? (
@@ -128,7 +142,7 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
                       <circle cx="11" cy="11" r="8"></circle>
                       <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <span>Find Competitors</span>
+                    <span>Let AI Suggest Competitors</span>
                   </Button>
                 </div>
                 
