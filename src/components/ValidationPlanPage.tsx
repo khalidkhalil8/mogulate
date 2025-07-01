@@ -150,7 +150,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
               <Button
                 type="button" 
                 variant="outline"
-                onClick={() => navigate('/market-gaps')}
+                onClick={() => navigate('/features')}
                 className="flex items-center gap-2"
               >
                 <ArrowLeft size={18} />
