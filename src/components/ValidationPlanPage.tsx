@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +31,44 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
     }
   ]);
   const navigate = useNavigate();
+  
+  // Parse initialValidationPlan and populate steps
+  useEffect(() => {
+    if (initialValidationPlan && initialValidationPlan.trim()) {
+      try {
+        // Parse the validation plan string format
+        const stepBlocks = initialValidationPlan.split('\n\n').filter(block => block.trim());
+        const parsedSteps: ValidationStep[] = [];
+        
+        stepBlocks.forEach((block, index) => {
+          const lines = block.split('\n');
+          const titleLine = lines.find(line => line.startsWith('Step '));
+          const descLine = lines.find(line => line.startsWith('Goal/Description: '));
+          const priorityLine = lines.find(line => line.startsWith('Priority: '));
+          
+          if (titleLine) {
+            const title = titleLine.replace(/^Step \d+: /, '');
+            const description = descLine ? descLine.replace('Goal/Description: ', '') : '';
+            const priority = priorityLine ? priorityLine.replace('Priority: ', '') : '';
+            
+            parsedSteps.push({
+              id: (index + 1).toString(),
+              title,
+              description,
+              priority
+            });
+          }
+        });
+        
+        if (parsedSteps.length > 0) {
+          setSteps(parsedSteps);
+        }
+      } catch (error) {
+        console.error('Error parsing validation plan:', error);
+        // Keep default single empty step if parsing fails
+      }
+    }
+  }, [initialValidationPlan]);
   
   const addStep = () => {
     const newStep: ValidationStep = {
