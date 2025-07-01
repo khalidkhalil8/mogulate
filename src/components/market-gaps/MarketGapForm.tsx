@@ -7,8 +7,10 @@ import MarketGapAnalysisCard from './MarketGapAnalysisCard';
 
 interface MarketGapFormProps {
   marketGaps: string;
+  uniqueValue: string;
   analysis: MarketGapAnalysis | undefined;
   setMarketGaps: (value: string) => void;
+  setUniqueValue: (value: string) => void;
   onGetAiSuggestions: () => void;
   onSubmit: (e: React.FormEvent) => void;
   isCompetitorsAvailable: boolean;
@@ -16,8 +18,10 @@ interface MarketGapFormProps {
 
 const MarketGapForm: React.FC<MarketGapFormProps> = ({
   marketGaps,
+  uniqueValue,
   analysis,
   setMarketGaps,
+  setUniqueValue,
   onGetAiSuggestions,
   onSubmit,
   isCompetitorsAvailable,
@@ -30,22 +34,40 @@ const MarketGapForm: React.FC<MarketGapFormProps> = ({
         </div>
       )}
       
-      <div className="space-y-4">
-        <label 
-          htmlFor="marketGaps" 
-          className="block text-lg font-medium text-charcoal"
-        >
-          Detail your unique selling points and how you will solve customer problems 
-          better than existing solutions
-        </label>
-        <Textarea
-          id="marketGaps"
-          placeholder="Faster delivery than competitors, lower pricing, better user experience"
-          value={marketGaps}
-          onChange={(e) => setMarketGaps(e.target.value)}
-          className="min-h-[150px] resize-y"
-          required
-        />
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <label 
+            htmlFor="marketGaps" 
+            className="block text-lg font-medium text-charcoal"
+          >
+            What gaps or problems in the current market does your product solve?
+          </label>
+          <Textarea
+            id="marketGaps"
+            placeholder="Existing tools don't support mobile workflows, no AI-based personalization, expensive pricing tiers..."
+            value={marketGaps}
+            onChange={(e) => setMarketGaps(e.target.value)}
+            className="min-h-[120px] resize-y"
+            required
+          />
+        </div>
+        
+        <div className="space-y-4">
+          <label 
+            htmlFor="uniqueValue" 
+            className="block text-lg font-medium text-charcoal"
+          >
+            What's your product's edge? What makes it better, smarter, or faster?
+          </label>
+          <Textarea
+            id="uniqueValue"
+            placeholder="AI-generated insights, 10x faster onboarding, modern UI/UX built for non-technical users..."
+            value={uniqueValue}
+            onChange={(e) => setUniqueValue(e.target.value)}
+            className="min-h-[120px] resize-y"
+            required
+          />
+        </div>
       </div>
       
       <div className="flex justify-start">
