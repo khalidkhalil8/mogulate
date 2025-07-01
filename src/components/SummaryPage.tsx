@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { IdeaData } from '@/lib/types';
 import IdeaSummaryCard from './summary/IdeaSummaryCard';
 import CompetitorsSummaryCard from './summary/CompetitorsSummaryCard';
@@ -7,6 +8,8 @@ import MarketGapsSummaryCard from './summary/MarketGapsSummaryCard';
 import ValidationPlanSummaryCard from './summary/ValidationPlanSummaryCard';
 import SummaryActions from './summary/SummaryActions';
 import SetupNavigation from './setup/SetupNavigation';
+import { Button } from './ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 interface SummaryPageProps {
   data: IdeaData;
@@ -14,6 +17,8 @@ interface SummaryPageProps {
 }
 
 const SummaryPage: React.FC<SummaryPageProps> = ({ data, onSaveProject }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-white">
       <SetupNavigation />
@@ -36,10 +41,22 @@ const SummaryPage: React.FC<SummaryPageProps> = ({ data, onSaveProject }) => {
             />
             <ValidationPlanSummaryCard validationPlan={data.validationPlan} />
             
-            <SummaryActions 
-              data={data} 
-              onSaveProject={onSaveProject} 
-            />
+            <div className="flex justify-between items-center pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/validation-plan')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft size={18} />
+                <span>Back</span>
+              </Button>
+              
+              <SummaryActions 
+                data={data} 
+                onSaveProject={onSaveProject} 
+              />
+            </div>
           </div>
         </div>
       </div>
