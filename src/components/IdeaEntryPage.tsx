@@ -47,15 +47,15 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Create New Project</h1>
-            <p className="text-gray-600">Start by giving your project a name and describing your idea</p>
+            <h1 className="text-3xl font-bold mb-2">Start Your Project</h1>
+            <p className="text-gray-600">Give your project a name and describe your idea. Don't worry — you can edit this later.</p>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="bg-white rounded-lg border p-6 space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="projectTitle" className="text-sm font-medium">
-                  Project Title *
+                  Project Title
                 </Label>
                 <Input
                   id="projectTitle"
@@ -69,7 +69,7 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
               
               <div className="space-y-2">
                 <Label htmlFor="idea" className="text-sm font-medium">
-                  Describe your idea *
+                  Description
                 </Label>
                 <Textarea
                   id="idea"
