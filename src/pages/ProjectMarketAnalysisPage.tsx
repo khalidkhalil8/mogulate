@@ -4,21 +4,25 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectMarketAnalysis } from '@/hooks/useProjectMarketAnalysis';
+import { analyzeMarketGaps } from '@/lib/api/marketGaps';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, ArrowLeft, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Lightbulb, RefreshCw } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
+import { format } from 'date-fns';
 import LoadingState from '@/components/ui/LoadingState';
 import PageLayout from '@/components/layout/PageLayout';
-import MarketAnalysisDrawer from '@/components/market-analysis/MarketAnalysisDrawer';
+import MarketAnalysisRefreshModal from '@/components/market-analysis/MarketAnalysisRefreshModal';
 import type { MarketGapAnalysis } from '@/lib/types';
 
 const ProjectMarketAnalysisPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { projects, isLoading: projectsLoading } = useProjects();
-  const { marketAnalysis, marketGaps, isLoading: analysisLoading, updateMarketAnalysis } = useProjectMarketAnalysis(id || '');
+  const { marketAnalysis, isLoading: analysisLoading, updateMarketAnalysis } = useProjectMarketAnalysis(id || '');
   
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [refreshModalOpen, setRefreshModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   const project = projects.find(p => p.id === id);
   
@@ -39,11 +43,23 @@ const ProjectMarketAnalysisPage = () => {
     );
   }
 
-  const handleSaveAnalysis = async (analysis: MarketGapAnalysis | null, gaps: string) => {
-    return await updateMarketAnalysis(analysis, gaps);
+  const handleRefreshAnalysis = async () => {
+    setIsRefreshing(true);
+    try {
+      const result = await analyzeMarketGaps(project.idea || '', project.competitors || []);
+      if (result.analysis) {
+        await updateMarketAnalysis(result.analysis, '');
+        toast.success("Market analysis updated successfully");
+      }
+    } catch (error) {
+      toast.error("Failed to refresh market analysis");
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
-  const hasAnalysisData = marketAnalysis || marketGaps;
+  const hasAnalysisData = marketAnalysis;
+  const lastAnalyzed = project.updated_at ? format(new Date(project.updated_at), 'MMMM d, yyyy') : null;
 
   return (
     <PageLayout>
@@ -68,16 +84,19 @@ const ProjectMarketAnalysisPage = () => {
                 </Button>
               </div>
               
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">Market Analysis</h1>
-                  <p className="text-gray-600">Analyze market gaps and positioning for {project.title}</p>
-                </div>
-                <Button onClick={() => setDrawerOpen(true)} className="flex items-center gap-2">
-                  <Edit className="h-4 w-4" />
-                  {hasAnalysisData ? 'Edit Analysis' : 'Add Analysis'}
-                </Button>
+              <div className="mb-6">
+                <h1 className="text-3xl font-bold mb-2">Market Analysis</h1>
+                <p className="text-gray-600">
+                  These insights highlight gaps in the market and suggest how you can uniquely position your product. They were generated based on your current idea and competition.
+                </p>
               </div>
+
+              {/* Last analyzed timestamp */}
+              {lastAnalyzed && hasAnalysisData && (
+                <div className="text-sm text-gray-500 mb-6">
+                  Last analyzed: {lastAnalyzed}
+                </div>
+              )}
             </div>
 
             {/* Content */}
@@ -92,81 +111,81 @@ const ProjectMarketAnalysisPage = () => {
                   <p className="text-gray-600 mb-6">
                     Start analyzing your market position by identifying gaps and opportunities in the market.
                   </p>
-                  <Button onClick={() => setDrawerOpen(true)} className="gap-2">
-                    <Edit className="h-4 w-4" />
-                    Create Market Analysis
+                  <Button onClick={() => setRefreshModalOpen(true)} className="gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    Run Market Analysis
                   </Button>
                 </div>
               </div>
             ) : (
               // Analysis Content
               <div className="space-y-6">
-                {marketGaps && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Lightbulb className="h-5 w-5" />
-                        Market Gaps Description
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                        {marketGaps}
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
+                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+                  {marketAnalysis.marketGaps && marketAnalysis.marketGaps.length > 0 && (
+                    <Card className="bg-teal-50 border-teal-200">
+                      <CardHeader>
+                        <CardTitle className="text-teal-800 flex items-center gap-2">
+                          <Lightbulb className="h-5 w-5" />
+                          Identified Market Gaps
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-3">
+                          {marketAnalysis.marketGaps.map((gap, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <span className="flex-shrink-0 w-2 h-2 bg-teal-500 rounded-full mt-2"></span>
+                              <span className="text-gray-700">{gap}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
 
-                {marketAnalysis && (
-                  <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                    {marketAnalysis.marketGaps && marketAnalysis.marketGaps.length > 0 && (
-                      <Card className="bg-teal-50 border-teal-200">
-                        <CardHeader>
-                          <CardTitle className="text-teal-800">Identified Market Gaps</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-3">
-                            {marketAnalysis.marketGaps.map((gap, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <span className="flex-shrink-0 w-2 h-2 bg-teal-500 rounded-full mt-2"></span>
-                                <span className="text-gray-700">{gap}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    )}
+                  {marketAnalysis.positioningSuggestions && marketAnalysis.positioningSuggestions.length > 0 && (
+                    <Card className="bg-blue-50 border-blue-200">
+                      <CardHeader>
+                        <CardTitle className="text-blue-800 flex items-center gap-2">
+                          <Lightbulb className="h-5 w-5" />
+                          Positioning Suggestions
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-3">
+                          {marketAnalysis.positioningSuggestions.map((suggestion, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <span className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></span>
+                              <span className="text-gray-700">{suggestion}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
 
-                    {marketAnalysis.positioningSuggestions && marketAnalysis.positioningSuggestions.length > 0 && (
-                      <Card className="bg-blue-50 border-blue-200">
-                        <CardHeader>
-                          <CardTitle className="text-blue-800">Positioning Suggestions</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-3">
-                            {marketAnalysis.positioningSuggestions.map((suggestion, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <span className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></span>
-                                <span className="text-gray-700">{suggestion}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                )}
+                {/* Update Market Analysis Button */}
+                <div className="flex justify-center pt-4">
+                  <Button 
+                    onClick={() => setRefreshModalOpen(true)}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                    disabled={isRefreshing}
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    Update Market Analysis
+                  </Button>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        <MarketAnalysisDrawer
-          isOpen={drawerOpen}
-          onOpenChange={setDrawerOpen}
-          onSave={handleSaveAnalysis}
-          marketAnalysis={marketAnalysis}
-          marketGaps={marketGaps}
+        <MarketAnalysisRefreshModal
+          isOpen={refreshModalOpen}
+          onOpenChange={setRefreshModalOpen}
+          onConfirm={handleRefreshAnalysis}
+          isLoading={isRefreshing}
         />
       </div>
     </PageLayout>
