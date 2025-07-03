@@ -17,6 +17,20 @@ export interface ValidationStep {
   updated_at: string;
 }
 
+// Helper function to convert database row to ValidationStep
+const convertToValidationStep = (data: any): ValidationStep => ({
+  id: data.id,
+  project_id: data.project_id,
+  user_id: data.user_id,
+  title: data.title,
+  description: data.description,
+  method: data.method,
+  priority: data.priority as 'High' | 'Medium' | 'Low',
+  is_completed: data.is_completed,
+  created_at: data.created_at,
+  updated_at: data.updated_at,
+});
+
 export const useValidationSteps = (projectId: string) => {
   const [validationSteps, setValidationSteps] = useState<ValidationStep[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,7 +56,8 @@ export const useValidationSteps = (projectId: string) => {
         return;
       }
 
-      setValidationSteps(data || []);
+      const convertedData = (data || []).map(convertToValidationStep);
+      setValidationSteps(convertedData);
     } catch (error) {
       console.error('Error fetching validation steps:', error);
       toast.error('Failed to load validation steps');
@@ -73,7 +88,8 @@ export const useValidationSteps = (projectId: string) => {
         return false;
       }
 
-      setValidationSteps(prev => [...prev, data]);
+      const convertedData = convertToValidationStep(data);
+      setValidationSteps(prev => [...prev, convertedData]);
       toast.success('Validation step created successfully');
       return true;
     } catch (error) {
@@ -104,8 +120,9 @@ export const useValidationSteps = (projectId: string) => {
         return false;
       }
 
+      const convertedData = convertToValidationStep(data);
       setValidationSteps(prev => 
-        prev.map(step => step.id === id ? data : step)
+        prev.map(step => step.id === id ? convertedData : step)
       );
       return true;
     } catch (error) {
