@@ -6,117 +6,67 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-
-interface ValidationStep {
-  id: string;
-  title: string;
-  description: string;
-  tool: string;
-  priority: 'High' | 'Medium' | 'Low';
-}
+import { ValidationStep } from '@/hooks/useValidationSteps';
 
 interface ValidationPlanDrawerProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (plan: string) => Promise<boolean>;
-  validationPlan?: string;
+  onSave: (step: Omit<ValidationStep, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<boolean>;
+  onUpdate: (id: string, step: Partial<ValidationStep>) => Promise<boolean>;
   editingStep?: ValidationStep | null;
-  isEditing?: boolean;
+  projectId: string;
 }
 
 const ValidationPlanDrawer: React.FC<ValidationPlanDrawerProps> = ({
   isOpen,
   onOpenChange,
   onSave,
-  validationPlan = '',
+  onUpdate,
   editingStep = null,
-  isEditing = false,
+  projectId,
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [tool, setTool] = useState('');
+  const [method, setMethod] = useState('');
   const [priority, setPriority] = useState<'High' | 'Medium' | 'Low'>('Medium');
 
   useEffect(() => {
     if (isOpen) {
       if (editingStep) {
         setTitle(editingStep.title);
-        setDescription(editingStep.description);
-        setTool(editingStep.tool);
+        setDescription(editingStep.description || '');
+        setMethod(editingStep.method || '');
         setPriority(editingStep.priority);
       } else {
         setTitle('');
         setDescription('');
-        setTool('');
+        setMethod('');
         setPriority('Medium');
       }
     }
   }, [editingStep, isOpen]);
 
   const handleSave = async () => {
-    if (!title.trim() || !description.trim() || !tool.trim()) {
+    if (!title.trim()) {
       return;
     }
 
-    // Parse existing validation plan
-    const existingSteps: ValidationStep[] = [];
-    if (validationPlan) {
-      try {
-        const stepBlocks = validationPlan.split('\n\n').filter(block => block.trim());
-        stepBlocks.forEach((block, index) => {
-          const lines = block.split('\n');
-          const titleLine = lines.find(line => line.startsWith('Step '));
-          const descLine = lines.find(line => line.startsWith('Goal/Description: '));
-          const toolLine = lines.find(line => line.startsWith('Tool/Method: '));
-          const priorityLine = lines.find(line => line.startsWith('Priority: '));
-          
-          if (titleLine) {
-            const stepTitle = titleLine.replace(/^Step \d+: /, '');
-            const stepDescription = descLine ? descLine.replace('Goal/Description: ', '') : '';
-            const stepTool = toolLine ? toolLine.replace('Tool/Method: ', '') : '';
-            const stepPriority = priorityLine ? priorityLine.replace('Priority: ', '') as 'High' | 'Medium' | 'Low' : 'Medium';
-            
-            existingSteps.push({
-              id: (index + 1).toString(),
-              title: stepTitle,
-              description: stepDescription,
-              tool: stepTool,
-              priority: stepPriority
-            });
-          }
-        });
-      } catch (error) {
-        console.error('Error parsing validation plan:', error);
-      }
-    }
+    const stepData = {
+      project_id: projectId,
+      title: title.trim(),
+      description: description.trim() || null,
+      method: method.trim() || null,
+      priority,
+      is_completed: false,
+    };
 
-    // Add or update step
-    let updatedSteps: ValidationStep[];
+    let success = false;
     if (editingStep) {
-      // Update existing step
-      updatedSteps = existingSteps.map(step => 
-        step.id === editingStep.id 
-          ? { ...step, title, description, tool, priority }
-          : step
-      );
+      success = await onUpdate(editingStep.id, stepData);
     } else {
-      // Add new step
-      const newStep: ValidationStep = {
-        id: Date.now().toString(),
-        title,
-        description,
-        tool,
-        priority
-      };
-      updatedSteps = [...existingSteps, newStep];
+      success = await onSave(stepData);
     }
 
-    // Convert back to string format
-    const updatedPlan = updatedSteps.map((step, index) => 
-      `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.description}\nTool/Method: ${step.tool}\nPriority: ${step.priority}`
-    ).join('\n\n');
-
-    const success = await onSave(updatedPlan);
     if (success) {
       onOpenChange(false);
     }
@@ -143,7 +93,7 @@ const ValidationPlanDrawer: React.FC<ValidationPlanDrawerProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="stepDescription">Goal or Description *</Label>
+            <Label htmlFor="stepDescription">Goal or Description</Label>
             <Textarea
               id="stepDescription"
               placeholder="What do you want to achieve with this step?"
@@ -154,12 +104,12 @@ const ValidationPlanDrawer: React.FC<ValidationPlanDrawerProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="stepTool">Tool or Method *</Label>
+            <Label htmlFor="stepMethod">Tool or Method</Label>
             <Input
-              id="stepTool"
+              id="stepMethod"
               placeholder="e.g., Google Forms, Webflow, User interviews"
-              value={tool}
-              onChange={(e) => setTool(e.target.value)}
+              value={method}
+              onChange={(e) => setMethod(e.target.value)}
             />
           </div>
 
@@ -184,7 +134,7 @@ const ValidationPlanDrawer: React.FC<ValidationPlanDrawerProps> = ({
             >
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!title.trim() || !description.trim() || !tool.trim()}>
+            <Button onClick={handleSave} disabled={!title.trim()}>
               {editingStep ? 'Update Step' : 'Add Step'}
             </Button>
           </div>

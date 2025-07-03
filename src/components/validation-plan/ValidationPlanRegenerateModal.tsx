@@ -33,13 +33,10 @@ const ValidationPlanRegenerateModal: React.FC<ValidationPlanRegenerateModalProps
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Refresh Your Validation Plan</DialogTitle>
+          <DialogTitle>Use AI to Suggest a Validation Plan</DialogTitle>
           <DialogDescription className="space-y-3">
             <p>
-              We'll use your latest project details to generate a new set of validation steps, tools, and signals to help you refine your testing strategy.
-            </p>
-            <p className="text-sm text-blue-600">
-              💡 Use this if your idea or competition has changed.
+              This will generate 3–5 steps to validate your idea, including tools and success signals based on your current project data.
             </p>
           </DialogDescription>
         </DialogHeader>
@@ -54,7 +51,7 @@ const ValidationPlanRegenerateModal: React.FC<ValidationPlanRegenerateModalProps
             disabled={isLoading}
             className="gradient-bg border-none hover:opacity-90 button-transition"
           >
-            {isLoading ? 'Generating Plan...' : 'Generate Plan'}
+            {isLoading ? 'Generating...' : 'Generate with AI'}
           </Button>
         </DialogFooter>
       </DialogContent>

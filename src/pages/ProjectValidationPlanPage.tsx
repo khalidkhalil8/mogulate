@@ -3,29 +3,30 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useProjects } from '@/hooks/useProjects';
-import { useProjectValidationPlan } from '@/hooks/useProjectValidationPlan';
+import { useValidationSteps, ValidationStep } from '@/hooks/useValidationSteps';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Plus, CheckSquare, Sparkles } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { ArrowLeft, Plus, Sparkles } from 'lucide-react';
 import LoadingState from '@/components/ui/LoadingState';
 import ValidationPlanDrawer from '@/components/validation-plan/ValidationPlanDrawer';
 import ValidationPlanRegenerateModal from '@/components/validation-plan/ValidationPlanRegenerateModal';
+import ValidationStepCard from '@/components/validation-plan/ValidationStepCard';
 import PageLayout from '@/components/layout/PageLayout';
-
-interface ValidationStep {
-  id: string;
-  title: string;
-  description: string;
-  tool: string;
-  priority: 'High' | 'Medium' | 'Low';
-}
 
 const ProjectValidationPlanPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { projects, isLoading: projectsLoading } = useProjects();
-  const { validationPlan, isLoading, updateValidationPlan } = useProjectValidationPlan(id!);
+  const {
+    validationSteps,
+    isLoading,
+    createValidationStep,
+    updateValidationStep,
+    deleteValidationStep,
+    toggleStepCompletion,
+  } = useValidationSteps(id!);
+  
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isRegenerateModalOpen, setIsRegenerateModalOpen] = useState(false);
   const [editingStep, setEditingStep] = useState<ValidationStep | null>(null);
@@ -50,48 +51,16 @@ const ProjectValidationPlanPage = () => {
     );
   }
 
-  // Parse validation plan into structured steps
-  const parseValidationSteps = (): ValidationStep[] => {
-    if (!validationPlan) return [];
-    
-    try {
-      const stepBlocks = validationPlan.split('\n\n').filter(block => block.trim());
-      const parsedSteps: ValidationStep[] = [];
-      
-      stepBlocks.forEach((block, index) => {
-        const lines = block.split('\n');
-        const titleLine = lines.find(line => line.startsWith('Step '));
-        const descLine = lines.find(line => line.startsWith('Goal/Description: '));
-        const toolLine = lines.find(line => line.startsWith('Tool/Method: '));
-        const priorityLine = lines.find(line => line.startsWith('Priority: '));
-        
-        if (titleLine) {
-          const title = titleLine.replace(/^Step \d+: /, '');
-          const description = descLine ? descLine.replace('Goal/Description: ', '') : '';
-          const tool = toolLine ? toolLine.replace('Tool/Method: ', '') : '';
-          const priority = priorityLine ? priorityLine.replace('Priority: ', '') as 'High' | 'Medium' | 'Low' : 'Medium';
-          
-          parsedSteps.push({
-            id: (index + 1).toString(),
-            title,
-            description,
-            tool,
-            priority
-          });
-        }
-      });
-      
-      return parsedSteps;
-    } catch (error) {
-      console.error('Error parsing validation plan:', error);
-      return [];
-    }
+  const completedSteps = validationSteps.filter(step => step.is_completed).length;
+  const totalSteps = validationSteps.length;
+  const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
+
+  const handleSaveStep = async (stepData: Omit<ValidationStep, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+    return await createValidationStep(stepData);
   };
 
-  const validationSteps = parseValidationSteps();
-
-  const handleSave = async (plan: string) => {
-    return await updateValidationPlan(plan);
+  const handleUpdateStep = async (id: string, stepData: Partial<ValidationStep>) => {
+    return await updateValidationStep(id, stepData);
   };
 
   const handleEditStep = (step: ValidationStep) => {
@@ -104,33 +73,52 @@ const ProjectValidationPlanPage = () => {
     setIsDrawerOpen(true);
   };
 
+  const handleToggleCompletion = async (id: string, completed: boolean) => {
+    await toggleStepCompletion(id, completed);
+  };
+
   const handleRegenerateWithAI = async () => {
     setIsRegenerating(true);
     try {
-      // Simulate AI generation for now
+      // Simulate AI generation for now - would integrate with actual AI service
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const aiGeneratedPlan = `Step 1: Create Landing Page
-Goal/Description: Build a simple landing page to gauge initial interest and collect email signups
-Tool/Method: Webflow, Framer, or HTML/CSS
-Priority: High
+      // Clear existing steps and create new AI-generated ones
+      const aiSteps = [
+        {
+          project_id: id!,
+          title: 'Create Landing Page',
+          description: 'Build a simple landing page to gauge initial interest and collect email signups',
+          method: 'Webflow, Framer, or HTML/CSS',
+          priority: 'High' as const,
+          is_completed: false,
+        },
+        {
+          project_id: id!,
+          title: 'Run Social Media Survey',
+          description: 'Post targeted questions on relevant social media groups to validate problem-solution fit',
+          method: 'LinkedIn, Reddit, Facebook Groups',
+          priority: 'High' as const,
+          is_completed: false,
+        },
+        {
+          project_id: id!,
+          title: 'Conduct User Interviews',
+          description: 'Interview 10-15 potential customers to understand their pain points and willingness to pay',
+          method: 'Zoom, Google Meet, Calendly',
+          priority: 'Medium' as const,
+          is_completed: false,
+        }
+      ];
 
-Step 2: Run Social Media Survey
-Goal/Description: Post targeted questions on relevant social media groups to validate problem-solution fit
-Tool/Method: LinkedIn, Reddit, Facebook Groups
-Priority: High
+      // Delete existing steps and create new ones
+      for (const step of validationSteps) {
+        await deleteValidationStep(step.id);
+      }
 
-Step 3: Conduct User Interviews
-Goal/Description: Interview 10-15 potential customers to understand their pain points and willingness to pay
-Tool/Method: Zoom, Google Meet, Calendly
-Priority: Medium
-
-Step 4: Create MVP Prototype
-Goal/Description: Build a minimal version to test core functionality with early users
-Tool/Method: Figma, No-code tools, or basic development
-Priority: Medium`;
-
-      await updateValidationPlan(aiGeneratedPlan);
+      for (const step of aiSteps) {
+        await createValidationStep(step);
+      }
     } catch (error) {
       console.error('Error regenerating validation plan:', error);
     } finally {
@@ -138,24 +126,11 @@ Priority: Medium`;
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'High':
-        return 'bg-red-100 text-red-800';
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Low':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
     <PageLayout>
       <div className="min-h-screen">
         <Helmet>
-          <title>Validation Plan - {project.title} | Mogulate</title>
+          <title>Your Validation Plan - {project.title} | Mogulate</title>
         </Helmet>
 
         <div className="p-6">
@@ -173,11 +148,11 @@ Priority: Medium`;
                 </Button>
               </div>
               
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h1 className="text-3xl font-bold mb-2">Validation Plan</h1>
+                  <h1 className="text-3xl font-bold mb-2">Your Validation Plan</h1>
                   <p className="text-gray-600">
-                    These steps help you validate your idea before committing resources.
+                    Track how you'll validate your idea through actionable steps. Mark them complete as you make progress.
                   </p>
                 </div>
                 
@@ -189,6 +164,21 @@ Priority: Medium`;
                   Add Step
                 </Button>
               </div>
+
+              {/* Progress Indicator */}
+              {totalSteps > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      Progress: {completedSteps} of {totalSteps} steps completed
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {Math.round(progressPercentage)}%
+                    </span>
+                  </div>
+                  <Progress value={progressPercentage} className="h-2" />
+                </div>
+              )}
             </div>
 
             {/* Content */}
@@ -202,61 +192,32 @@ Priority: Medium`;
                     disabled={isRegenerating}
                   >
                     <Sparkles className="h-4 w-4" />
-                    Regenerate with AI
+                    Use AI to Suggest a Validation Plan
                   </Button>
                 </div>
 
-                <div className="grid gap-4">
-                  {validationSteps.map((step, index) => (
-                    <Card key={step.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <CardTitle className="text-lg font-bold">
-                            {step.title}
-                          </CardTitle>
-                          <div className="flex items-center gap-2">
-                            <Badge className={getPriorityColor(step.priority)}>
-                              {step.priority}
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditStep(step)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-1">Goal/Description:</p>
-                          <p className="text-gray-600 text-sm leading-relaxed">
-                            {step.description}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-1">Tool/Method:</p>
-                          <p className="text-gray-600 text-sm">
-                            {step.tool}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                <div className="space-y-4">
+                  {validationSteps.map((step) => (
+                    <ValidationStepCard
+                      key={step.id}
+                      step={step}
+                      onEdit={handleEditStep}
+                      onToggleCompletion={handleToggleCompletion}
+                    />
                   ))}
                 </div>
               </div>
             ) : (
               <Card className="border-dashed border-2 border-gray-200">
                 <CardContent className="flex flex-col items-center justify-center py-12">
-                  <CheckSquare className="h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No validation plan yet
-                  </h3>
-                  <p className="text-gray-600 text-center mb-6 max-w-md">
-                    Create validation steps to define how you'll test and validate your business idea.
-                  </p>
+                  <div className="text-center mb-6 max-w-md">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No validation steps yet
+                    </h3>
+                    <p className="text-gray-600">
+                      Create validation steps to define how you'll test and validate your business idea.
+                    </p>
+                  </div>
                   <div className="flex gap-3">
                     <Button
                       onClick={handleAddStep}
@@ -283,10 +244,10 @@ Priority: Medium`;
         <ValidationPlanDrawer
           isOpen={isDrawerOpen}
           onOpenChange={setIsDrawerOpen}
-          onSave={handleSave}
-          validationPlan={validationPlan}
+          onSave={handleSaveStep}
+          onUpdate={handleUpdateStep}
           editingStep={editingStep}
-          isEditing={!!editingStep}
+          projectId={id!}
         />
 
         <ValidationPlanRegenerateModal
