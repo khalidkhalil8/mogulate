@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useProjects } from '@/hooks/useProjects';
 import type { Competitor } from '@/lib/types';
 import LoadingState from './ui/LoadingState';
 import { fetchCompetitors } from '@/lib/api/competitors';
-import CompetitorsList from './competitors/CompetitorsList';
-import FindCompetitorsDialog from './competitors/FindCompetitorsDialog';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
 import SetupNavigation from './setup/SetupNavigation';
+import CompetitorWelcomeState from './competitors/CompetitorWelcomeState';
+import CompetitorForm from './competitors/CompetitorForm';
+import { toast } from '@/components/ui/sonner';
 
 interface CompetitorDiscoveryPageProps {
   idea: string;
@@ -20,23 +21,64 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
   initialCompetitors = [],
   onCompetitorsSubmit
 }) => {
-  const [competitors, setCompetitors] = useState<Competitor[]>(initialCompetitors);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('projectId');
+  const { projects, updateProject } = useProjects();
+  const project = projects.find(p => p.id === projectId);
+  
+  const [competitors, setCompetitors] = useState<Competitor[]>(
+    project?.competitors && project.competitors.length > 0 
+      ? project.competitors.map(c => ({
+          id: c.id,
+          name: c.name,
+          website: c.website,
+          description: c.description,
+          isAiGenerated: c.isAiGenerated
+        }))
+      : initialCompetitors.length > 0 
+        ? initialCompetitors 
+        : []
+  );
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
   const navigate = useNavigate();
   
-  // Ensure there's always at least one empty competitor field
+  // Update competitors when project data loads
   useEffect(() => {
-    if (competitors.length === 0) {
-      const emptyCompetitor: Competitor = {
-        id: `manual-${Math.random().toString(36).substring(2, 9)}`,
-        name: '',
-        website: '',
-        description: '',
-      };
-      setCompetitors([emptyCompetitor]);
+    if (project?.competitors && project.competitors.length > 0) {
+      setCompetitors(project.competitors.map(c => ({
+        id: c.id,
+        name: c.name,
+        website: c.website,
+        description: c.description,
+        isAiGenerated: c.isAiGenerated
+      })));
+      setHasGenerated(true);
     }
-  }, []);
+  }, [project]);
+  
+  const handleGenerateCompetitors = async () => {
+    setIsGenerating(true);
+    try {
+      const result = await fetchCompetitors(idea);
+      if (result.competitors.length > 0) {
+        setCompetitors(result.competitors);
+        setHasGenerated(true);
+        toast.success('Competitors found successfully!');
+      } else {
+        toast.error('No competitors found. You can add them manually.');
+        // Still allow user to proceed and add manually
+        setHasGenerated(true);
+      }
+    } catch (error) {
+      console.error('Error finding competitors:', error);
+      toast.error('Failed to find competitors. You can add them manually.');
+      // Still allow user to proceed and add manually
+      setHasGenerated(true);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
   
   const addCompetitor = () => {
     const newCompetitor: Competitor = {
@@ -58,35 +100,31 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
     setCompetitors(competitors.filter(comp => comp.id !== id));
   };
   
-  const handleFindCompetitors = async () => {
-    setIsDialogOpen(false);
-    setIsLoading(true);
-    try {
-      const result = await fetchCompetitors(idea);
-      if (result.competitors.length) {
-        // Filter out any AI competitors that might have the same name as manually entered ones
-        const existingNames = new Set(competitors.map(c => c.name.toLowerCase()));
-        const newCompetitors = result.competitors.filter(c => !existingNames.has(c.name.toLowerCase()));
-        
-        setCompetitors([...competitors, ...newCompetitors]);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Always save current competitors state, even if empty
+    
+    if (projectId && project) {
+      await updateProject(projectId, { competitors });
+    }
+    
     onCompetitorsSubmit(competitors);
-    navigate('/market-gaps');
+    
+    const nextUrl = projectId ? `/market-gaps?projectId=${projectId}` : '/market-gaps';
+    navigate(nextUrl);
   };
   
-  const handleBack = () => {
-    // Save current competitors before navigating back to maintain state
+  const handleBack = async () => {
+    if (projectId && project) {
+      await updateProject(projectId, { competitors });
+    }
+    
     onCompetitorsSubmit(competitors);
-    navigate('/idea');
+    
+    const backUrl = projectId ? `/idea?projectId=${projectId}` : '/idea';
+    navigate(backUrl);
   };
+
+  const canProceed = hasGenerated || competitors.length > 0;
   
   return (
     <div className="min-h-screen bg-white">
@@ -94,74 +132,25 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
       
       <div className="p-6">
         <div className="max-w-3xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Discover Your Competitors</h1>
-            <p className="text-gray-600">Enter companies or tools that offer similar solutions — or let us find them for you.</p>
-          </div>
-          
-          {isLoading ? (
+          {isGenerating ? (
             <LoadingState message="Hang tight - our AI is finding competitors" />
+          ) : !hasGenerated && competitors.length === 0 ? (
+            <CompetitorWelcomeState
+              onGenerateCompetitors={handleGenerateCompetitors}
+              isGenerating={isGenerating}
+            />
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <CompetitorsList 
-                competitors={competitors}
-                onAddCompetitor={addCompetitor}
-                onUpdateCompetitor={updateCompetitor}
-                onRemoveCompetitor={removeCompetitor}
-              />
-              
-              <div className="flex flex-col md:flex-row justify-between gap-4">
-                <div className="flex gap-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleBack}
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft size={18} />
-                    <span>Back</span>
-                  </Button>
-                  
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => setIsDialogOpen(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <span>Let AI Suggest Competitors</span>
-                  </Button>
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
-                >
-                  <span>Next</span>
-                  <ArrowRight size={18} />
-                </Button>
-              </div>
-            </form>
+            <CompetitorForm
+              competitors={competitors}
+              hasGenerated={hasGenerated}
+              canProceed={canProceed}
+              onAddCompetitor={addCompetitor}
+              onUpdateCompetitor={updateCompetitor}
+              onRemoveCompetitor={removeCompetitor}
+              onSubmit={handleSubmit}
+              onBack={handleBack}
+            />
           )}
-          
-          <FindCompetitorsDialog 
-            isOpen={isDialogOpen}
-            onOpenChange={setIsDialogOpen}
-            onFindCompetitors={handleFindCompetitors}
-          />
         </div>
       </div>
     </div>
