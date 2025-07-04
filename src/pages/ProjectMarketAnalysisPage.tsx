@@ -1,32 +1,25 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useProjects } from '@/hooks/useProjects';
-import { useProjectMarketAnalysis } from '@/hooks/useProjectMarketAnalysis';
-import { analyzeMarketGaps } from '@/lib/api/marketGaps';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Lightbulb, RefreshCw } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
+import { ArrowLeft, Crown } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import LoadingState from '@/components/ui/LoadingState';
 import PageLayout from '@/components/layout/PageLayout';
-import MarketAnalysisRefreshModal from '@/components/market-analysis/MarketAnalysisRefreshModal';
-import type { MarketGapAnalysis } from '@/lib/types';
+import type { MarketGapScoringAnalysis } from '@/lib/api/marketGapsScoring';
 
 const ProjectMarketAnalysisPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { projects, isLoading: projectsLoading } = useProjects();
-  const { marketAnalysis, isLoading: analysisLoading, updateMarketAnalysis } = useProjectMarketAnalysis(id || '');
-  
-  const [refreshModalOpen, setRefreshModalOpen] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   
   const project = projects.find(p => p.id === id);
   
-  if (projectsLoading || analysisLoading) {
+  if (projectsLoading) {
     return <LoadingState />;
   }
   
@@ -43,23 +36,17 @@ const ProjectMarketAnalysisPage = () => {
     );
   }
 
-  const handleRefreshAnalysis = async () => {
-    setIsRefreshing(true);
-    try {
-      const result = await analyzeMarketGaps(project.idea || '', project.competitors || []);
-      if (result.analysis) {
-        await updateMarketAnalysis(result.analysis, '');
-        toast.success("Market analysis updated successfully");
-      }
-    } catch (error) {
-      toast.error("Failed to refresh market analysis");
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  const hasAnalysisData = marketAnalysis;
+  // Parse market gap analysis data
+  const marketGapScoringAnalysis = project.market_gap_analysis as MarketGapScoringAnalysis | null;
+  const selectedGapIndex = project.selected_gap_index;
+  const hasAnalysisData = marketGapScoringAnalysis?.marketGaps && marketGapScoringAnalysis.marketGaps.length > 0;
   const lastAnalyzed = project.updated_at ? format(new Date(project.updated_at), 'MMMM d, yyyy') : null;
+
+  const getScoreColor = (score: number) => {
+    if (score >= 8) return 'bg-green-500';
+    if (score >= 6) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
 
   return (
     <PageLayout>
@@ -87,7 +74,7 @@ const ProjectMarketAnalysisPage = () => {
               <div className="mb-6">
                 <h1 className="text-3xl font-bold mb-2">Market Analysis</h1>
                 <p className="text-gray-600">
-                  These insights highlight gaps in the market and suggest how you can uniquely position your product. They were generated based on your current idea and competition.
+                  These opportunities were generated based on your idea and competition.
                 </p>
               </div>
 
@@ -105,88 +92,78 @@ const ProjectMarketAnalysisPage = () => {
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="max-w-md mx-auto">
                   <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <Lightbulb className="w-8 h-8 text-gray-400" />
+                    <Crown className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h2 className="text-2xl font-semibold mb-2">No market analysis yet</h2>
+                  <h2 className="text-2xl font-semibold mb-2">No market analysis available</h2>
                   <p className="text-gray-600 mb-6">
-                    Start analyzing your market position by identifying gaps and opportunities in the market.
+                    Market analysis is generated during the project setup process.
                   </p>
-                  <Button onClick={() => setRefreshModalOpen(true)} className="gap-2">
-                    <RefreshCw className="h-4 w-4" />
-                    Run Market Analysis
-                  </Button>
                 </div>
               </div>
             ) : (
-              // Analysis Content
+              // Analysis Content - Display all gaps with selected one highlighted
               <div className="space-y-6">
-                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                  {marketAnalysis.marketGaps && marketAnalysis.marketGaps.length > 0 && (
-                    <Card className="bg-teal-50 border-teal-200">
-                      <CardHeader>
-                        <CardTitle className="text-teal-800 flex items-center gap-2">
-                          <Lightbulb className="h-5 w-5" />
-                          Identified Market Gaps
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-3">
-                          {marketAnalysis.marketGaps.map((gap, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <span className="flex-shrink-0 w-2 h-2 bg-teal-500 rounded-full mt-2"></span>
-                              <span className="text-gray-700">{gap}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {marketAnalysis.positioningSuggestions && marketAnalysis.positioningSuggestions.length > 0 && (
-                    <Card className="bg-blue-50 border-blue-200">
-                      <CardHeader>
-                        <CardTitle className="text-blue-800 flex items-center gap-2">
-                          <Lightbulb className="h-5 w-5" />
-                          Positioning Suggestions
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-3">
-                          {marketAnalysis.positioningSuggestions.map((suggestion, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <span className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></span>
-                              <span className="text-gray-700">{suggestion}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-
-                {/* Update Market Analysis Button */}
-                <div className="flex justify-center pt-4">
-                  <Button 
-                    onClick={() => setRefreshModalOpen(true)}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                    disabled={isRefreshing}
-                  >
-                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    Update Market Analysis
-                  </Button>
+                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+                  {marketGapScoringAnalysis.marketGaps.map((gap, index) => {
+                    const isSelected = selectedGapIndex === index;
+                    
+                    return (
+                      <Card 
+                        key={index} 
+                        className={`relative transition-all duration-200 ${
+                          isSelected 
+                            ? 'border-teal-500 border-2 bg-teal-50 shadow-lg' 
+                            : 'border-gray-200 opacity-75'
+                        }`}
+                      >
+                        {isSelected && (
+                          <div className="absolute -top-2 -right-2">
+                            <Badge className="bg-teal-600 text-white flex items-center gap-1">
+                              <Crown className="h-3 w-3" />
+                              Selected Opportunity
+                            </Badge>
+                          </div>
+                        )}
+                        
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg">Market Gap</CardTitle>
+                            <Badge className={`${getScoreColor(gap.score)} text-white`}>
+                              {gap.score}/10
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        
+                        <CardContent className="space-y-4">
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2">Gap Description:</h4>
+                            <p className={isSelected ? "text-teal-800" : "text-gray-700"}>
+                              {gap.gap}
+                            </p>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2">Positioning Suggestion:</h4>
+                            <p className={isSelected ? "text-teal-800" : "text-gray-700"}>
+                              {gap.positioningSuggestion}
+                            </p>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2">Score Rationale:</h4>
+                            <p className={isSelected ? "text-teal-700 text-sm" : "text-gray-600 text-sm"}>
+                              {gap.rationale}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             )}
           </div>
         </div>
-
-        <MarketAnalysisRefreshModal
-          isOpen={refreshModalOpen}
-          onOpenChange={setRefreshModalOpen}
-          onConfirm={handleRefreshAnalysis}
-          isLoading={isRefreshing}
-        />
       </div>
     </PageLayout>
   );
