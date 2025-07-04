@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -31,6 +30,7 @@ const Index = () => {
     features: existingProject?.features || [],
     validationPlan: existingProject?.validation_plan || '',
     marketGapAnalysis: existingProject?.market_gap_analysis,
+    marketGapScoringAnalysis: undefined, // Not stored in DB yet
   });
 
   // Warn on exit if project has not been saved
@@ -54,6 +54,7 @@ const Index = () => {
         features: existingProject.features || [],
         validationPlan: existingProject.validation_plan || '',
         marketGapAnalysis: existingProject.market_gap_analysis,
+        marketGapScoringAnalysis: undefined, // Not stored in DB yet
       });
       setProjectTitle(existingProject.title || '');
     }
@@ -70,8 +71,8 @@ const Index = () => {
     navigate('/market-gaps');
   };
 
-  const handleMarketGapsSubmit = async (marketGaps: string, analysis: MarketGapAnalysis | undefined) => {
-    setIdeaData(prev => ({ ...prev, marketGaps, marketGapAnalysis: analysis }));
+  const handleMarketGapsSubmit = async (marketGaps: string, analysis: MarketGapAnalysis | undefined, scoringAnalysis?: MarketGapScoringAnalysis) => {
+    setIdeaData(prev => ({ ...prev, marketGaps, marketGapAnalysis: analysis, marketGapScoringAnalysis: scoringAnalysis }));
     navigate('/features');
   };
 
@@ -101,6 +102,7 @@ const Index = () => {
         features: ideaData.features,
         validation_plan: ideaData.validationPlan,
         market_gap_analysis: ideaData.marketGapAnalysis,
+        // Note: marketGapScoringAnalysis not persisted yet
       });
 
       setTimeout(() => {
@@ -118,6 +120,7 @@ const Index = () => {
       marketGaps: '',
       features: [],
       validationPlan: '',
+      marketGapScoringAnalysis: undefined,
     });
     setSearchParams({});
   };

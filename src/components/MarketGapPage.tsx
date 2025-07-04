@@ -2,22 +2,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoadingState from './ui/LoadingState';
-import { analyzeMarketGaps } from '@/lib/api/marketGaps';
+import { analyzeMarketGapsWithScoring } from '@/lib/api/marketGapsScoring';
 import type { Competitor, MarketGapAnalysis } from '@/lib/types';
+import type { MarketGapScoringAnalysis } from '@/lib/api/marketGapsScoring';
 import { toast } from "@/components/ui/sonner";
-import AISuggestionDialog from './market-gaps/AISuggestionDialog';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from './ui/button';
 import { ArrowLeft, ArrowRight, Lightbulb } from 'lucide-react';
 import SetupNavigation from './setup/SetupNavigation';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import MarketGapsScoringDisplay from './market-gaps/MarketGapsScoringDisplay';
 
 interface MarketGapPageProps {
   idea: string;
   competitors: Competitor[];
   initialMarketGaps?: string;
   initialAnalysis?: MarketGapAnalysis;
-  onMarketGapsSubmit: (marketGaps: string, analysis: MarketGapAnalysis | undefined) => void;
+  onMarketGapsSubmit: (marketGaps: string, analysis: MarketGapAnalysis | undefined, scoringAnalysis?: MarketGapScoringAnalysis) => void;
 }
 
 const MarketGapPage: React.FC<MarketGapPageProps> = ({
@@ -27,21 +27,25 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
   initialAnalysis,
   onMarketGapsSubmit
 }) => {
-  const [analysis, setAnalysis] = useState<MarketGapAnalysis | undefined>(initialAnalysis);
+  const [scoringAnalysis, setScoringAnalysis] = useState<MarketGapScoringAnalysis | undefined>();
   const [isLoading, setIsLoading] = useState(false);
-  const [hasRunAnalysis, setHasRunAnalysis] = useState(!!initialAnalysis);
+  const [hasRunAnalysis, setHasRunAnalysis] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   
   const handleRunAnalysis = async () => {
     setIsLoading(true);
     try {
-      const result = await analyzeMarketGaps(idea, competitors);
-      if (result.analysis) {
-        setAnalysis(result.analysis);
+      const result = await analyzeMarketGapsWithScoring(idea, competitors);
+      if (result.success && result.analysis) {
+        setScoringAnalysis(result.analysis);
         setHasRunAnalysis(true);
-        toast.success("Successfully generated market gap analysis");
+        toast.success("Successfully generated market gap analysis with scoring");
+      } else {
+        toast.error(result.error || "Failed to generate analysis");
       }
+    } catch (error) {
+      toast.error("Failed to generate analysis");
     } finally {
       setIsLoading(false);
     }
@@ -49,13 +53,13 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
   
   const handleNext = () => {
     // Save the analysis data and proceed
-    onMarketGapsSubmit(initialMarketGaps, analysis);
+    onMarketGapsSubmit(initialMarketGaps, initialAnalysis, scoringAnalysis);
     navigate('/features');
   };
 
   const handleBack = () => {
     // Save current analysis before navigating back
-    onMarketGapsSubmit(initialMarketGaps, analysis);
+    onMarketGapsSubmit(initialMarketGaps, initialAnalysis, scoringAnalysis);
     navigate('/competitors');
   };
   
@@ -64,16 +68,17 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
       <SetupNavigation />
       
       <div className="p-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {isLoading ? (
-            <LoadingState message="Hang tight - our AI is generating an analysis" />
+            <LoadingState message="Hang tight - our AI is analyzing market opportunities and scoring them" />
           ) : !hasRunAnalysis ? (
             // Initial welcome state
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
               <div className="max-w-2xl">
-                <h1 className="text-3xl font-bold mb-4">Discover Opportunities in the Market</h1>
+                <h1 className="text-3xl font-bold mb-4">Discover & Score Market Opportunities</h1>
                 <p className="text-gray-600 text-lg mb-8">
-                  Our AI will analyze your idea and competitors to identify gaps and unique angles you can pursue.
+                  Our AI will analyze your idea and competitors to identify market gaps, score them across 
+                  multiple criteria, and recommend the best positioning strategy for your success.
                 </p>
                 
                 <Button 
@@ -81,6 +86,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
                   className="gradient-bg border-none hover:opacity-90 button-transition text-lg px-8 py-3"
                   disabled={competitors.length === 0}
                 >
+                  <Lightbulb className="h-5 w-5 mr-2" />
                   Run Market Analysis
                 </Button>
                 
@@ -95,52 +101,12 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
             // Results state
             <div className="space-y-8">
               <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold mb-2">Market Analysis Results</h1>
-                <p className="text-gray-600">Here's what our AI discovered about your market opportunities</p>
+                <h1 className="text-3xl font-bold mb-2">Market Opportunity Analysis</h1>
+                <p className="text-gray-600">Here are the scored market opportunities we discovered for your idea</p>
               </div>
               
-              {analysis && (
-                <div className="grid gap-6 md:grid-cols-2">
-                  {/* Identified Market Gaps */}
-                  <Card className="bg-teal-50 border-teal-200">
-                    <CardHeader>
-                      <CardTitle className="text-teal-800 flex items-center gap-2">
-                        <Lightbulb className="h-5 w-5" />
-                        Identified Market Gaps
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-3">
-                        {analysis.marketGaps.map((gap, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span className="flex-shrink-0 w-2 h-2 bg-teal-500 rounded-full mt-2"></span>
-                            <span className="text-gray-700">{gap}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-
-                  {/* Positioning Suggestions */}
-                  <Card className="bg-blue-50 border-blue-200">
-                    <CardHeader>
-                      <CardTitle className="text-blue-800 flex items-center gap-2">
-                        <Lightbulb className="h-5 w-5" />
-                        Positioning Suggestions
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-3">
-                        {analysis.positioningSuggestions.map((suggestion, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></span>
-                            <span className="text-gray-700">{suggestion}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                </div>
+              {scoringAnalysis && (
+                <MarketGapsScoringDisplay analysis={scoringAnalysis} />
               )}
               
               {/* Disclaimer */}

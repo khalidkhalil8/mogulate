@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IdeaData } from '@/lib/types';
@@ -37,7 +36,8 @@ const SummaryPage: React.FC<SummaryPageProps> = ({ data, onSaveProject }) => {
             <CompetitorsSummaryCard competitors={data.competitors} />
             <MarketGapsSummaryCard 
               marketGaps={data.marketGaps} 
-              marketGapAnalysis={data.marketGapAnalysis} 
+              marketGapAnalysis={data.marketGapAnalysis}
+              marketGapScoringAnalysis={data.marketGapScoringAnalysis}
             />
             <ValidationPlanSummaryCard validationPlan={data.validationPlan} />
             

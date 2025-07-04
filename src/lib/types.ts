@@ -12,13 +12,25 @@ export interface MarketGapAnalysis {
   positioningSuggestions: string[];
 }
 
+export interface MarketGapWithScore {
+  gap: string;
+  positioningSuggestion: string;
+  score: number;
+  rationale: string;
+}
+
+export interface MarketGapScoringAnalysis {
+  marketGaps: MarketGapWithScore[];
+}
+
 export interface IdeaData {
   idea: string;
   competitors: Competitor[];
   marketGaps: string;
-  marketGapAnalysis?: MarketGapAnalysis;
   features: Feature[];
   validationPlan: string;
+  marketGapAnalysis?: MarketGapAnalysis;
+  marketGapScoringAnalysis?: MarketGapScoringAnalysis;
 }
 
 export interface Feature {
