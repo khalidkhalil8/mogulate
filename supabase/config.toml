@@ -30,3 +30,6 @@ verify_jwt = false
 
 [functions.analyze-market-with-scoring]
 verify_jwt = false
+
+[functions.generate-features]
+verify_jwt = false
