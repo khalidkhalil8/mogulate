@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
@@ -11,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 import SetupNavigation from './setup/SetupNavigation';
 import ValidationPlanWelcomeState from './validation-plan/ValidationPlanWelcomeState';
+import type { IdeaData } from '@/lib/types';
 
 interface ValidationStep {
   id: string;
@@ -23,11 +23,15 @@ interface ValidationStep {
 interface ValidationPlanPageProps {
   initialValidationPlan?: string;
   onValidationPlanSubmit: (validationPlan: string) => void;
+  ideaData?: IdeaData;
+  selectedGapIndex?: number;
 }
 
 const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({ 
   initialValidationPlan = "", 
-  onValidationPlanSubmit 
+  onValidationPlanSubmit,
+  ideaData,
+  selectedGapIndex
 }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
@@ -40,8 +44,13 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
   const navigate = useNavigate();
   
   // Check if we have the required data for generation
-  const canGenerate = project?.market_gap_analysis?.selected?.positioningSuggestion && 
-                     project?.features && project.features.length > 0;
+  const canGenerate = projectId 
+    ? (project?.market_gap_analysis?.selected?.positioningSuggestion && project?.features && project.features.length > 0)
+    : (ideaData?.idea && 
+       ideaData?.marketGapScoringAnalysis && 
+       selectedGapIndex !== undefined && 
+       ideaData?.marketGapScoringAnalysis?.marketGaps?.[selectedGapIndex]?.positioningSuggestion &&
+       ideaData?.features && ideaData.features.length > 0);
   
   // Update steps when project data loads
   useEffect(() => {
@@ -120,11 +129,6 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
   }, [project, initialValidationPlan]);
 
   const handleGenerateValidationPlan = async () => {
-    if (!projectId) {
-      toast.error('Project ID is required');
-      return;
-    }
-
     if (!canGenerate) {
       toast.error('Please complete market positioning and features first');
       return;
@@ -132,8 +136,34 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
 
     setIsGenerating(true);
     try {
+      let requestBody;
+
+      if (projectId) {
+        // Existing project flow
+        requestBody = { project_id: projectId };
+      } else {
+        // Initial setup flow
+        if (!ideaData || selectedGapIndex === undefined || !ideaData.marketGapScoringAnalysis) {
+          toast.error('Missing required data for validation plan generation');
+          return;
+        }
+
+        const positioningSuggestion = ideaData.marketGapScoringAnalysis.marketGaps[selectedGapIndex]?.positioningSuggestion;
+        
+        if (!positioningSuggestion) {
+          toast.error('Positioning suggestion not found');
+          return;
+        }
+
+        requestBody = {
+          idea: ideaData.idea,
+          positioningSuggestion: positioningSuggestion,
+          features: ideaData.features
+        };
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-validation-plan', {
-        body: { project_id: projectId }
+        body: requestBody
       });
 
       if (error) {

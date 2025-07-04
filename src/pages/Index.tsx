@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -189,6 +188,8 @@ const Index = () => {
         <ValidationPlanPage
           initialValidationPlan={ideaData.validationPlan}
           onValidationPlanSubmit={handleValidationPlanSubmit}
+          ideaData={ideaData}
+          selectedGapIndex={selectedGapIndex}
         />
       );
     case '/summary':

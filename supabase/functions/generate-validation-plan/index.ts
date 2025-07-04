@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
@@ -17,33 +16,45 @@ serve(async (req) => {
   }
 
   try {
-    const { project_id } = await req.json();
+    const requestBody = await req.json();
+    const { project_id, idea, positioningSuggestion, features } = requestBody;
     
-    if (!project_id) {
-      return new Response(JSON.stringify({ success: false, error: 'Missing project_id' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400
-      });
+    let projectIdea, projectPositioning, projectFeatures;
+
+    if (project_id) {
+      // Existing project flow - fetch from database
+      const { data: project, error } = await supabase
+        .from('projects')
+        .select('id, idea, market_gap_analysis, features')
+        .eq('id', project_id)
+        .single();
+
+      if (error || !project) {
+        return new Response(JSON.stringify({ success: false, error: 'Project not found' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404
+        });
+      }
+
+      projectIdea = project.idea;
+      projectFeatures = project.features;
+      const selected = project.market_gap_analysis?.selected;
+      projectPositioning = selected?.positioningSuggestion;
+    } else {
+      // Initial setup flow - use provided data
+      if (!idea || !positioningSuggestion) {
+        return new Response(JSON.stringify({ success: false, error: 'Missing required data: idea and positioningSuggestion are required' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        });
+      }
+
+      projectIdea = idea;
+      projectPositioning = positioningSuggestion;
+      projectFeatures = features || [];
     }
 
-    // Fetch project data
-    const { data: project, error } = await supabase
-      .from('projects')
-      .select('id, idea, market_gap_analysis, features')
-      .eq('id', project_id)
-      .single();
-
-    if (error || !project) {
-      return new Response(JSON.stringify({ success: false, error: 'Project not found' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 404
-      });
-    }
-
-    const { idea, market_gap_analysis, features } = project;
-    const selected = market_gap_analysis?.selected;
-
-    if (!idea || !selected || !selected.positioningSuggestion) {
+    if (!projectPositioning) {
       return new Response(JSON.stringify({ success: false, error: 'Missing positioning suggestion' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400
@@ -58,15 +69,15 @@ serve(async (req) => {
       });
     }
 
-    const featuresText = features && features.length > 0 
-      ? features.map((f: any) => `${f.title}: ${f.description}`).join(', ')
+    const featuresText = projectFeatures && projectFeatures.length > 0 
+      ? projectFeatures.map((f: any) => `${f.title}: ${f.description}`).join(', ')
       : 'No specific features defined';
 
     const prompt = `
 You are a startup advisor helping a founder validate a new product idea. 
 
-Product Idea: "${idea}"
-Market Positioning: "${selected.positioningSuggestion}"
+Product Idea: "${projectIdea}"
+Market Positioning: "${projectPositioning}"
 Planned Features: ${featuresText}
 
 Generate EXACTLY 3 validation steps that align with this positioning and features. For each step, return:
@@ -139,22 +150,24 @@ Only return the JSON, no commentary or markdown.
       priority: step.priority
     }));
 
-    // Save to database
-    const validationPlan = formattedSteps.map((step: any, index: number) => 
-      `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.description}\nTool/Method: ${step.tool}\nPriority: ${step.priority}`
-    ).join('\n\n');
+    // Save to database only if we have a project_id
+    if (project_id) {
+      const validationPlan = formattedSteps.map((step: any, index: number) => 
+        `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.description}\nTool/Method: ${step.tool}\nPriority: ${step.priority}`
+      ).join('\n\n');
 
-    const { error: updateError } = await supabase
-      .from('projects')
-      .update({ validation_plan: validationPlan })
-      .eq('id', project_id);
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update({ validation_plan: validationPlan })
+        .eq('id', project_id);
 
-    if (updateError) {
-      console.error('Error updating project:', updateError);
-      return new Response(JSON.stringify({ success: false, error: 'Failed to save validation plan' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      });
+      if (updateError) {
+        console.error('Error updating project:', updateError);
+        return new Response(JSON.stringify({ success: false, error: 'Failed to save validation plan' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        });
+      }
     }
 
     return new Response(JSON.stringify({ success: true, validationSteps: formattedSteps }), {
