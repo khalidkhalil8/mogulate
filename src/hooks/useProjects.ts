@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -13,6 +14,7 @@ export interface Project {
   market_gap_analysis?: any;
   features?: any[];
   validation_plan?: string;
+  selected_gap_index?: number;
   created_at: string;
   updated_at: string;
 }
@@ -46,6 +48,7 @@ export const useProjects = () => {
         competitors: Array.isArray(item.competitors) ? item.competitors : [],
         features: Array.isArray(item.features) ? item.features : [],
         market_gap_analysis: item.market_gap_analysis || undefined,
+        selected_gap_index: item.selected_gap_index ?? undefined,
       }));
 
       setProjects(transformedData);

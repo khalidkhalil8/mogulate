@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IdeaData } from '@/lib/types';
@@ -12,10 +13,11 @@ import { ArrowLeft } from 'lucide-react';
 
 interface SummaryPageProps {
   data: IdeaData;
+  selectedGapIndex?: number;
   onSaveProject: () => Promise<void>;
 }
 
-const SummaryPage: React.FC<SummaryPageProps> = ({ data, onSaveProject }) => {
+const SummaryPage: React.FC<SummaryPageProps> = ({ data, selectedGapIndex, onSaveProject }) => {
   const navigate = useNavigate();
 
   return (
@@ -38,6 +40,7 @@ const SummaryPage: React.FC<SummaryPageProps> = ({ data, onSaveProject }) => {
               marketGaps={data.marketGaps} 
               marketGapAnalysis={data.marketGapAnalysis}
               marketGapScoringAnalysis={data.marketGapScoringAnalysis}
+              selectedGapIndex={selectedGapIndex}
             />
             <ValidationPlanSummaryCard validationPlan={data.validationPlan} />
             

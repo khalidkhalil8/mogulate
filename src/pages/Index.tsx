@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -24,6 +25,7 @@ const Index = () => {
   const existingProject = projects.find(p => p.id === projectId);
 
   const [projectTitle, setProjectTitle] = useState('');
+  const [selectedGapIndex, setSelectedGapIndex] = useState<number | undefined>();
   const [ideaData, setIdeaData] = useState<IdeaData>({
     idea: existingProject?.idea || '',
     competitors: existingProject?.competitors || [],
@@ -58,6 +60,7 @@ const Index = () => {
         marketGapScoringAnalysis: undefined, // Not stored in DB yet
       });
       setProjectTitle(existingProject.title || '');
+      setSelectedGapIndex(existingProject.selected_gap_index ?? undefined);
     }
   }, [existingProject]);
 
@@ -72,8 +75,23 @@ const Index = () => {
     navigate('/market-gaps');
   };
 
-  const handleMarketGapsSubmit = async (marketGaps: string, analysis: MarketGapAnalysis | undefined, scoringAnalysis?: MarketGapScoringAnalysis) => {
-    setIdeaData(prev => ({ ...prev, marketGaps, marketGapAnalysis: analysis, marketGapScoringAnalysis: scoringAnalysis }));
+  const handleMarketGapsSubmit = async (
+    marketGaps: string, 
+    analysis: MarketGapAnalysis | undefined, 
+    scoringAnalysis?: MarketGapScoringAnalysis,
+    selectedIndex?: number
+  ) => {
+    setIdeaData(prev => ({ 
+      ...prev, 
+      marketGaps, 
+      marketGapAnalysis: analysis, 
+      marketGapScoringAnalysis: scoringAnalysis 
+    }));
+    
+    if (selectedIndex !== undefined) {
+      setSelectedGapIndex(selectedIndex);
+    }
+    
     navigate('/features');
   };
 
@@ -103,6 +121,7 @@ const Index = () => {
         features: ideaData.features,
         validation_plan: ideaData.validationPlan,
         market_gap_analysis: ideaData.marketGapAnalysis,
+        selected_gap_index: selectedGapIndex,
         // Note: marketGapScoringAnalysis not persisted yet
       });
 
@@ -123,6 +142,7 @@ const Index = () => {
       validationPlan: '',
       marketGapScoringAnalysis: undefined,
     });
+    setSelectedGapIndex(undefined);
     setSearchParams({});
   };
 
@@ -173,6 +193,7 @@ const Index = () => {
       return (
         <SummaryPage
           data={ideaData}
+          selectedGapIndex={selectedGapIndex}
           onSaveProject={handleSaveProject}
         />
       );

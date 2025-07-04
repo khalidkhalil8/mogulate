@@ -10,20 +10,34 @@ interface MarketGapsSummaryCardProps {
   marketGaps: string;
   marketGapAnalysis?: MarketGapAnalysis;
   marketGapScoringAnalysis?: MarketGapScoringAnalysis;
+  selectedGapIndex?: number;
 }
 
 const MarketGapsSummaryCard: React.FC<MarketGapsSummaryCardProps> = ({ 
   marketGaps, 
   marketGapAnalysis,
-  marketGapScoringAnalysis 
+  marketGapScoringAnalysis,
+  selectedGapIndex 
 }) => {
-  const highestScoringGap = marketGapScoringAnalysis?.marketGaps
-    ?.sort((a, b) => b.score - a.score)[0];
+  // Get the selected gap or fallback to highest scoring
+  const getSelectedGap = () => {
+    if (!marketGapScoringAnalysis) return null;
+    
+    if (selectedGapIndex !== undefined && marketGapScoringAnalysis.marketGaps[selectedGapIndex]) {
+      return marketGapScoringAnalysis.marketGaps[selectedGapIndex];
+    }
+    
+    // Fallback to highest scoring for legacy projects
+    return marketGapScoringAnalysis.marketGaps
+      .sort((a, b) => b.score - a.score)[0];
+  };
+
+  const selectedGap = getSelectedGap();
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Market Gaps & Differentiation</CardTitle>
+        <CardTitle>Market Gap & Positioning Strategy</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -31,44 +45,32 @@ const MarketGapsSummaryCard: React.FC<MarketGapsSummaryCardProps> = ({
           <p className="text-gray-700">{marketGaps}</p>
         </div>
         
-        {marketGapScoringAnalysis && (
+        {selectedGap && (
           <>
             <Separator />
             <div>
               <h3 className="font-medium mb-3 flex items-center gap-2">
-                AI-Scored Market Opportunities
+                Selected Market Opportunity
                 <Badge className="bg-teal-600 text-white text-xs">
-                  New Analysis
+                  Score: {selectedGap.score}/10
                 </Badge>
               </h3>
               
-              {highestScoringGap && (
-                <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge className="bg-teal-600 text-white">
-                      Top Opportunity (Score: {highestScoringGap.score}/10)
-                    </Badge>
+              <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-medium text-teal-900 mb-1">Market Gap:</h4>
+                    <p className="text-teal-800">{selectedGap.gap}</p>
                   </div>
-                  <p className="text-teal-800 font-medium mb-2">{highestScoringGap.gap}</p>
-                  <p className="text-teal-700 text-sm">
-                    <strong>Positioning:</strong> {highestScoringGap.positioningSuggestion}
-                  </p>
+                  <div>
+                    <h4 className="font-medium text-teal-900 mb-1">Your Positioning Strategy:</h4>
+                    <p className="text-teal-800">{selectedGap.positioningSuggestion}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-teal-900 mb-1">Why This Opportunity:</h4>
+                    <p className="text-teal-700 text-sm">{selectedGap.rationale}</p>
+                  </div>
                 </div>
-              )}
-              
-              <div className="space-y-3">
-                {marketGapScoringAnalysis.marketGaps.map((gap, index) => (
-                  <div key={index} className="border rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Market Gap {index + 1}</span>
-                      <Badge className={`${gap.score >= 8 ? 'bg-green-500' : gap.score >= 6 ? 'bg-yellow-500' : 'bg-red-500'} text-white`}>
-                        {gap.score}/10
-                      </Badge>
-                    </div>
-                    <p className="text-gray-700 text-sm mb-1">{gap.gap}</p>
-                    <p className="text-gray-600 text-xs">{gap.rationale}</p>
-                  </div>
-                ))}
               </div>
             </div>
           </>

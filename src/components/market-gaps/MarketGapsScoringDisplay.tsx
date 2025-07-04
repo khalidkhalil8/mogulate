@@ -7,16 +7,21 @@ import type { MarketGapScoringAnalysis } from '@/lib/api/marketGapsScoring';
 
 interface MarketGapsScoringDisplayProps {
   analysis: MarketGapScoringAnalysis;
+  selectedGapIndex?: number;
+  onSelectGap: (index: number) => void;
 }
 
-const MarketGapsScoringDisplay: React.FC<MarketGapsScoringDisplayProps> = ({ analysis }) => {
+const MarketGapsScoringDisplay: React.FC<MarketGapsScoringDisplayProps> = ({ 
+  analysis, 
+  selectedGapIndex,
+  onSelectGap
+}) => {
   // Sort market gaps by score (highest first)
   const sortedGaps = [...analysis.marketGaps].sort((a, b) => b.score - a.score);
-  const highestScoringGap = sortedGaps[0];
 
   return (
     <div className="space-y-6">
-      {/* Recommendation Message */}
+      {/* Updated Recommendation Message */}
       <Card className="bg-blue-50 border-blue-200">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
@@ -25,11 +30,11 @@ const MarketGapsScoringDisplay: React.FC<MarketGapsScoringDisplayProps> = ({ ana
             </div>
             <div>
               <p className="text-blue-800 font-medium mb-1">
-                AI Recommendation
+                Market Opportunity Selection
               </p>
               <p className="text-blue-700 text-sm">
-                We recommend focusing on the highest-scoring opportunity based on market size, 
-                competition, feasibility, and idea fit analysis.
+                Your market opportunities were scored based on market size, competition, ease of implementation, 
+                and alignment with your idea. We recommend focusing on the highest-scoring opportunity.
               </p>
             </div>
           </div>
@@ -38,40 +43,20 @@ const MarketGapsScoringDisplay: React.FC<MarketGapsScoringDisplayProps> = ({ ana
 
       {/* Market Gaps Grid */}
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-        {sortedGaps.map((gap, index) => (
-          <MarketGapScoringCard
-            key={index}
-            marketGap={gap}
-            isHighestScoring={gap === highestScoringGap}
-          />
-        ))}
+        {sortedGaps.map((gap, index) => {
+          const originalIndex = analysis.marketGaps.indexOf(gap);
+          const isSelected = selectedGapIndex === originalIndex;
+          
+          return (
+            <MarketGapScoringCard
+              key={index}
+              marketGap={gap}
+              isSelected={isSelected}
+              onSelect={() => onSelectGap(originalIndex)}
+            />
+          );
+        })}
       </div>
-
-      {/* Highest Scoring Gap Highlight */}
-      {highestScoringGap && (
-        <Card className="bg-teal-50 border-teal-200">
-          <CardHeader>
-            <CardTitle className="text-teal-800 flex items-center gap-2">
-              <Badge className="bg-teal-600 text-white">
-                Recommended Focus
-              </Badge>
-              Top Market Opportunity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div>
-                <h4 className="font-medium text-teal-900 mb-1">Market Gap:</h4>
-                <p className="text-teal-800">{highestScoringGap.gap}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-teal-900 mb-1">Recommended Positioning:</h4>
-                <p className="text-teal-800 font-medium">{highestScoringGap.positioningSuggestion}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

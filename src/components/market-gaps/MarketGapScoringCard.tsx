@@ -2,16 +2,20 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Check } from 'lucide-react';
 import type { MarketGapWithScore } from '@/lib/api/marketGapsScoring';
 
 interface MarketGapScoringCardProps {
   marketGap: MarketGapWithScore;
-  isHighestScoring?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 const MarketGapScoringCard: React.FC<MarketGapScoringCardProps> = ({ 
   marketGap, 
-  isHighestScoring = false 
+  isSelected = false,
+  onSelect
 }) => {
   const getScoreColor = (score: number) => {
     if (score >= 8) return 'bg-green-500';
@@ -20,11 +24,16 @@ const MarketGapScoringCard: React.FC<MarketGapScoringCardProps> = ({
   };
 
   return (
-    <Card className={`relative ${isHighestScoring ? 'border-teal-500 border-2 bg-teal-50' : ''}`}>
-      {isHighestScoring && (
+    <Card className={`relative transition-all duration-200 ${
+      isSelected 
+        ? 'border-teal-500 border-2 bg-teal-50 shadow-lg' 
+        : 'hover:shadow-md border-gray-200'
+    }`}>
+      {isSelected && (
         <div className="absolute -top-2 -right-2">
-          <Badge className="bg-teal-600 text-white">
-            Top Opportunity
+          <Badge className="bg-teal-600 text-white flex items-center gap-1">
+            <Check className="h-3 w-3" />
+            Selected
           </Badge>
         </div>
       )}
@@ -56,6 +65,22 @@ const MarketGapScoringCard: React.FC<MarketGapScoringCardProps> = ({
           <h4 className="font-medium text-gray-900 mb-2">Score Rationale:</h4>
           <p className="text-gray-600 text-sm">{marketGap.rationale}</p>
         </div>
+
+        {onSelect && (
+          <div className="pt-4">
+            <Button
+              onClick={onSelect}
+              className={`w-full ${
+                isSelected
+                  ? 'bg-teal-600 hover:bg-teal-700 text-white'
+                  : 'bg-white border border-teal-600 text-teal-600 hover:bg-teal-50'
+              }`}
+              variant={isSelected ? 'default' : 'outline'}
+            >
+              {isSelected ? 'Selected' : 'Select This Opportunity'}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
