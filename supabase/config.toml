@@ -33,3 +33,6 @@ verify_jwt = false
 
 [functions.generate-features]
 verify_jwt = false
+
+[functions.generate-validation-plan]
+verify_jwt = false

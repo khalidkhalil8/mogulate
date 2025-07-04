@@ -1,13 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useProjects } from '@/hooks/useProjects';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Plus, X, Sparkles } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { ArrowLeft, ArrowRight, Plus, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/sonner';
 import SetupNavigation from './setup/SetupNavigation';
+import ValidationPlanWelcomeState from './validation-plan/ValidationPlanWelcomeState';
 
 interface ValidationStep {
   id: string;
@@ -26,22 +29,59 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
   initialValidationPlan = "", 
   onValidationPlanSubmit 
 }) => {
-  const [steps, setSteps] = useState<ValidationStep[]>([
-    {
-      id: '1',
-      title: '',
-      description: '',
-      tool: '',
-      priority: 'Medium'
-    }
-  ]);
-  const [showAIDialog, setShowAIDialog] = useState(false);
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('projectId');
+  const { projects, updateProject } = useProjects();
+  const project = projects.find(p => p.id === projectId);
+  
+  const [steps, setSteps] = useState<ValidationStep[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
   const navigate = useNavigate();
   
-  // Parse initialValidationPlan and populate steps
+  // Check if we have the required data for generation
+  const canGenerate = project?.market_gap_analysis?.selected?.positioningSuggestion && 
+                     project?.features && project.features.length > 0;
+  
+  // Update steps when project data loads
   useEffect(() => {
-    if (initialValidationPlan && initialValidationPlan.trim()) {
+    if (project?.validation_plan && project.validation_plan.trim()) {
+      try {
+        const stepBlocks = project.validation_plan.split('\n\n').filter(block => block.trim());
+        const parsedSteps: ValidationStep[] = [];
+        
+        stepBlocks.forEach((block, index) => {
+          const lines = block.split('\n');
+          const titleLine = lines.find(line => line.startsWith('Step '));
+          const descLine = lines.find(line => line.startsWith('Goal/Description: '));
+          const toolLine = lines.find(line => line.startsWith('Tool/Method: '));
+          const priorityLine = lines.find(line => line.startsWith('Priority: '));
+          
+          if (titleLine) {
+            const title = titleLine.replace(/^Step \d+: /, '');
+            const description = descLine ? descLine.replace('Goal/Description: ', '') : '';
+            const tool = toolLine ? toolLine.replace('Tool/Method: ', '') : '';
+            const priority = priorityLine ? priorityLine.replace('Priority: ', '') as 'High' | 'Medium' | 'Low' : 'Medium';
+            
+            parsedSteps.push({
+              id: (index + 1).toString(),
+              title,
+              description,
+              tool,
+              priority
+            });
+          }
+        });
+        
+        if (parsedSteps.length > 0) {
+          setSteps(parsedSteps);
+          setHasGenerated(true);
+        }
+      } catch (error) {
+        console.error('Error parsing validation plan:', error);
+      }
+    } else if (initialValidationPlan && initialValidationPlan.trim()) {
+      // Parse initialValidationPlan for backwards compatibility
       try {
         const stepBlocks = initialValidationPlan.split('\n\n').filter(block => block.trim());
         const parsedSteps: ValidationStep[] = [];
@@ -71,12 +111,56 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
         
         if (parsedSteps.length > 0) {
           setSteps(parsedSteps);
+          setHasGenerated(true);
         }
       } catch (error) {
         console.error('Error parsing validation plan:', error);
       }
     }
-  }, [initialValidationPlan]);
+  }, [project, initialValidationPlan]);
+
+  const handleGenerateValidationPlan = async () => {
+    if (!projectId) {
+      toast.error('Project ID is required');
+      return;
+    }
+
+    if (!canGenerate) {
+      toast.error('Please complete market positioning and features first');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-validation-plan', {
+        body: { project_id: projectId }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.success) {
+        const generatedSteps = data.validationSteps.map((step: any) => ({
+          id: step.id,
+          title: step.title,
+          description: step.description,
+          tool: step.tool,
+          priority: step.priority
+        }));
+        setSteps(generatedSteps);
+        setHasGenerated(true);
+        toast.success('Validation plan generated successfully!');
+      } else {
+        throw new Error(data.error || 'Failed to generate validation plan');
+      }
+    } catch (error) {
+      console.error('Error generating validation plan:', error);
+      toast.error('Failed to generate validation plan. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
   
   const addStep = () => {
     const newStep: ValidationStep = {
@@ -100,212 +184,179 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
       step.id === id ? { ...step, [field]: value } : step
     ));
   };
-
-  const handleGenerateWithAI = async () => {
-    setIsGenerating(true);
-    try {
-      // Simulate AI generation for now
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const aiGeneratedSteps: ValidationStep[] = [
-        {
-          id: '1',
-          title: 'Create Landing Page',
-          description: 'Build a simple landing page to gauge initial interest and collect email signups',
-          tool: 'Webflow, Framer, or HTML/CSS',
-          priority: 'High'
-        },
-        {
-          id: '2',
-          title: 'Run Social Media Survey',
-          description: 'Post targeted questions on relevant social media groups to validate problem-solution fit',
-          tool: 'LinkedIn, Reddit, Facebook Groups',
-          priority: 'High'
-        },
-        {
-          id: '3',
-          title: 'Conduct User Interviews',
-          description: 'Interview 10-15 potential customers to understand their pain points and willingness to pay',
-          tool: 'Zoom, Google Meet, Calendly',
-          priority: 'Medium'
-        }
-      ];
-      
-      setSteps(aiGeneratedSteps);
-      setShowAIDialog(false);
-    } catch (error) {
-      console.error('Error generating AI plan:', error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const validationPlan = steps.map((step, index) => 
       `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.description}\nTool/Method: ${step.tool}\nPriority: ${step.priority}`
     ).join('\n\n');
     
+    if (projectId && project) {
+      await updateProject(projectId, { validation_plan: validationPlan });
+    }
+    
     onValidationPlanSubmit(validationPlan);
-    navigate('/summary');
+    
+    const nextUrl = projectId ? `/summary?projectId=${projectId}` : '/summary';
+    navigate(nextUrl);
   };
+
+  const handleBack = async () => {
+    const validationPlan = steps.map((step, index) => 
+      `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.description}\nTool/Method: ${step.tool}\nPriority: ${step.priority}`
+    ).join('\n\n');
+    
+    if (projectId && project) {
+      await updateProject(projectId, { validation_plan: validationPlan });
+    }
+    
+    onValidationPlanSubmit(validationPlan);
+    
+    const backUrl = projectId ? `/features?projectId=${projectId}` : '/features';
+    navigate(backUrl);
+  };
+
+  const canProceed = hasGenerated || steps.length > 0;
   
   return (
     <div className="min-h-screen bg-white">
       <SetupNavigation />
       
       <div className="p-6">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold mb-2">Create a Validation Plan</h1>
-            <p className="text-gray-600">
-              Define a few key steps to test your idea before investing time and money.
-            </p>
-          </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {steps.map((step, index) => (
-              <div key={step.id} className="border rounded-lg p-6 space-y-4 relative">
-                {steps.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeStep(step.id)}
-                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+        <div className="max-w-6xl mx-auto">
+          {!hasGenerated && steps.length === 0 ? (
+            <ValidationPlanWelcomeState
+              onGenerateValidationPlan={handleGenerateValidationPlan}
+              isGenerating={isGenerating}
+            />
+          ) : (
+            <div className="space-y-8">
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold mb-2">Review & Edit Your Validation Plan</h1>
+                <p className="text-gray-600">
+                  {hasGenerated 
+                    ? "AI has suggested validation steps based on your market positioning and features. You can edit them or add more."
+                    : "Add and configure the validation steps you want to execute for your product."
+                  }
+                </p>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {steps.length > 0 && (
+                  <div className="space-y-4">
+                    {steps.map((step, index) => (
+                      <div key={step.id} className="border rounded-lg p-6 space-y-4 relative">
+                        {steps.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeStep(step.id)}
+                            className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                        
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium">Step {index + 1}</h3>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Step Title:
+                            </label>
+                            <Input
+                              value={step.title}
+                              onChange={(e) => updateStep(step.id, 'title', e.target.value)}
+                              placeholder="e.g., Create Landing Page"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Goal or Description:
+                            </label>
+                            <Textarea
+                              value={step.description}
+                              onChange={(e) => updateStep(step.id, 'description', e.target.value)}
+                              placeholder="What do you want to achieve with this step?"
+                              className="min-h-[80px]"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Tool or Method:
+                            </label>
+                            <Input
+                              value={step.tool}
+                              onChange={(e) => updateStep(step.id, 'tool', e.target.value)}
+                              placeholder="e.g., Google Forms, Webflow, User interviews"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Priority:
+                            </label>
+                            <Select value={step.priority} onValueChange={(value) => updateStep(step.id, 'priority', value)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select priority" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="High">High</SelectItem>
+                                <SelectItem value="Medium">Medium</SelectItem>
+                                <SelectItem value="Low">Low</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
                 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Step Title:
-                    </label>
-                    <Input
-                      value={step.title}
-                      onChange={(e) => updateStep(step.id, 'title', e.target.value)}
-                      placeholder="e.g., Create Landing Page"
-                      required
-                    />
-                  </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addStep}
+                  className="w-full flex items-center justify-center gap-2 py-3 border-dashed"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add another step
+                </Button>
+                
+                <div className="flex justify-between pt-6">
+                  <Button
+                    type="button" 
+                    variant="outline"
+                    onClick={handleBack}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft size={18} />
+                    <span>Back</span>
+                  </Button>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Goal or Description:
-                    </label>
-                    <Textarea
-                      value={step.description}
-                      onChange={(e) => updateStep(step.id, 'description', e.target.value)}
-                      placeholder="What do you want to achieve with this step?"
-                      className="min-h-[80px]"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Tool or Method:
-                    </label>
-                    <Input
-                      value={step.tool}
-                      onChange={(e) => updateStep(step.id, 'tool', e.target.value)}
-                      placeholder="e.g., Google Forms, Webflow, User interviews"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Priority:
-                    </label>
-                    <Select value={step.priority} onValueChange={(value) => updateStep(step.id, 'priority', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Button 
+                    type="submit" 
+                    disabled={!canProceed}
+                    className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span>Next</span>
+                    <ArrowRight size={18} />
+                  </Button>
                 </div>
-              </div>
-            ))}
-            
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addStep}
-              className="w-full flex items-center justify-center gap-2 py-3 border-dashed"
-            >
-              <Plus className="h-4 w-4" />
-              Add another step
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowAIDialog(true)}
-              className="w-full flex items-center justify-center gap-2 py-3"
-            >
-              <Sparkles className="h-4 w-4" />
-              Generate with AI
-            </Button>
-            
-            <div className="flex justify-between pt-6">
-              <Button
-                type="button" 
-                variant="outline"
-                onClick={() => navigate('/features')}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft size={18} />
-                <span>Back</span>
-              </Button>
-              
-              <Button 
-                type="submit" 
-                className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
-              >
-                <span>Next</span>
-                <ArrowRight size={18} />
-              </Button>
+              </form>
             </div>
-          </form>
+          )}
         </div>
       </div>
-
-      <Dialog open={showAIDialog} onOpenChange={setShowAIDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Generate a Smart Validation Plan</DialogTitle>
-            <DialogDescription className="space-y-3">
-              <p>
-                We'll use your project idea and competitor list to generate a 3–5 step plan, including tools to use and signals to look for.
-              </p>
-              <p className="text-sm text-blue-600 flex items-center gap-1">
-                💡 Use this if you're unsure how to start or want inspiration.
-              </p>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowAIDialog(false)} disabled={isGenerating}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleGenerateWithAI}
-              disabled={isGenerating}
-              className="gradient-bg border-none hover:opacity-90 button-transition"
-            >
-              {isGenerating ? 'Generating...' : 'Generate Plan'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
