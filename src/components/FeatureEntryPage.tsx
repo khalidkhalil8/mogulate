@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
@@ -7,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 import FeatureWelcomeState from './features/FeatureWelcomeState';
 import FeatureForm from './features/FeatureForm';
+import type { IdeaData } from '@/lib/types';
 
 interface Feature {
   id: string;
@@ -18,11 +18,15 @@ interface Feature {
 interface FeatureEntryPageProps {
   initialFeatures?: Feature[];
   onFeaturesSubmit: (features: Feature[]) => void;
+  ideaData?: IdeaData;
+  selectedGapIndex?: number;
 }
 
 const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({ 
   initialFeatures = [], 
-  onFeaturesSubmit 
+  onFeaturesSubmit,
+  ideaData,
+  selectedGapIndex
 }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
@@ -59,15 +63,42 @@ const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({
   }, [project]);
   
   const handleGenerateFeatures = async () => {
-    if (!projectId) {
-      toast.error('Project ID is required');
-      return;
-    }
-
     setIsGenerating(true);
     try {
+      let requestBody;
+
+      if (projectId) {
+        // Existing project - use project_id
+        requestBody = { project_id: projectId };
+      } else {
+        // Initial setup - use idea and positioning suggestion from local state
+        if (!ideaData?.idea) {
+          toast.error('Project idea is required');
+          return;
+        }
+
+        // Get positioning suggestion from selected gap
+        let positioningSuggestion = '';
+        if (ideaData.marketGapScoringAnalysis && selectedGapIndex !== undefined) {
+          const selectedGap = ideaData.marketGapScoringAnalysis.marketGaps[selectedGapIndex];
+          if (selectedGap?.positioningSuggestion) {
+            positioningSuggestion = selectedGap.positioningSuggestion;
+          }
+        }
+
+        if (!positioningSuggestion) {
+          toast.error('Please complete market analysis and select a positioning strategy first');
+          return;
+        }
+
+        requestBody = { 
+          idea: ideaData.idea, 
+          positioningSuggestion: positioningSuggestion 
+        };
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-features', {
-        body: { project_id: projectId }
+        body: requestBody
       });
 
       if (error) {

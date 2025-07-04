@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
@@ -15,47 +14,45 @@ serve(async (req) => {
   }
 
   try {
-    const { project_id } = await req.json();
+    const { project_id, idea, positioningSuggestion } = await req.json();
 
-    if (!project_id) {
-      return new Response(JSON.stringify({ success: false, error: 'Missing project_id' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      });
-    }
+    // Support both existing projects (project_id) and initial setup (idea + positioningSuggestion)
+    let projectIdea = idea;
+    let projectPositioning = positioningSuggestion;
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    if (project_id) {
+      // Existing project flow - fetch from database
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
 
-    // Fetch project data
-    const { data: project, error } = await supabase
-      .from('projects')
-      .select('id, idea, market_gap_analysis, selected_gap_index')
-      .eq('id', project_id)
-      .single();
+      const { data: project, error } = await supabase
+        .from('projects')
+        .select('id, idea, market_gap_analysis, selected_gap_index')
+        .eq('id', project_id)
+        .single();
 
-    if (error || !project) {
-      console.error('Project fetch error:', error);
-      return new Response(JSON.stringify({ success: false, error: 'Project not found' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 404,
-      });
-    }
+      if (error || !project) {
+        console.error('Project fetch error:', error);
+        return new Response(JSON.stringify({ success: false, error: 'Project not found' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404,
+        });
+      }
 
-    const { idea, market_gap_analysis, selected_gap_index } = project;
-    
-    // Get the selected positioning suggestion
-    let positioningSuggestion = '';
-    if (market_gap_analysis?.marketGaps && selected_gap_index !== null && selected_gap_index !== undefined) {
-      const selectedGap = market_gap_analysis.marketGaps[selected_gap_index];
-      if (selectedGap?.positioningSuggestion) {
-        positioningSuggestion = selectedGap.positioningSuggestion;
+      projectIdea = project.idea;
+      
+      // Get the selected positioning suggestion
+      if (project.market_gap_analysis?.marketGaps && project.selected_gap_index !== null && project.selected_gap_index !== undefined) {
+        const selectedGap = project.market_gap_analysis.marketGaps[project.selected_gap_index];
+        if (selectedGap?.positioningSuggestion) {
+          projectPositioning = selectedGap.positioningSuggestion;
+        }
       }
     }
 
-    if (!idea || !positioningSuggestion) {
+    if (!projectIdea || !projectPositioning) {
       return new Response(JSON.stringify({ 
         success: false, 
         error: 'Missing idea or positioning suggestion. Please complete market analysis first.' 
@@ -65,8 +62,8 @@ serve(async (req) => {
       });
     }
 
-    console.log('Generating features for idea:', idea);
-    console.log('Using positioning:', positioningSuggestion);
+    console.log('Generating features for idea:', projectIdea);
+    console.log('Using positioning:', projectPositioning);
 
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -84,8 +81,8 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: `The startup idea is: "${idea}".
-The market positioning they chose is: "${positioningSuggestion}".
+            content: `The startup idea is: "${projectIdea}".
+The market positioning they chose is: "${projectPositioning}".
 
 Suggest exactly 3 product features the user should build based on the positioning above. 
 For each feature, provide:
@@ -162,21 +159,28 @@ Respond with this exact JSON structure:
       status: 'Planned' as const,
     }));
 
-    // Update project with generated features
-    const { error: updateError } = await supabase
-      .from('projects')
-      .update({ features: formattedFeatures })
-      .eq('id', project_id);
+    // Update project with generated features if project_id is provided
+    if (project_id) {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
 
-    if (updateError) {
-      console.error('Update error:', updateError);
-      return new Response(JSON.stringify({ success: false, error: 'Failed to save features' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      });
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update({ features: formattedFeatures })
+        .eq('id', project_id);
+
+      if (updateError) {
+        console.error('Update error:', updateError);
+        return new Response(JSON.stringify({ success: false, error: 'Failed to save features' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        });
+      }
     }
 
-    console.log('Successfully generated and saved features');
+    console.log('Successfully generated features');
     return new Response(JSON.stringify({ success: true, features: formattedFeatures }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

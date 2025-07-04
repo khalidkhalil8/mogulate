@@ -180,6 +180,8 @@ const Index = () => {
         <FeatureEntryPage
           initialFeatures={ideaData.features}
           onFeaturesSubmit={handleFeaturesSubmit}
+          ideaData={ideaData}
+          selectedGapIndex={selectedGapIndex}
         />
       );
     case '/validation-plan':
