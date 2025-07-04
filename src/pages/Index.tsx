@@ -11,6 +11,7 @@ import FeatureEntryPage from '@/components/FeatureEntryPage';
 import ValidationPlanPage from '@/components/ValidationPlanPage';
 import SummaryPage from '@/components/SummaryPage';
 import type { IdeaData, Competitor, MarketGapAnalysis, Feature } from '@/lib/types';
+import type { MarketGapScoringAnalysis } from '@/lib/api/marketGapsScoring';
 
 const Index = () => {
   const navigate = useNavigate();
