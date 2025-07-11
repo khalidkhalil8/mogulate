@@ -29,7 +29,7 @@ const SummaryPage: React.FC<SummaryPageProps> = ({ data, selectedGapIndex, onSav
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2 text-center">Summary</h1>
             <p className="text-gray-600 text-center">
-              Here is your idea and everything we found - ready to take action?
+              Here is everything we've discovered. Now it is time to grow your project.
             </p>
           </div>
           

@@ -8,7 +8,7 @@ import type { MarketGapScoringAnalysis } from '@/lib/api/marketGapsScoring';
 import { toast } from "@/components/ui/sonner";
 import { useAuth } from '@/context/AuthContext';
 import { Button } from './ui/button';
-import { ArrowLeft, ArrowRight, Lightbulb } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Target } from 'lucide-react';
 import SetupNavigation from './setup/SetupNavigation';
 import MarketGapsScoringDisplay from './market-gaps/MarketGapsScoringDisplay';
 
@@ -86,8 +86,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
               <div className="max-w-2xl">
                 <h1 className="text-3xl font-bold mb-4">Discover & Score Market Opportunities</h1>
                 <p className="text-gray-600 text-lg mb-8">
-                  Our AI will analyze your idea and competitors to identify market gaps, score them across 
-                  multiple criteria, and recommend the best positioning strategy for your success.
+                  We'll evaluate your project and competitors to uncover market gaps and suggest your strongest positioning.
                 </p>
                 
                 <Button 
@@ -95,7 +94,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
                   className="gradient-bg border-none hover:opacity-90 button-transition text-lg px-8 py-3"
                   disabled={competitors.length === 0}
                 >
-                  <Lightbulb className="h-5 w-5 mr-2" />
+                  <Target className="h-5 w-5 mr-2" />
                   Run Market Analysis
                 </Button>
                 

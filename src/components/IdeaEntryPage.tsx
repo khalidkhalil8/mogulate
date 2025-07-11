@@ -33,7 +33,7 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
     }
     
     if (!idea.trim()) {
-      toast.error('Please describe your idea');
+      toast.error('Please describe your project');
       return;
     }
 
@@ -50,7 +50,7 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Start Your Project</h1>
-            <p className="text-gray-600">Give your project a name and describe your idea. Don't worry — you can edit this later.</p>
+            <p className="text-gray-600">Give your project a name and provide a description.</p>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
