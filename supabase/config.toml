@@ -1,7 +1,7 @@
 
 project_id = "thpsoempfyxnjhaflyha"
 
-[functions.idea-analysis]
+[functions.market-insights]
 verify_jwt = false
 
 [functions.update-subscription]
@@ -26,9 +26,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.stripe-webhook]
-verify_jwt = false
-
-[functions.analyze-market-with-scoring]
 verify_jwt = false
 
 [functions.generate-features]

@@ -20,59 +20,36 @@ export async function analyzeMarketGaps(idea: string, competitors: Competitor[])
       return { analysis: null };
     }
 
-    const response = await fetch(
-      `https://thpsoempfyxnjhaflyha.supabase.co/functions/v1/idea-analysis`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          idea,
-          competitors,
-          action: "analyze-market-gaps",
-        }),
+    const { data, error } = await supabase.functions.invoke('market-insights', {
+      body: {
+        idea,
+        competitors
       }
-    );
+    });
 
-    const data: MarketGapAnalysisResponse = await response.json();
+    if (error) {
+      console.error('Error calling market-insights function:', error);
+      toast.error("Failed to analyze market gaps", {
+        description: error.message || "Unknown error occurred",
+      });
+      return { analysis: null };
+    }
 
     if (!data.success) {
-      // Handle subscription limit error specifically
-      if (data.error && data.error.includes("monthly limit")) {
-        toast.error("Subscription Limit Reached", {
-          description: data.error,
-          duration: 6000,
-        });
-      } else {
-        toast.error("Failed to analyze market gaps", {
-          description: data.error || "Unknown error occurred",
-        });
-      }
-      return { 
-        analysis: null, 
-        tier: data.tier, 
-        remainingUsage: data.remainingUsage,
-        nextReset: data.nextReset
-      };
+      toast.error("Failed to analyze market gaps", {
+        description: data.error || "Unknown error occurred",
+      });
+      return { analysis: null };
     }
 
-    // Show remaining usage as toast if less than 20% of limit remains
-    const tierLimit = data.tier === 'free' ? 5 : data.tier === 'starter' ? 20 : 100;
-    const remainingPercentage = (data.remainingUsage || 0) / tierLimit;
-    
-    if (remainingPercentage <= 0.2 && remainingPercentage > 0) {
-      toast.warning("Usage limit approaching", {
-        description: `You have ${data.remainingUsage} API calls remaining this cycle.`,
-      });
-    }
+    // Convert the scored analysis to the legacy format for backward compatibility
+    const legacyAnalysis: MarketGapAnalysis = {
+      marketGaps: data.analysis?.marketGaps?.map((gap: any) => gap.gap) || [],
+      positioningSuggestions: data.analysis?.marketGaps?.map((gap: any) => gap.positioningSuggestion) || []
+    };
 
     return { 
-      analysis: data.analysis, 
-      tier: data.tier, 
-      remainingUsage: data.remainingUsage,
-      nextReset: data.nextReset
+      analysis: legacyAnalysis
     };
   } catch (error) {
     console.error("Error analyzing market gaps:", error);

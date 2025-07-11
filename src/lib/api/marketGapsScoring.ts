@@ -24,7 +24,7 @@ export const analyzeMarketGapsWithScoring = async (
   competitors: Competitor[]
 ): Promise<MarketGapScoringResponse> => {
   try {
-    const { data, error } = await supabase.functions.invoke('analyze-market-with-scoring', {
+    const { data, error } = await supabase.functions.invoke('market-insights', {
       body: {
         idea,
         competitors
@@ -32,7 +32,7 @@ export const analyzeMarketGapsWithScoring = async (
     });
 
     if (error) {
-      console.error('Error calling analyze-market-with-scoring function:', error);
+      console.error('Error calling market-insights function:', error);
       return {
         success: false,
         error: error.message,
@@ -40,7 +40,18 @@ export const analyzeMarketGapsWithScoring = async (
       };
     }
 
-    return data as MarketGapScoringResponse;
+    if (!data.success) {
+      return {
+        success: false,
+        error: data.error || 'Unknown error occurred',
+        analysis: null
+      };
+    }
+
+    return {
+      success: true,
+      analysis: data.analysis
+    };
   } catch (error) {
     console.error('Error in analyzeMarketGapsWithScoring:', error);
     return {

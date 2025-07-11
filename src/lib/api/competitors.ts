@@ -20,58 +20,29 @@ export async function fetchCompetitors(idea: string): Promise<{
       return { competitors: [] };
     }
 
-    const response = await fetch(
-      `https://thpsoempfyxnjhaflyha.supabase.co/functions/v1/idea-analysis`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          idea,
-          action: "discover-competitors",
-        }),
+    const { data, error } = await supabase.functions.invoke('market-insights', {
+      body: {
+        idea
       }
-    );
+    });
 
-    const data: CompetitorDiscoveryResponse = await response.json();
-
-    if (!data.success) {
-      // Handle subscription limit error specifically
-      if (data.error && data.error.includes("monthly limit")) {
-        toast.error("Subscription Limit Reached", {
-          description: data.error,
-          duration: 6000,
-        });
-      } else {
-        toast.error("Failed to fetch competitors", {
-          description: data.error || "Unknown error occurred",
-        });
-      }
-      return { 
-        competitors: [], 
-        tier: data.tier, 
-        remainingUsage: data.remainingUsage,
-        nextReset: data.nextReset
-      };
+    if (error) {
+      console.error('Error calling market-insights function:', error);
+      toast.error("Failed to fetch competitors", {
+        description: error.message || "Unknown error occurred",
+      });
+      return { competitors: [] };
     }
 
-    // Show remaining usage as toast if less than 20% of limit remains
-    const tierLimit = data.tier === 'free' ? 5 : data.tier === 'starter' ? 20 : 100;
-    const remainingPercentage = (data.remainingUsage || 0) / tierLimit;
-    
-    if (remainingPercentage <= 0.2 && remainingPercentage > 0) {
-      toast.warning("Usage limit approaching", {
-        description: `You have ${data.remainingUsage} API calls remaining this cycle.`,
+    if (!data.success) {
+      toast.error("Failed to fetch competitors", {
+        description: data.error || "Unknown error occurred",
       });
+      return { competitors: [] };
     }
 
     return { 
-      competitors: data.competitors, 
-      tier: data.tier, 
-      remainingUsage: data.remainingUsage,
-      nextReset: data.nextReset
+      competitors: data.competitors || [] 
     };
   } catch (error) {
     console.error("Error fetching competitors:", error);
