@@ -9,38 +9,38 @@ import { generateValidationPlan } from '@/lib/api';
 import { toast } from './ui/sonner';
 import { Textarea } from './ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import type { Competitor } from '@/lib/types';
+import type { IdeaData } from '@/lib/types';
 
 interface ValidationPlanPageProps {
-  idea: string;
-  selectedMarketGap?: string;
-  competitors: Competitor[];
-  features?: any[];
   initialValidationPlan?: string;
-  onValidationPlanSubmit: (validationPlan: string) => void;
+  onValidationPlanSubmit: (validationPlan: string) => Promise<void>;
+  ideaData: IdeaData;
+  selectedGapIndex?: number;
 }
 
 const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
-  idea,
-  selectedMarketGap,
-  competitors,
-  features,
   initialValidationPlan = "",
-  onValidationPlanSubmit
+  onValidationPlanSubmit,
+  ideaData,
+  selectedGapIndex
 }) => {
   const [validationPlan, setValidationPlan] = useState(initialValidationPlan);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(!!initialValidationPlan);
   const navigate = useNavigate();
 
+  // Get the selected market gap based on the index
+  const selectedMarketGap = selectedGapIndex !== undefined && 
+    ideaData.marketGapScoringAnalysis?.marketGaps?.[selectedGapIndex]?.gap || '';
+
   const handleGenerateValidationPlan = async () => {
     setIsGenerating(true);
     try {
       const result = await generateValidationPlan(
-        idea,
-        selectedMarketGap || "",
-        competitors,
-        features || []
+        ideaData.idea,
+        selectedMarketGap,
+        ideaData.competitors,
+        ideaData.features
       );
 
       if (result.validationPlan) {

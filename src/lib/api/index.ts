@@ -5,3 +5,4 @@ export * from './marketGapsScoring';
 export * from './subscription';
 export * from './waitlist';
 export * from './usage';
+export * from './validationPlan';
