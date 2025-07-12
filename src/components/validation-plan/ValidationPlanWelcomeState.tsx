@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { ClipboardCheck } from 'lucide-react';
 
 interface ValidationPlanWelcomeStateProps {
   onGenerateValidationPlan: () => void;
@@ -25,7 +25,7 @@ const ValidationPlanWelcomeState: React.FC<ValidationPlanWelcomeStateProps> = ({
           disabled={isGenerating}
           className="gradient-bg border-none hover:opacity-90 button-transition text-lg px-8 py-3"
         >
-          <Settings className="h-5 w-5 mr-2" />
+          <ClipboardCheck className="h-5 w-5 mr-2" />
           {isGenerating ? 'Generating Validation Plan...' : 'Generate Validation Plan'}
         </Button>
       </div>

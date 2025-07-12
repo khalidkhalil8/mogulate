@@ -17,8 +17,7 @@ const FeatureWelcomeState: React.FC<FeatureWelcomeStateProps> = ({
       <div className="max-w-2xl">
         <h1 className="text-3xl font-bold mb-4">Define the Core Features of Your Product</h1>
         <p className="text-gray-600 text-lg mb-8">
-          Our AI will analyze your selected market positioning to suggest three strategic features 
-          that align with your competitive advantage and target market needs.
+          Define what your product will do by refining its key features.
         </p>
         
         <Button 

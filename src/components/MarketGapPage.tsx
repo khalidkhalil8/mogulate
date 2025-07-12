@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoadingState from './ui/LoadingState';
@@ -84,7 +83,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
             // Initial welcome state
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
               <div className="max-w-2xl">
-                <h1 className="text-3xl font-bold mb-4">Discover & Score Market Opportunities</h1>
+                <h1 className="text-3xl font-bold mb-4">Discover Market Opportunities</h1>
                 <p className="text-gray-600 text-lg mb-8">
                   We'll evaluate your project and competitors to uncover market gaps and suggest your strongest positioning.
                 </p>
