@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -29,26 +28,31 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
   const [hasGenerated, setHasGenerated] = useState(!!initialValidationPlan);
   const navigate = useNavigate();
 
-  // Get the selected market gap based on the index
-  const selectedMarketGap = selectedGapIndex !== undefined && 
-    ideaData.marketGapScoringAnalysis?.marketGaps?.[selectedGapIndex]?.gap || '';
+  // Get the selected market gap positioning suggestion based on the index
+  const selectedPositioningSuggestion = selectedGapIndex !== undefined && 
+    ideaData.marketGapScoringAnalysis?.marketGaps?.[selectedGapIndex]?.positioningSuggestion || '';
 
   const handleGenerateValidationPlan = async () => {
+    if (!selectedPositioningSuggestion) {
+      toast.error("No positioning suggestion available. Please complete the market gap analysis first.");
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const result = await generateValidationPlan(
         ideaData.idea,
-        selectedMarketGap,
+        selectedPositioningSuggestion,
         ideaData.competitors,
         ideaData.features
       );
 
-      if (result.validationPlan) {
+      if (result.success && result.validationPlan) {
         setValidationPlan(result.validationPlan);
         setHasGenerated(true);
         toast.success("Validation plan generated successfully!");
       } else {
-        toast.error("Failed to generate validation plan");
+        toast.error(result.error || "Failed to generate validation plan");
       }
     } catch (error) {
       console.error('Error generating validation plan:', error);
