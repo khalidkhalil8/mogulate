@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoadingState from './ui/LoadingState';
@@ -61,7 +62,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
       return;
     }
     
-    // Save the analysis data and proceed
+    // Save the analysis data and proceed - this will be saved to the project
     onMarketGapsSubmit(initialMarketGaps, initialAnalysis, scoringAnalysis, selectedGapIndex);
   };
 

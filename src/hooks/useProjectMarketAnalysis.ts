@@ -20,7 +20,7 @@ export const useProjectMarketAnalysis = (projectId: string) => {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('market_gap_analysis, market_gaps')
+        .select('market_gap_analysis, market_gaps, selected_gap_index')
         .eq('id', projectId)
         .eq('user_id', user.id)
         .single();
@@ -38,7 +38,7 @@ export const useProjectMarketAnalysis = (projectId: string) => {
         if (rawAnalysis.marketGaps && rawAnalysis.positioningSuggestions) {
           analysisData = {
             marketGaps: Array.isArray(rawAnalysis.marketGaps) ? rawAnalysis.marketGaps : [],
-            positioningSuggestions: Array.isArray(rawAnalysis.positioningSuggestions) ? rawAnalysis.positioningSuggestions : [],
+            positioningSuggestions: Array.isArray(rawAnalysis.positioningSuggestions) ? rawAnalysis.positioningSuggestions : []
           };
         }
       }
@@ -53,20 +53,27 @@ export const useProjectMarketAnalysis = (projectId: string) => {
     }
   };
 
-  const updateMarketAnalysis = async (analysis: MarketGapAnalysis | null, gaps: string) => {
+  const updateMarketAnalysis = async (analysis: MarketGapAnalysis | null, gaps: string, selectedGapIndex?: number) => {
     if (!user?.id) {
       toast.error('You must be logged in to update market analysis');
       return false;
     }
 
     try {
+      const updateData: any = {
+        market_gap_analysis: analysis as any,
+        market_gaps: gaps,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Only include selected_gap_index if it's provided
+      if (selectedGapIndex !== undefined) {
+        updateData.selected_gap_index = selectedGapIndex;
+      }
+
       const { error } = await supabase
         .from('projects')
-        .update({
-          market_gap_analysis: analysis as any,
-          market_gaps: gaps,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', projectId)
         .eq('user_id', user.id);
 
