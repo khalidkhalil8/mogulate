@@ -115,7 +115,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
       <SetupNavigation />
       
       <div className="p-6">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {!hasGenerated ? (
             <ValidationPlanWelcomeState
               onGenerateValidationPlan={handleGenerateValidationPlan}
