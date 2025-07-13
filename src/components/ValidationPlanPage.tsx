@@ -35,22 +35,13 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
   ideaData,
   selectedGapIndex
 }) => {
-  const [validationSteps, setValidationSteps] = useState<ValidationStepData[]>([]);
+  const [validationSteps, setValidationSteps] = useState<ValidationStepData[]>(initialValidationPlan || []);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [hasGenerated, setHasGenerated] = useState(!!initialValidationPlan);
   const navigate = useNavigate();
 
   // Get the selected market gap positioning suggestion based on the index
   const selectedPositioningSuggestion = selectedGapIndex !== undefined && 
     ideaData.marketGapScoringAnalysis?.marketGaps?.[selectedGapIndex]?.positioningSuggestion || '';
-
-  // Parse initial validation plan into steps if it exists
-  React.useEffect(() => {
-    if (initialValidationPlan && initialValidationPlan.length > 0 && !hasGenerated) {
-      setValidationSteps(initialValidationPlan);
-      setHasGenerated(true);
-    }
-  }, [initialValidationPlan, hasGenerated]);
 
   // No longer need parseValidationPlan since API returns ValidationStep[] directly
 
@@ -71,7 +62,6 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
 
       if (result.success && result.validationPlan) {
         setValidationSteps(result.validationPlan);
-        setHasGenerated(true);
         toast.success("Validation plan generated successfully!");
       } else {
         toast.error(result.error || "Failed to generate validation plan");
@@ -116,7 +106,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
       
       <div className="p-6">
         <div className="max-w-6xl mx-auto">
-          {!hasGenerated ? (
+          {validationSteps.length === 0 ? (
             <ValidationPlanWelcomeState
               onGenerateValidationPlan={handleGenerateValidationPlan}
               isGenerating={isGenerating}
