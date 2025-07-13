@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -21,7 +22,10 @@ const ValidationPlanSummaryCard: React.FC<ValidationPlanSummaryCardProps> = ({ v
     }
   };
 
-  if (!validationPlan || validationPlan.length === 0) {
+  // Ensure validationPlan is an array and has content
+  const validSteps = Array.isArray(validationPlan) ? validationPlan : [];
+
+  if (validSteps.length === 0) {
     return (
       <Card className="bg-blue-50 border-blue-100">
         <CardHeader>
@@ -41,7 +45,7 @@ const ValidationPlanSummaryCard: React.FC<ValidationPlanSummaryCardProps> = ({ v
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {validationPlan.map((step, index) => (
+          {validSteps.map((step, index) => (
             <div key={index} className="border-l-4 border-blue-200 pl-4 py-2">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-medium text-blue-800">{step.title}</h4>

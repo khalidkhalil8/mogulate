@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -43,8 +44,6 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
   const selectedPositioningSuggestion = selectedGapIndex !== undefined && 
     ideaData.marketGapScoringAnalysis?.marketGaps?.[selectedGapIndex]?.positioningSuggestion || '';
 
-  // No longer need parseValidationPlan since API returns ValidationStep[] directly
-
   const handleGenerateValidationPlan = async () => {
     if (!selectedPositioningSuggestion) {
       toast.error("No positioning suggestion available. Please complete the market gap analysis first.");
@@ -74,28 +73,20 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
     }
   };
 
-  const convertStepsToString = (steps: ValidationStepData[]): string => {
-    return steps.map((step, index) => 
-      `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.goal}\nTool/Method: ${step.method}\nPriority: ${step.priority}`
-    ).join('\n\n');
-  };
-
-
   const handleNext = () => {
     if (validationSteps.length === 0) {
       toast.error("Please add at least one validation step before continuing");
       return;
     }
     
-    const validationPlanString = convertStepsToString(validationSteps);
-    onValidationPlanSubmit(validationPlanString);
+    // Pass the actual array instead of converting to string
+    onValidationPlanSubmit(validationSteps);
   };
 
   const handleBack = () => {
     // Save current validation plan before navigating back
     if (validationSteps.length > 0) {
-      const validationPlanString = convertStepsToString(validationSteps);
-      onValidationPlanSubmit(validationPlanString);
+      onValidationPlanSubmit(validationSteps);
     }
     navigate('/features');
   };
