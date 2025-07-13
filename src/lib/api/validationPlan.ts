@@ -1,8 +1,16 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+export interface ValidationStep {
+  title: string;
+  goal: string;
+  method: string;
+  priority: 'High' | 'Medium' | 'Low';
+  isDone: boolean;
+}
+
 export interface ValidationPlanResponse {
-  validationPlan: string;
+  validationPlan: ValidationStep[];
   success: boolean;
   error?: string;
 }
@@ -25,34 +33,37 @@ export const generateValidationPlan = async (
 
     if (error) {
       console.error('Error generating validation plan:', error);
-      return {
-        validationPlan: '',
-        success: false,
-        error: error.message
-      };
+    return {
+      validationPlan: [],
+      success: false,
+      error: error.message
+    };
     }
 
     // Handle the response format - edge function returns validationSteps array
     if (data.validationSteps && Array.isArray(data.validationSteps)) {
-      // Convert validation steps array to formatted string
-      const formattedPlan = data.validationSteps.map((step: any, index: number) => 
-        `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.description}\nTool/Method: ${step.tool}\nPriority: ${step.priority}`
-      ).join('\n\n');
+      const steps: ValidationStep[] = data.validationSteps.map((step: any) => ({
+        title: step.title || '',
+        goal: step.description || '',
+        method: step.tool || '',
+        priority: step.priority || 'Medium',
+        isDone: false
+      }));
 
       return {
-        validationPlan: formattedPlan,
+        validationPlan: steps,
         success: true
       };
     }
 
     return {
-      validationPlan: data.validationPlan || '',
+      validationPlan: data.validationPlan || [],
       success: true
     };
   } catch (error) {
     console.error('Error generating validation plan:', error);
     return {
-      validationPlan: '',
+      validationPlan: [],
       success: false,
       error: 'Failed to generate validation plan'
     };

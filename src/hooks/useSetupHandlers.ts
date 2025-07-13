@@ -65,7 +65,7 @@ export const useSetupHandlers = ({
     navigate('/validation-plan');
   };
 
-  const handleValidationPlanSubmit = async (validationPlan: string) => {
+  const handleValidationPlanSubmit = async (validationPlan: any) => {
     setIdeaData(prev => ({ ...prev, validationPlan }));
     navigate('/summary');
   };
@@ -82,11 +82,9 @@ export const useSetupHandlers = ({
 
       await updateProject(newProject.id, {
         competitors: ideaData.competitors,
-        market_gaps: ideaData.marketGaps,
         features: ideaData.features,
         validation_plan: ideaData.validationPlan,
-        market_gap_analysis: ideaData.marketGapAnalysis,
-        selected_gap_index: selectedGapIndex,
+        market_analysis: ideaData.marketGapAnalysis,
         // Note: marketGapScoringAnalysis not persisted yet
       });
 
@@ -104,7 +102,7 @@ export const useSetupHandlers = ({
       competitors: [],
       marketGaps: '',
       features: [],
-      validationPlan: '',
+      validationPlan: [],
       marketGapScoringAnalysis: undefined,
     });
     setSelectedGapIndex(undefined);

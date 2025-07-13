@@ -4,17 +4,24 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/sonner';
 
+export interface ValidationStep {
+  title: string;
+  goal: string;
+  method: string;
+  priority: 'High' | 'Medium' | 'Low';
+  isDone: boolean;
+  [key: string]: any; // Add index signature to make it Json-compatible
+}
+
 export interface Project {
   id: string;
   user_id: string;
   title: string;
   idea?: string;
   competitors?: any[];
-  market_gaps?: string;
-  market_gap_analysis?: any;
   features?: any[];
-  validation_plan?: string;
-  selected_gap_index?: number;
+  validation_plan?: ValidationStep[];
+  market_analysis?: any;
   created_at: string;
   updated_at: string;
 }
@@ -47,8 +54,8 @@ export const useProjects = () => {
         ...item,
         competitors: Array.isArray(item.competitors) ? item.competitors : [],
         features: Array.isArray(item.features) ? item.features : [],
-        market_gap_analysis: item.market_gap_analysis || undefined,
-        selected_gap_index: item.selected_gap_index ?? undefined,
+        validation_plan: Array.isArray(item.validation_plan) ? item.validation_plan as ValidationStep[] : [],
+        market_analysis: item.market_analysis || undefined,
       }));
 
       setProjects(transformedData);
@@ -89,7 +96,8 @@ export const useProjects = () => {
         ...data,
         competitors: Array.isArray(data.competitors) ? data.competitors : [],
         features: Array.isArray(data.features) ? data.features : [],
-        market_gap_analysis: data.market_gap_analysis || undefined,
+        validation_plan: Array.isArray(data.validation_plan) ? data.validation_plan as ValidationStep[] : [],
+        market_analysis: data.market_analysis || undefined,
       };
 
       setProjects(prev => [transformedProject, ...prev]);
@@ -108,12 +116,19 @@ export const useProjects = () => {
     }
 
     try {
+      const updateData = {
+        ...updates,
+        updated_at: new Date().toISOString(),
+      };
+      
+      // Convert validation_plan to proper JSON format
+      if (updates.validation_plan) {
+        updateData.validation_plan = updates.validation_plan as any;
+      }
+
       const { data, error } = await supabase
         .from('projects')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', projectId)
         .eq('user_id', user.id)
         .select()
@@ -129,7 +144,8 @@ export const useProjects = () => {
         ...data,
         competitors: Array.isArray(data.competitors) ? data.competitors : [],
         features: Array.isArray(data.features) ? data.features : [],
-        market_gap_analysis: data.market_gap_analysis || undefined,
+        validation_plan: Array.isArray(data.validation_plan) ? data.validation_plan as ValidationStep[] : [],
+        market_analysis: data.market_analysis || undefined,
       };
 
       setProjects(prev => prev.map(p => p.id === projectId ? transformedProject : p));

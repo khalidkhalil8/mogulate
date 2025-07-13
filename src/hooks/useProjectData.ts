@@ -18,7 +18,7 @@ export const useProjectData = () => {
     competitors: [],
     marketGaps: '',
     features: [],
-    validationPlan: '',
+    validationPlan: [],
     marketGapAnalysis: undefined,
     marketGapScoringAnalysis: undefined,
   });
@@ -28,14 +28,14 @@ export const useProjectData = () => {
       setIdeaData({
         idea: existingProject.idea || '',
         competitors: existingProject.competitors || [],
-        marketGaps: existingProject.market_gaps || '',
+        marketGaps: '', // No longer stored separately
         features: existingProject.features || [],
-        validationPlan: existingProject.validation_plan || '',
-        marketGapAnalysis: existingProject.market_gap_analysis,
+        validationPlan: existingProject.validation_plan || [],
+        marketGapAnalysis: existingProject.market_analysis as any,
         marketGapScoringAnalysis: undefined, // Not stored in DB yet
       });
       setProjectTitle(existingProject.title || '');
-      setSelectedGapIndex(existingProject.selected_gap_index ?? undefined);
+      setSelectedGapIndex(undefined); // No longer used
     }
   }, [existingProject]);
 

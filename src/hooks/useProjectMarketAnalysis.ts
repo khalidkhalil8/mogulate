@@ -20,7 +20,7 @@ export const useProjectMarketAnalysis = (projectId: string) => {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('market_gap_analysis, market_gaps, selected_gap_index')
+        .select('market_analysis')
         .eq('id', projectId)
         .eq('user_id', user.id)
         .single();
@@ -33,8 +33,8 @@ export const useProjectMarketAnalysis = (projectId: string) => {
 
       // Safely parse the JSON data with proper type checking
       let analysisData: MarketGapAnalysis | null = null;
-      if (data?.market_gap_analysis && typeof data.market_gap_analysis === 'object' && !Array.isArray(data.market_gap_analysis)) {
-        const rawAnalysis = data.market_gap_analysis as Record<string, any>;
+      if (data?.market_analysis && typeof data.market_analysis === 'object' && !Array.isArray(data.market_analysis)) {
+        const rawAnalysis = data.market_analysis as Record<string, any>;
         if (rawAnalysis.marketGaps && rawAnalysis.positioningSuggestions) {
           analysisData = {
             marketGaps: Array.isArray(rawAnalysis.marketGaps) ? rawAnalysis.marketGaps : [],
@@ -44,7 +44,7 @@ export const useProjectMarketAnalysis = (projectId: string) => {
       }
       
       setMarketAnalysis(analysisData);
-      setMarketGaps(data?.market_gaps || '');
+      setMarketGaps(''); // No longer stored separately
     } catch (error) {
       console.error('Error fetching market analysis:', error);
       toast.error('Failed to load market analysis');
@@ -53,7 +53,7 @@ export const useProjectMarketAnalysis = (projectId: string) => {
     }
   };
 
-  const updateMarketAnalysis = async (analysis: MarketGapAnalysis | null, gaps: string, selectedGapIndex?: number) => {
+  const updateMarketAnalysis = async (analysis: MarketGapAnalysis | null) => {
     if (!user?.id) {
       toast.error('You must be logged in to update market analysis');
       return false;
@@ -61,15 +61,9 @@ export const useProjectMarketAnalysis = (projectId: string) => {
 
     try {
       const updateData: any = {
-        market_gap_analysis: analysis as any,
-        market_gaps: gaps,
+        market_analysis: analysis as any,
         updated_at: new Date().toISOString(),
       };
-
-      // Only include selected_gap_index if it's provided
-      if (selectedGapIndex !== undefined) {
-        updateData.selected_gap_index = selectedGapIndex;
-      }
 
       const { error } = await supabase
         .from('projects')
@@ -84,7 +78,6 @@ export const useProjectMarketAnalysis = (projectId: string) => {
       }
 
       setMarketAnalysis(analysis);
-      setMarketGaps(gaps);
       toast.success('Market analysis updated successfully');
       return true;
     } catch (error) {

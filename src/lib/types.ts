@@ -23,12 +23,21 @@ export interface MarketGapScoringAnalysis {
   marketGaps: MarketGapWithScore[];
 }
 
+export interface ValidationStep {
+  title: string;
+  goal: string;
+  method: string;
+  priority: 'High' | 'Medium' | 'Low';
+  isDone: boolean;
+  [key: string]: any; // Add index signature to make it Json-compatible
+}
+
 export interface IdeaData {
   idea: string;
   competitors: Competitor[];
   marketGaps: string;
   features: Feature[];
-  validationPlan: string;
+  validationPlan: ValidationStep[];
   marketGapAnalysis?: MarketGapAnalysis;
   marketGapScoringAnalysis?: MarketGapScoringAnalysis;
 }

@@ -6,20 +6,22 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Edit, ChevronDown, ChevronRight } from 'lucide-react';
-import { ValidationStep } from '@/hooks/useValidationSteps';
+import type { ValidationStep } from '@/lib/types';
 
 interface ValidationStepCardProps {
-  step: ValidationStep;
-  onEdit: (step: ValidationStep) => void;
-  onToggleCompletion: (id: string, completed: boolean) => void;
+  step: ValidationStep & { id?: string };
+  onEdit?: (step: ValidationStep & { id?: string }) => void;
+  onToggleCompletion?: (isDone: boolean) => void;
+  showActions?: boolean;
 }
 
 const ValidationStepCard: React.FC<ValidationStepCardProps> = ({
   step,
   onEdit,
   onToggleCompletion,
+  showActions = true
 }) => {
-  const [isExpanded, setIsExpanded] = useState(!step.is_completed);
+  const [isExpanded, setIsExpanded] = useState(!step.isDone);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -35,7 +37,9 @@ const ValidationStepCard: React.FC<ValidationStepCardProps> = ({
   };
 
   const handleToggleCompletion = (checked: boolean) => {
-    onToggleCompletion(step.id, checked);
+    if (onToggleCompletion) {
+      onToggleCompletion(checked);
+    }
     if (checked) {
       setIsExpanded(false);
     } else {
@@ -44,18 +48,20 @@ const ValidationStepCard: React.FC<ValidationStepCardProps> = ({
   };
 
   return (
-    <Card className={`transition-all duration-200 ${step.is_completed ? 'opacity-75 bg-gray-50' : 'hover:shadow-md'}`}>
+    <Card className={`transition-all duration-200 ${step.isDone ? 'opacity-75 bg-gray-50' : 'hover:shadow-md'}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3 flex-1">
-            <Checkbox
-              checked={step.is_completed}
-              onCheckedChange={handleToggleCompletion}
-              className="mt-1"
-            />
+            {onToggleCompletion && (
+              <Checkbox
+                checked={step.isDone}
+                onCheckedChange={handleToggleCompletion}
+                className="mt-1"
+              />
+            )}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className={`text-lg font-bold ${step.is_completed ? 'line-through text-gray-500' : ''}`}>
+                <h3 className={`text-lg font-bold ${step.isDone ? 'line-through text-gray-500' : ''}`}>
                   {step.title}
                 </h3>
                 <Badge className={getPriorityColor(step.priority)}>
@@ -63,7 +69,7 @@ const ValidationStepCard: React.FC<ValidationStepCardProps> = ({
                 </Badge>
               </div>
               
-              {step.is_completed && (
+              {step.isDone && (
                 <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="sm" className="p-0 h-auto text-gray-500 hover:text-gray-700">
@@ -82,11 +88,11 @@ const ValidationStepCard: React.FC<ValidationStepCardProps> = ({
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-3">
                     <div className="space-y-3">
-                      {step.description && (
+                      {step.goal && (
                         <div>
                           <p className="text-sm font-medium text-gray-700 mb-1">Goal/Description:</p>
                           <p className="text-gray-600 text-sm leading-relaxed">
-                            {step.description}
+                            {step.goal}
                           </p>
                         </div>
                       )}
@@ -105,24 +111,26 @@ const ValidationStepCard: React.FC<ValidationStepCardProps> = ({
             </div>
           </div>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onEdit(step)}
-            className="h-8 w-8 p-0 ml-2"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
+          {showActions && onEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(step)}
+              className="h-8 w-8 p-0 ml-2"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       
-      {!step.is_completed && (
+      {!step.isDone && (
         <CardContent className="space-y-3">
-          {step.description && (
+          {step.goal && (
             <div>
               <p className="text-sm font-medium text-gray-700 mb-1">Goal/Description:</p>
               <p className="text-gray-600 text-sm leading-relaxed">
-                {step.description}
+                {step.goal}
               </p>
             </div>
           )}

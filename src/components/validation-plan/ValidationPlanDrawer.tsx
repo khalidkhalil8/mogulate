@@ -6,24 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { ValidationStep } from '@/hooks/useValidationSteps';
+import type { ValidationStep } from '@/lib/types';
 
 interface ValidationPlanDrawerProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (step: Omit<ValidationStep, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<boolean>;
-  onUpdate: (id: string, step: Partial<ValidationStep>) => Promise<boolean>;
-  editingStep?: ValidationStep | null;
-  projectId: string;
+  onSave: (step: ValidationStep) => void;
+  editingStep?: (ValidationStep & { id?: string }) | null;
 }
 
 const ValidationPlanDrawer: React.FC<ValidationPlanDrawerProps> = ({
   isOpen,
   onOpenChange,
   onSave,
-  onUpdate,
   editingStep = null,
-  projectId,
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -34,7 +30,7 @@ const ValidationPlanDrawer: React.FC<ValidationPlanDrawerProps> = ({
     if (isOpen) {
       if (editingStep) {
         setTitle(editingStep.title);
-        setDescription(editingStep.description || '');
+        setDescription(editingStep.goal || '');
         setMethod(editingStep.method || '');
         setPriority(editingStep.priority);
       } else {
@@ -51,25 +47,16 @@ const ValidationPlanDrawer: React.FC<ValidationPlanDrawerProps> = ({
       return;
     }
 
-    const stepData = {
-      project_id: projectId,
+    const stepData: ValidationStep = {
       title: title.trim(),
-      description: description.trim() || null,
-      method: method.trim() || null,
+      goal: description.trim(),
+      method: method.trim(),
       priority,
-      is_completed: false,
+      isDone: false,
     };
 
-    let success = false;
-    if (editingStep) {
-      success = await onUpdate(editingStep.id, stepData);
-    } else {
-      success = await onSave(stepData);
-    }
-
-    if (success) {
-      onOpenChange(false);
-    }
+    onSave(stepData);
+    onOpenChange(false);
   };
 
   return (

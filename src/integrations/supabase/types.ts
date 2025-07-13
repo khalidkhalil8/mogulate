@@ -147,13 +147,11 @@ export type Database = {
           features: Json | null
           id: string
           idea: string | null
-          market_gap_analysis: Json | null
-          market_gaps: string | null
-          selected_gap_index: number | null
+          market_analysis: Json | null
           title: string
           updated_at: string
           user_id: string
-          validation_plan: string | null
+          validation_plan: Json | null
         }
         Insert: {
           competitors?: Json | null
@@ -161,13 +159,11 @@ export type Database = {
           features?: Json | null
           id?: string
           idea?: string | null
-          market_gap_analysis?: Json | null
-          market_gaps?: string | null
-          selected_gap_index?: number | null
+          market_analysis?: Json | null
           title: string
           updated_at?: string
           user_id: string
-          validation_plan?: string | null
+          validation_plan?: Json | null
         }
         Update: {
           competitors?: Json | null
@@ -175,13 +171,11 @@ export type Database = {
           features?: Json | null
           id?: string
           idea?: string | null
-          market_gap_analysis?: Json | null
-          market_gaps?: string | null
-          selected_gap_index?: number | null
+          market_analysis?: Json | null
           title?: string
           updated_at?: string
           user_id?: string
-          validation_plan?: string | null
+          validation_plan?: Json | null
         }
         Relationships: []
       }
@@ -214,53 +208,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      validation_steps: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          is_completed: boolean | null
-          method: string | null
-          priority: string | null
-          project_id: string | null
-          title: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_completed?: boolean | null
-          method?: string | null
-          priority?: string | null
-          project_id?: string | null
-          title: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_completed?: boolean | null
-          method?: string | null
-          priority?: string | null
-          project_id?: string | null
-          title?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "validation_steps_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
