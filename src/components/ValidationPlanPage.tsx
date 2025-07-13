@@ -52,49 +52,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
     }
   }, [initialValidationPlan, hasGenerated]);
 
-  const parseValidationPlan = (planText: string): ValidationStepData[] => {
-    // Parse the formatted validation plan text into individual steps
-    const steps: ValidationStepData[] = [];
-    const stepSections = planText.split(/Step \d+:/);
-    
-    stepSections.forEach((section, index) => {
-      if (index === 0 || !section.trim()) return; // Skip empty first section
-      
-      const lines = section.trim().split('\n').filter(line => line.trim());
-      let title = '';
-      let description = '';
-      let method = '';
-      let priority: 'High' | 'Medium' | 'Low' = 'Medium';
-      
-      lines.forEach(line => {
-        const trimmedLine = line.trim();
-        if (!title && trimmedLine) {
-          title = trimmedLine;
-        } else if (trimmedLine.startsWith('Goal/Description:')) {
-          description = trimmedLine.replace('Goal/Description:', '').trim();
-        } else if (trimmedLine.startsWith('Tool/Method:')) {
-          method = trimmedLine.replace('Tool/Method:', '').trim();
-        } else if (trimmedLine.startsWith('Priority:')) {
-          const priorityText = trimmedLine.replace('Priority:', '').trim();
-          if (['High', 'Medium', 'Low'].includes(priorityText)) {
-            priority = priorityText as 'High' | 'Medium' | 'Low';
-          }
-        }
-      });
-      
-      if (title) {
-        steps.push({
-          title,
-          goal: description,
-          method,
-          priority,
-          isDone: false
-        });
-      }
-    });
-    
-    return steps;
-  };
+  // No longer need parseValidationPlan since API returns ValidationStep[] directly
 
   const handleGenerateValidationPlan = async () => {
     if (!selectedPositioningSuggestion) {
