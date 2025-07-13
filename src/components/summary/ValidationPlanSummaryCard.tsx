@@ -1,82 +1,67 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ValidationPlanSummaryCardProps {
-  validationPlan: string;
+  validationPlan: Array<{
+    title: string;
+    goal: string;
+    method: string;
+    priority: 'High' | 'Medium' | 'Low';
+    isDone: boolean;
+  }>;
 }
 
 const ValidationPlanSummaryCard: React.FC<ValidationPlanSummaryCardProps> = ({ validationPlan }) => {
-  // Parse the validation plan into steps for cleaner display
-  const parseSteps = (planText: string) => {
-    if (!planText) return [];
-    
-    const steps = [];
-    const stepSections = planText.split(/Step \d+:/);
-    
-    stepSections.forEach((section, index) => {
-      if (index === 0 || !section.trim()) return;
-      
-      const lines = section.trim().split('\n').filter(line => line.trim());
-      let title = '';
-      let description = '';
-      let method = '';
-      let priority = 'Medium';
-      
-      lines.forEach(line => {
-        const trimmedLine = line.trim();
-        if (!title && trimmedLine) {
-          title = trimmedLine;
-        } else if (trimmedLine.startsWith('Goal/Description:')) {
-          description = trimmedLine.replace('Goal/Description:', '').trim();
-        } else if (trimmedLine.startsWith('Tool/Method:')) {
-          method = trimmedLine.replace('Tool/Method:', '').trim();
-        } else if (trimmedLine.startsWith('Priority:')) {
-          priority = trimmedLine.replace('Priority:', '').trim();
-        }
-      });
-      
-      if (title) {
-        steps.push({ title, description, method, priority });
-      }
-    });
-    
-    return steps;
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'High': return 'bg-red-100 text-red-700';
+      case 'Medium': return 'bg-yellow-100 text-yellow-700';
+      case 'Low': return 'bg-gray-100 text-gray-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
   };
 
-  const steps = parseSteps(validationPlan);
+  if (!validationPlan || validationPlan.length === 0) {
+    return (
+      <Card className="bg-blue-50 border-blue-100">
+        <CardHeader>
+          <CardTitle className="text-xl">Validation Plan</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600">No validation plan created yet.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card>
+    <Card className="bg-blue-50 border-blue-100">
       <CardHeader>
-        <CardTitle>Validation Plan</CardTitle>
+        <CardTitle className="text-xl">Validation Plan</CardTitle>
       </CardHeader>
       <CardContent>
-        {steps.length > 0 ? (
-          <div className="space-y-4">
-            {steps.map((step, index) => (
-              <div key={index} className="border-l-4 border-blue-200 pl-4 py-2">
-                <h4 className="font-medium text-gray-900 mb-2">{step.title}</h4>
-                <div className="text-sm text-gray-600 space-y-1">
-                  {step.description && <p><span className="font-medium">Goal:</span> {step.description}</p>}
-                  {step.method && <p><span className="font-medium">Method:</span> {step.method}</p>}
-                  <p>
-                    <span className="font-medium">Priority:</span>{' '}
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                      step.priority === 'High' ? 'bg-red-100 text-red-800' :
-                      step.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {step.priority}
-                    </span>
-                  </p>
-                </div>
+        <div className="space-y-4">
+          {validationPlan.map((step, index) => (
+            <div key={index} className="border-l-4 border-blue-200 pl-4 py-2">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium text-blue-800">{step.title}</h4>
+                <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(step.priority)}`}>
+                  {step.priority}
+                </span>
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-600">No validation plan created yet.</p>
-        )}
+              {step.goal && (
+                <p className="text-sm text-gray-700 mb-1">
+                  <span className="font-medium">Goal:</span> {step.goal}
+                </p>
+              )}
+              {step.method && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Method:</span> {step.method}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

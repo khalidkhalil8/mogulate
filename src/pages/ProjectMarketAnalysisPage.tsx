@@ -39,10 +39,10 @@ const ProjectMarketAnalysisPage = () => {
   }
 
   // Parse market gap analysis data
-  const marketGapScoringAnalysis = project.market_gap_analysis as MarketGapScoringAnalysis | null;
-  const selectedGapIndex = project.selected_gap_index;
+  const marketGapScoringAnalysis = project.market_analysis as MarketGapScoringAnalysis | null;
+  const selectedGapIndex = undefined; // No longer used
   const hasAnalysisData = marketGapScoringAnalysis?.marketGaps && marketGapScoringAnalysis.marketGaps.length > 0;
-  const hasMarketGaps = project.market_gaps && project.market_gaps.trim().length > 0;
+  const hasMarketGaps = false; // No longer stored separately
   const lastAnalyzed = project.updated_at ? format(new Date(project.updated_at), 'MMMM d, yyyy') : null;
 
   const getScoreColor = (score: number) => {
@@ -206,7 +206,7 @@ const ProjectMarketAnalysisPage = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="whitespace-pre-wrap text-gray-700">
-                      {project.market_gaps}
+                      {/* Legacy market gaps data not available */}
                     </div>
                   </CardContent>
                 </Card>

@@ -10,21 +10,27 @@ import type { IdeaData } from '@/lib/types';
 
 interface ValidationStepData {
   title: string;
-  description: string;
+  goal: string;
   method: string;
   priority: 'High' | 'Medium' | 'Low';
-  is_completed: boolean;
+  isDone: boolean;
 }
 
 interface ValidationPlanPageProps {
-  initialValidationPlan?: string;
-  onValidationPlanSubmit: (validationPlan: string) => Promise<void>;
+  initialValidationPlan?: Array<{
+    title: string;
+    goal: string;
+    method: string;
+    priority: 'High' | 'Medium' | 'Low';
+    isDone: boolean;
+  }>;
+  onValidationPlanSubmit: (validationPlan: any) => Promise<void>;
   ideaData: IdeaData;
   selectedGapIndex?: number;
 }
 
 const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
-  initialValidationPlan = "",
+  initialValidationPlan = [],
   onValidationPlanSubmit,
   ideaData,
   selectedGapIndex
@@ -40,9 +46,8 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
 
   // Parse initial validation plan into steps if it exists
   React.useEffect(() => {
-    if (initialValidationPlan && !hasGenerated) {
-      const parsedSteps = parseValidationPlan(initialValidationPlan);
-      setValidationSteps(parsedSteps);
+    if (initialValidationPlan && initialValidationPlan.length > 0 && !hasGenerated) {
+      setValidationSteps(initialValidationPlan);
       setHasGenerated(true);
     }
   }, [initialValidationPlan, hasGenerated]);
@@ -80,10 +85,10 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
       if (title) {
         steps.push({
           title,
-          description,
+          goal: description,
           method,
           priority,
-          is_completed: false
+          isDone: false
         });
       }
     });
@@ -107,8 +112,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
       );
 
       if (result.success && result.validationPlan) {
-        const parsedSteps = parseValidationPlan(result.validationPlan);
-        setValidationSteps(parsedSteps);
+        setValidationSteps(result.validationPlan);
         setHasGenerated(true);
         toast.success("Validation plan generated successfully!");
       } else {
@@ -124,7 +128,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
 
   const convertStepsToString = (steps: ValidationStepData[]): string => {
     return steps.map((step, index) => 
-      `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.description}\nTool/Method: ${step.method}\nPriority: ${step.priority}`
+      `Step ${index + 1}: ${step.title}\nGoal/Description: ${step.goal}\nTool/Method: ${step.method}\nPriority: ${step.priority}`
     ).join('\n\n');
   };
 
@@ -187,7 +191,7 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                             <div>
                               <span className="font-medium text-gray-700">Goal:</span>
-                              <p className="text-gray-600 mt-1">{step.description}</p>
+                              <p className="text-gray-600 mt-1">{step.goal}</p>
                             </div>
                             <div>
                               <span className="font-medium text-gray-700">Method:</span>
