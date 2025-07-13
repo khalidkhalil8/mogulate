@@ -52,13 +52,13 @@ const ProjectEditPage = () => {
       title: 'Market Analysis',
       icon: TrendingUp,
       onClick: () => navigate(`/project/${project.id}/market-analysis`),
-      preview: project.market_gaps ? 'Analysis completed' : 'Not started',
+      preview: (project.market_gap_analysis || project.market_gaps) ? 'Analysis completed' : 'Not started',
     },
     {
       title: 'Validation Plan',
       icon: CheckSquare,
       onClick: () => navigate(`/project/${project.id}/validation-plan`),
-      preview: project.validation_plan ? 'Plan created' : 'Not started',
+      preview: project.validation_plan ? 'Plan available' : 'Not started',
     },
     {
       title: 'Feedback Tracking',

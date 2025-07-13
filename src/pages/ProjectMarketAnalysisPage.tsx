@@ -42,6 +42,7 @@ const ProjectMarketAnalysisPage = () => {
   const marketGapScoringAnalysis = project.market_gap_analysis as MarketGapScoringAnalysis | null;
   const selectedGapIndex = project.selected_gap_index;
   const hasAnalysisData = marketGapScoringAnalysis?.marketGaps && marketGapScoringAnalysis.marketGaps.length > 0;
+  const hasMarketGaps = project.market_gaps && project.market_gaps.trim().length > 0;
   const lastAnalyzed = project.updated_at ? format(new Date(project.updated_at), 'MMMM d, yyyy') : null;
 
   const getScoreColor = (score: number) => {
@@ -89,23 +90,7 @@ const ProjectMarketAnalysisPage = () => {
             </div>
 
             {/* Content */}
-            {!hasAnalysisData ? (
-              // Empty State
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="max-w-md mx-auto">
-                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <TrendingUp className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h2 className="text-2xl font-semibold mb-2">No market analysis available</h2>
-                  <p className="text-gray-600 mb-6">
-                    Market analysis is generated during the project setup process. If you haven't completed the setup flow, you can start a new project to generate market analysis.
-                  </p>
-                  <Button onClick={() => navigate('/dashboard')}>
-                    Back to Dashboard
-                  </Button>
-                </div>
-              </div>
-            ) : (
+            {hasAnalysisData ? (
               // Analysis Content - Display all gaps with selected one highlighted
               <div className="space-y-6">
                 {/* Summary Card */}
@@ -189,6 +174,57 @@ const ProjectMarketAnalysisPage = () => {
                         </Card>
                       );
                     })}
+                </div>
+              </div>
+            ) : hasMarketGaps ? (
+              // Basic market gaps data (fallback)
+              <div className="space-y-6">
+                <Card className="bg-amber-50 border-amber-200">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">i</span>
+                      </div>
+                      <div>
+                        <p className="text-amber-800 font-medium mb-1">
+                          Market Gaps Data Available
+                        </p>
+                        <p className="text-amber-700 text-sm">
+                          Your project has market gap information, but the detailed scoring analysis wasn't saved. This may be from an earlier version of the setup process.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Market Gaps
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="whitespace-pre-wrap text-gray-700">
+                      {project.market_gaps}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              // Empty State
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="max-w-md mx-auto">
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h2 className="text-2xl font-semibold mb-2">No market analysis available</h2>
+                  <p className="text-gray-600 mb-6">
+                    Market analysis is generated during the project setup process. If you haven't completed the setup flow, you can start a new project to generate market analysis.
+                  </p>
+                  <Button onClick={() => navigate('/dashboard')}>
+                    Back to Dashboard
+                  </Button>
                 </div>
               </div>
             )}

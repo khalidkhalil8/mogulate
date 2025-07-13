@@ -4,10 +4,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useProjects } from '@/hooks/useProjects';
 import { useValidationSteps, ValidationStep } from '@/hooks/useValidationSteps';
+import { useProjectValidationPlan } from '@/hooks/useProjectValidationPlan';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Plus, CheckSquare } from 'lucide-react';
+import { ArrowLeft, Plus, CheckSquare, FileText } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import LoadingState from '@/components/ui/LoadingState';
 import ValidationPlanDrawer from '@/components/validation-plan/ValidationPlanDrawer';
 import ValidationStepCard from '@/components/validation-plan/ValidationStepCard';
@@ -25,13 +27,14 @@ const ProjectValidationPlanPage = () => {
     deleteValidationStep,
     toggleStepCompletion,
   } = useValidationSteps(id!);
+  const { validationPlan, isLoading: planLoading } = useProjectValidationPlan(id!);
   
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingStep, setEditingStep] = useState<ValidationStep | null>(null);
   
   const project = projects.find(p => p.id === id);
   
-  if (projectsLoading || isLoading) {
+  if (projectsLoading || isLoading || planLoading) {
     return <LoadingState />;
   }
   
@@ -51,6 +54,24 @@ const ProjectValidationPlanPage = () => {
   const completedSteps = validationSteps.filter(step => step.is_completed).length;
   const totalSteps = validationSteps.length;
   const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
+  const hasValidationPlan = validationPlan && validationPlan.trim().length > 0;
+  const hasValidationSteps = validationSteps.length > 0;
+
+  // Parse the validation plan text into steps for display
+  const parseValidationPlan = (plan: string) => {
+    const steps = plan.split(/Step \d+:/).filter(step => step.trim().length > 0);
+    return steps.map((step, index) => {
+      const lines = step.trim().split('\n').filter(line => line.trim().length > 0);
+      const title = lines[0]?.trim() || `Step ${index + 1}`;
+      const goal = lines.find(line => line.startsWith('Goal/Description:'))?.replace('Goal/Description:', '').trim() || '';
+      const method = lines.find(line => line.startsWith('Tool/Method:'))?.replace('Tool/Method:', '').trim() || '';
+      const priority = lines.find(line => line.startsWith('Priority:'))?.replace('Priority:', '').trim() || 'Medium';
+      
+      return { title, goal, method, priority };
+    });
+  };
+
+  const parsedPlanSteps = hasValidationPlan ? parseValidationPlan(validationPlan) : [];
 
   const handleSaveStep = async (stepData: Omit<ValidationStep, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     return await createValidationStep(stepData);
@@ -130,7 +151,8 @@ const ProjectValidationPlanPage = () => {
             </div>
 
             {/* Content */}
-            {validationSteps.length > 0 ? (
+            {hasValidationSteps ? (
+              // Individual validation steps (post-project creation)
               <div className="space-y-4">
                 {validationSteps.map((step) => (
                   <ValidationStepCard
@@ -141,6 +163,59 @@ const ProjectValidationPlanPage = () => {
                   />
                 ))}
               </div>
+            ) : hasValidationPlan ? (
+              // Original validation plan from setup
+              <div className="space-y-6">
+                <Card className="bg-blue-50 border-blue-200">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                        <FileText className="text-white text-xs" />
+                      </div>
+                      <div>
+                        <p className="text-blue-800 font-medium mb-1">
+                          Generated Validation Plan
+                        </p>
+                        <p className="text-blue-700 text-sm">
+                          This validation plan was generated during your project setup. You can review the steps below and create individual tasks by clicking "Add Step" to track your progress.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
+                  {parsedPlanSteps.map((step, index) => (
+                    <Card key={index} className="border-gray-200">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg">{step.title}</CardTitle>
+                          <Badge 
+                            variant={step.priority === 'High' ? 'default' : step.priority === 'Medium' ? 'secondary' : 'outline'}
+                            className={step.priority === 'High' ? 'bg-red-100 text-red-800' : step.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}
+                          >
+                            {step.priority}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {step.goal && (
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-1">Goal:</h4>
+                            <p className="text-gray-700 text-sm">{step.goal}</p>
+                          </div>
+                        )}
+                        {step.method && (
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-1">Method:</h4>
+                            <p className="text-gray-700 text-sm">{step.method}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             ) : (
               <Card className="border-dashed border-2 border-gray-200">
                 <CardContent className="flex flex-col items-center justify-center py-12">
@@ -149,10 +224,10 @@ const ProjectValidationPlanPage = () => {
                   </div>
                   <div className="text-center mb-6 max-w-md">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      No validation steps yet
+                      No validation plan available
                     </h3>
                     <p className="text-gray-600">
-                      Validation steps are created during the project setup process. If you haven't completed the setup flow, you can start a new project to generate a validation plan, or manually add steps here.
+                      Validation plans are created during the project setup process. If you haven't completed the setup flow, you can start a new project to generate a validation plan, or manually add steps here.
                     </p>
                   </div>
                   <Button
