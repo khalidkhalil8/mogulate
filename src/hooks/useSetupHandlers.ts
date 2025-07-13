@@ -80,14 +80,14 @@ export const useSetupHandlers = ({
       const newProject = await createProject(projectTitle, ideaData.idea);
       if (!newProject) throw new Error('Project creation failed');
 
+      // Only save the core project data, not the analysis results
       await updateProject(newProject.id, {
         competitors: ideaData.competitors,
         market_gaps: ideaData.marketGaps,
         features: ideaData.features,
         validation_plan: ideaData.validationPlan,
-        market_gap_analysis: ideaData.marketGapAnalysis,
-        selected_gap_index: selectedGapIndex,
-        // Note: marketGapScoringAnalysis not persisted yet
+        // Don't save market_gap_analysis and selected_gap_index during setup
+        // These are generated during the flow but shouldn't persist to the project
       });
 
       setTimeout(() => {

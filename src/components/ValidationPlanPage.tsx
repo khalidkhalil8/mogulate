@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
-import { ArrowLeft, ArrowRight, Plus } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import SetupNavigation from './setup/SetupNavigation';
 import ValidationPlanWelcomeState from './validation-plan/ValidationPlanWelcomeState';
-import ValidationStepCard from './validation-plan/ValidationStepCard';
-import ValidationPlanDrawer from './validation-plan/ValidationPlanDrawer';
 import { generateValidationPlan } from '@/lib/api';
 import { toast } from './ui/sonner';
 import type { IdeaData } from '@/lib/types';
@@ -34,8 +32,6 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
   const [validationSteps, setValidationSteps] = useState<ValidationStepData[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(!!initialValidationPlan);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editingStep, setEditingStep] = useState<ValidationStepData | null>(null);
   const navigate = useNavigate();
 
   // Get the selected market gap positioning suggestion based on the index
@@ -132,40 +128,6 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
     ).join('\n\n');
   };
 
-  const handleAddStep = () => {
-    setEditingStep(null);
-    setIsDrawerOpen(true);
-  };
-
-  const handleEditStep = (step: ValidationStepData) => {
-    setEditingStep(step);
-    setIsDrawerOpen(true);
-  };
-
-  const handleSaveStep = async (stepData: Omit<ValidationStepData, 'is_completed'>) => {
-    const newStep = { ...stepData, is_completed: false };
-    
-    if (editingStep) {
-      // Update existing step
-      setValidationSteps(prev => 
-        prev.map(step => step === editingStep ? newStep : step)
-      );
-    } else {
-      // Add new step
-      setValidationSteps(prev => [...prev, newStep]);
-    }
-    
-    toast.success(editingStep ? 'Step updated successfully' : 'Step added successfully');
-    return true;
-  };
-
-  const handleToggleCompletion = (stepToToggle: ValidationStepData, completed: boolean) => {
-    setValidationSteps(prev => 
-      prev.map(step => 
-        step === stepToToggle ? { ...step, is_completed: completed } : step
-      )
-    );
-  };
 
   const handleNext = () => {
     if (validationSteps.length === 0) {
@@ -206,50 +168,49 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
                 </p>
               </div>
 
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h2 className="text-xl font-semibold">Validation Steps</h2>
-                  <p className="text-gray-600 text-sm">
-                    {validationSteps.length} step{validationSteps.length !== 1 ? 's' : ''} defined
-                  </p>
-                </div>
-                <Button 
-                  onClick={handleAddStep}
-                  className="flex items-center gap-2"
-                >
-                  <Plus size={18} />
-                  <span>Add Step</span>
-                </Button>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-2">Validation Steps</h2>
+                <p className="text-gray-600 text-sm">
+                  {validationSteps.length} step{validationSteps.length !== 1 ? 's' : ''} defined
+                </p>
               </div>
 
               <div className="space-y-4">
                 {validationSteps.length > 0 ? (
                   validationSteps.map((step, index) => (
-                    <ValidationStepCard
-                      key={index}
-                      step={{
-                        id: index.toString(),
-                        project_id: '',
-                        user_id: '',
-                        title: step.title,
-                        description: step.description,
-                        method: step.method,
-                        priority: step.priority,
-                        is_completed: step.is_completed,
-                        created_at: '',
-                        updated_at: ''
-                      }}
-                      onEdit={() => handleEditStep(step)}
-                      onToggleCompletion={(_, completed) => handleToggleCompletion(step, completed)}
-                    />
+                    <div key={index} className="bg-white border rounded-lg p-6 shadow-sm">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg text-gray-900 mb-2">
+                            {step.title}
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium text-gray-700">Goal:</span>
+                              <p className="text-gray-600 mt-1">{step.description}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">Method:</span>
+                              <p className="text-gray-600 mt-1">{step.method}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">Priority:</span>
+                              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                                step.priority === 'High' ? 'bg-red-100 text-red-800' :
+                                step.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-green-100 text-green-800'
+                              }`}>
+                                {step.priority}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   ))
                 ) : (
                   <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                     <p className="text-gray-500 mb-4">No validation steps defined yet.</p>
-                    <Button onClick={handleAddStep} variant="outline">
-                      <Plus size={18} className="mr-2" />
-                      Add Your First Step
-                    </Button>
                   </div>
                 )}
               </div>
@@ -278,37 +239,6 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
           )}
         </div>
       </div>
-
-      <ValidationPlanDrawer
-        isOpen={isDrawerOpen}
-        onOpenChange={setIsDrawerOpen}
-        onSave={handleSaveStep}
-        onUpdate={async (id, stepData) => {
-          // Handle update by finding and updating the step
-          if (editingStep) {
-            const newStep = { ...editingStep, ...stepData, is_completed: stepData.is_completed ?? editingStep.is_completed };
-            setValidationSteps(prev => 
-              prev.map(step => step === editingStep ? newStep : step)
-            );
-            toast.success('Step updated successfully');
-            return true;
-          }
-          return false;
-        }}
-        editingStep={editingStep ? {
-          id: editingStep.title, // Use title as temp ID
-          project_id: '',
-          user_id: '',
-          title: editingStep.title,
-          description: editingStep.description,
-          method: editingStep.method,
-          priority: editingStep.priority,
-          is_completed: editingStep.is_completed,
-          created_at: '',
-          updated_at: ''
-        } : null}
-        projectId="temp"
-      />
     </div>
   );
 };
