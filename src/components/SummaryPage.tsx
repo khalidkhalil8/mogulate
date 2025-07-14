@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { IdeaData } from '@/lib/types';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import IdeaSummaryCard from './summary/IdeaSummaryCard';
 import CompetitorsSummaryCard from './summary/CompetitorsSummaryCard';
 import MarketGapsSummaryCard from './summary/MarketGapsSummaryCard';
@@ -10,15 +9,35 @@ import SummaryActions from './summary/SummaryActions';
 import SetupNavigation from './setup/SetupNavigation';
 import { Button } from './ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { useProjectData } from '@/hooks/useProjectData';
+import { useSetupHandlers } from '@/hooks/useSetupHandlers';
 
-interface SummaryPageProps {
-  data: IdeaData;
-  selectedGapIndex?: number;
-  onSaveProject: () => Promise<void>;
-}
-
-const SummaryPage: React.FC<SummaryPageProps> = ({ data, selectedGapIndex, onSaveProject }) => {
+const SummaryPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('projectId');
+  
+  const {
+    existingProject,
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+  } = useProjectData();
+
+  const {
+    handleSaveProject,
+  } = useSetupHandlers({
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+    projectId,
+  });
 
   return (
     <div className="min-h-screen bg-white">
@@ -34,15 +53,15 @@ const SummaryPage: React.FC<SummaryPageProps> = ({ data, selectedGapIndex, onSav
           </div>
           
           <div className="space-y-8">
-            <IdeaSummaryCard idea={data.idea} />
-            <CompetitorsSummaryCard competitors={data.competitors} />
+            <IdeaSummaryCard idea={ideaData.idea} />
+            <CompetitorsSummaryCard competitors={ideaData.competitors} />
             <MarketGapsSummaryCard 
-              marketGaps={data.marketGaps} 
-              marketGapAnalysis={data.marketGapAnalysis}
-              marketGapScoringAnalysis={data.marketGapScoringAnalysis}
+              marketGaps={ideaData.marketGaps} 
+              marketGapAnalysis={ideaData.marketGapAnalysis}
+              marketGapScoringAnalysis={ideaData.marketGapScoringAnalysis}
               selectedGapIndex={selectedGapIndex}
             />
-            <ValidationPlanSummaryCard validationPlan={data.validationPlan} />
+            <ValidationPlanSummaryCard validationPlan={ideaData.validationPlan} />
             
             <div className="flex justify-between items-center pt-6">
               <Button
@@ -56,8 +75,8 @@ const SummaryPage: React.FC<SummaryPageProps> = ({ data, selectedGapIndex, onSav
               </Button>
               
               <SummaryActions 
-                data={data} 
-                onSaveProject={onSaveProject} 
+                data={ideaData} 
+                onSaveProject={handleSaveProject} 
               />
             </div>
           </div>

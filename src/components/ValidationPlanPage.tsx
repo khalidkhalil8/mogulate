@@ -1,13 +1,14 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from './ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import SetupNavigation from './setup/SetupNavigation';
 import ValidationPlanWelcomeState from './validation-plan/ValidationPlanWelcomeState';
 import { generateValidationPlan } from '@/lib/api';
 import { toast } from './ui/sonner';
-import type { IdeaData } from '@/lib/types';
+import { useProjectData } from '@/hooks/useProjectData';
+import { useSetupHandlers } from '@/hooks/useSetupHandlers';
 
 interface ValidationStepData {
   title: string;
@@ -17,30 +18,36 @@ interface ValidationStepData {
   isDone: boolean;
 }
 
-interface ValidationPlanPageProps {
-  initialValidationPlan?: Array<{
-    title: string;
-    goal: string;
-    method: string;
-    priority: 'High' | 'Medium' | 'Low';
-    isDone: boolean;
-  }>;
-  onValidationPlanSubmit: (validationPlan: any) => Promise<void>;
-  ideaData: IdeaData;
-  selectedGapIndex?: number;
-}
+const ValidationPlanPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('projectId');
+  
+  const {
+    existingProject,
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+  } = useProjectData();
 
-const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
-  initialValidationPlan = [],
-  onValidationPlanSubmit,
-  ideaData,
-  selectedGapIndex
-}) => {
-  const [validationSteps, setValidationSteps] = useState<ValidationStepData[]>(initialValidationPlan || []);
+  const {
+    handleValidationPlanSubmit,
+  } = useSetupHandlers({
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+    projectId,
+  });
+
+  const [validationSteps, setValidationSteps] = useState<ValidationStepData[]>(ideaData.validationPlan || []);
   const [isGenerating, setIsGenerating] = useState(false);
   const navigate = useNavigate();
 
-  // Get the selected market gap positioning suggestion based on the index
   const selectedPositioningSuggestion = selectedGapIndex !== undefined && 
     ideaData.marketGapScoringAnalysis?.marketGaps?.[selectedGapIndex]?.positioningSuggestion || '';
 
@@ -79,14 +86,13 @@ const ValidationPlanPage: React.FC<ValidationPlanPageProps> = ({
       return;
     }
     
-    // Pass the actual array instead of converting to string
-    onValidationPlanSubmit(validationSteps);
+    handleValidationPlanSubmit(validationSteps);
+    navigate('/summary');
   };
 
   const handleBack = () => {
-    // Save current validation plan before navigating back
     if (validationSteps.length > 0) {
-      onValidationPlanSubmit(validationSteps);
+      handleValidationPlanSubmit(validationSteps);
     }
     navigate('/features');
   };

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,37 +8,54 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowRight } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import SetupNavigation from './setup/SetupNavigation';
+import { useProjectData } from '@/hooks/useProjectData';
+import { useSetupHandlers } from '@/hooks/useSetupHandlers';
 
-interface IdeaEntryPageProps {
-  initialIdea?: string;
-  initialTitle?: string;
-  onIdeaSubmit: (idea: string, title: string) => void;
-}
-
-const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({ 
-  initialIdea = "", 
-  initialTitle = "",
-  onIdeaSubmit 
-}) => {
-  const [projectTitle, setProjectTitle] = useState(initialTitle);
-  const [idea, setIdea] = useState(initialIdea);
+const IdeaEntryPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('projectId');
+  
+  const {
+    existingProject,
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+  } = useProjectData();
+
+  const {
+    handleIdeaSubmit,
+  } = useSetupHandlers({
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+    projectId,
+  });
+
+  const [localTitle, setLocalTitle] = useState(projectTitle || '');
+  const [localIdea, setLocalIdea] = useState(ideaData.idea || '');
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!projectTitle.trim()) {
+    if (!localTitle.trim()) {
       toast.error('Please enter a project title');
       return;
     }
     
-    if (!idea.trim()) {
+    if (!localIdea.trim()) {
       toast.error('Please describe your project');
       return;
     }
 
-    // Submit the idea with title - no success toast here
-    onIdeaSubmit(idea, projectTitle);
+    // Submit the idea with title
+    handleIdeaSubmit(localIdea, localTitle);
     navigate('/competitors');
   };
   
@@ -62,8 +79,8 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
                 <Input
                   id="projectTitle"
                   placeholder="Enter your project title"
-                  value={projectTitle}
-                  onChange={(e) => setProjectTitle(e.target.value)}
+                  value={localTitle}
+                  onChange={(e) => setLocalTitle(e.target.value)}
                   className="w-full"
                   required
                 />
@@ -76,8 +93,8 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
                 <Textarea
                   id="idea"
                   placeholder="An AI-powered fitness app that analyzes the users form through the phone camera"
-                  value={idea}
-                  onChange={(e) => setIdea(e.target.value)}
+                  value={localIdea}
+                  onChange={(e) => setLocalIdea(e.target.value)}
                   className="min-h-[120px] resize-y w-full"
                   required
                 />
@@ -88,7 +105,7 @@ const IdeaEntryPage: React.FC<IdeaEntryPageProps> = ({
               <Button 
                 type="submit" 
                 className="flex items-center gap-2"
-                disabled={!projectTitle.trim() || !idea.trim()}
+                disabled={!localTitle.trim() || !localIdea.trim()}
               >
                 <span>Next</span>
                 <ArrowRight size={18} />

@@ -18,6 +18,12 @@ import ProjectTodoPage from "@/pages/ProjectTodoPage";
 import FeaturesPage from "@/pages/FeaturesPage";
 import PricingPage from "@/pages/PricingPage";
 import NotFound from "@/pages/NotFound";
+import IdeaEntryPage from "@/components/IdeaEntryPage";
+import CompetitorDiscoveryPage from "@/components/CompetitorDiscoveryPage";
+import MarketGapPage from "@/components/MarketGapPage";
+import FeatureEntryPage from "@/components/FeatureEntryPage";
+import ValidationPlanPage from "@/components/ValidationPlanPage";
+import SummaryPage from "@/components/SummaryPage";
 
 const queryClient = new QueryClient();
 
@@ -37,12 +43,12 @@ function AppContent() {
         {showHeader && <Header />}
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/idea" element={<Index />} />
-          <Route path="/competitors" element={<Index />} />
-          <Route path="/market-gaps" element={<Index />} />
-          <Route path="/features" element={<Index />} />
-          <Route path="/validation-plan" element={<Index />} />
-          <Route path="/summary" element={<Index />} />
+          <Route path="/idea" element={<IdeaEntryPage />} />
+          <Route path="/competitors" element={<CompetitorDiscoveryPage />} />
+          <Route path="/market-gaps" element={<MarketGapPage />} />
+          <Route path="/features" element={<FeatureEntryPage />} />
+          <Route path="/validation-plan" element={<ValidationPlanPage />} />
+          <Route path="/summary" element={<SummaryPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />

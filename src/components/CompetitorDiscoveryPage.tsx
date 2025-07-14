@@ -9,22 +9,36 @@ import SetupNavigation from './setup/SetupNavigation';
 import CompetitorWelcomeState from './competitors/CompetitorWelcomeState';
 import CompetitorForm from './competitors/CompetitorForm';
 import { toast } from '@/components/ui/sonner';
+import { useProjectData } from '@/hooks/useProjectData';
+import { useSetupHandlers } from '@/hooks/useSetupHandlers';
 
-interface CompetitorDiscoveryPageProps {
-  idea: string;
-  initialCompetitors?: Competitor[];
-  onCompetitorsSubmit: (competitors: Competitor[]) => void;
-}
-
-const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
-  idea,
-  initialCompetitors = [],
-  onCompetitorsSubmit
-}) => {
+const CompetitorDiscoveryPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
   const { projects, updateProject } = useProjects();
   const project = projects.find(p => p.id === projectId);
+  
+  const {
+    existingProject,
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+  } = useProjectData();
+
+  const {
+    handleCompetitorsSubmit,
+  } = useSetupHandlers({
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+    projectId,
+  });
   
   const [competitors, setCompetitors] = useState<Competitor[]>(
     project?.competitors && project.competitors.length > 0 
@@ -35,8 +49,8 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
           description: c.description,
           isAiGenerated: c.isAiGenerated
         }))
-      : initialCompetitors.length > 0 
-        ? initialCompetitors 
+      : ideaData.competitors?.length > 0 
+        ? ideaData.competitors 
         : []
   );
   const [isGenerating, setIsGenerating] = useState(false);
@@ -60,20 +74,18 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
   const handleGenerateCompetitors = async () => {
     setIsGenerating(true);
     try {
-      const result = await fetchCompetitors(idea);
+      const result = await fetchCompetitors(ideaData.idea);
       if (result.competitors.length > 0) {
         setCompetitors(result.competitors);
         setHasGenerated(true);
         toast.success('Competitors found successfully!');
       } else {
         toast.error('No competitors found. You can add them manually.');
-        // Still allow user to proceed and add manually
         setHasGenerated(true);
       }
     } catch (error) {
       console.error('Error finding competitors:', error);
       toast.error('Failed to find competitors. You can add them manually.');
-      // Still allow user to proceed and add manually
       setHasGenerated(true);
     } finally {
       setIsGenerating(false);
@@ -107,7 +119,7 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
       await updateProject(projectId, { competitors });
     }
     
-    onCompetitorsSubmit(competitors);
+    handleCompetitorsSubmit(competitors);
     
     const nextUrl = projectId ? `/market-gaps?projectId=${projectId}` : '/market-gaps';
     navigate(nextUrl);
@@ -118,7 +130,7 @@ const CompetitorDiscoveryPage: React.FC<CompetitorDiscoveryPageProps> = ({
       await updateProject(projectId, { competitors });
     }
     
-    onCompetitorsSubmit(competitors);
+    handleCompetitorsSubmit(competitors);
     
     const backUrl = projectId ? `/idea?projectId=${projectId}` : '/idea';
     navigate(backUrl);

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
@@ -6,7 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 import FeatureWelcomeState from './features/FeatureWelcomeState';
 import FeatureForm from './features/FeatureForm';
-import type { IdeaData } from '@/lib/types';
+import { useProjectData } from '@/hooks/useProjectData';
+import { useSetupHandlers } from '@/hooks/useSetupHandlers';
 
 interface Feature {
   id: string;
@@ -15,23 +17,33 @@ interface Feature {
   priority: string;
 }
 
-interface FeatureEntryPageProps {
-  initialFeatures?: Feature[];
-  onFeaturesSubmit: (features: Feature[]) => void;
-  ideaData: IdeaData;
-  selectedGapIndex?: number;
-}
-
-const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({ 
-  initialFeatures = [], 
-  onFeaturesSubmit,
-  ideaData,
-  selectedGapIndex
-}) => {
+const FeatureEntryPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
   const { projects, updateProject } = useProjects();
   const project = projects.find(p => p.id === projectId);
+  
+  const {
+    existingProject,
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+  } = useProjectData();
+
+  const {
+    handleFeaturesSubmit,
+  } = useSetupHandlers({
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+    projectId,
+  });
   
   const [features, setFeatures] = useState<Feature[]>(
     project?.features && project.features.length > 0 
@@ -41,8 +53,13 @@ const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({
           description: f.description,
           priority: f.priority
         }))
-      : initialFeatures.length > 0 
-        ? initialFeatures 
+      : ideaData.features?.length > 0 
+        ? ideaData.features.map(f => ({
+            id: f.id,
+            title: f.title,
+            description: f.description,
+            priority: f.priority
+          }))
         : []
   );
   const [isGenerating, setIsGenerating] = useState(false);
@@ -68,16 +85,13 @@ const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({
       let requestBody;
 
       if (projectId) {
-        // Existing project - use project_id
         requestBody = { project_id: projectId };
       } else {
-        // Initial setup - use idea and positioning suggestion from local state
         if (!ideaData?.idea) {
           toast.error('Project idea is required');
           return;
         }
 
-        // Get positioning suggestion from selected gap
         let positioningSuggestion = '';
         if (ideaData.marketGapScoringAnalysis && selectedGapIndex !== undefined) {
           const selectedGap = ideaData.marketGapScoringAnalysis.marketGaps[selectedGapIndex];
@@ -163,7 +177,7 @@ const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({
       await updateProject(projectId, { features: fullFeatures });
     }
     
-    onFeaturesSubmit(features);
+    handleFeaturesSubmit(features);
     
     const nextUrl = projectId ? `/validation-plan?projectId=${projectId}` : '/validation-plan';
     navigate(nextUrl);
@@ -182,7 +196,7 @@ const FeatureEntryPage: React.FC<FeatureEntryPageProps> = ({
       await updateProject(projectId, { features: fullFeatures });
     }
     
-    onFeaturesSubmit(features);
+    handleFeaturesSubmit(features);
     
     const backUrl = projectId ? `/market-gaps?projectId=${projectId}` : '/market-gaps';
     navigate(backUrl);

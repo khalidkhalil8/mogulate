@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import LoadingState from './ui/LoadingState';
 import { analyzeMarketGapsWithScoring } from '@/lib/api/marketGapsScoring';
 import type { Competitor, MarketGapAnalysis } from '@/lib/types';
@@ -12,28 +12,39 @@ import { Button } from './ui/button';
 import { ArrowLeft, ArrowRight, Target } from 'lucide-react';
 import SetupNavigation from './setup/SetupNavigation';
 import MarketGapsScoringDisplay from './market-gaps/MarketGapsScoringDisplay';
+import { useProjectData } from '@/hooks/useProjectData';
+import { useSetupHandlers } from '@/hooks/useSetupHandlers';
 
-interface MarketGapPageProps {
-  idea: string;
-  competitors: Competitor[];
-  initialMarketGaps?: string;
-  initialAnalysis?: MarketGapAnalysis;
-  projectId?: string;
-  onMarketGapsSubmit: (marketGaps: string, analysis: MarketGapAnalysis | undefined, scoringAnalysis?: MarketGapScoringAnalysis, selectedGapIndex?: number) => void;
-}
+const MarketGapPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('projectId');
+  
+  const {
+    existingProject,
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+  } = useProjectData();
 
-const MarketGapPage: React.FC<MarketGapPageProps> = ({
-  idea,
-  competitors,
-  initialMarketGaps = "",
-  initialAnalysis,
-  projectId,
-  onMarketGapsSubmit
-}) => {
-  const [scoringAnalysis, setScoringAnalysis] = useState<MarketGapScoringAnalysis | undefined>();
-  const [selectedGapIndex, setSelectedGapIndex] = useState<number | undefined>();
+  const {
+    handleMarketGapsSubmit,
+  } = useSetupHandlers({
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+    projectId,
+  });
+
+  const [scoringAnalysis, setScoringAnalysis] = useState<MarketGapScoringAnalysis | undefined>(ideaData.marketGapScoringAnalysis);
+  const [localSelectedGapIndex, setLocalSelectedGapIndex] = useState<number | undefined>(selectedGapIndex);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasRunAnalysis, setHasRunAnalysis] = useState(false);
+  const [hasRunAnalysis, setHasRunAnalysis] = useState(!!ideaData.marketGapScoringAnalysis);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { updateProject } = useProjects();
@@ -41,12 +52,11 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
   const handleRunAnalysis = async () => {
     setIsLoading(true);
     try {
-      const result = await analyzeMarketGapsWithScoring(idea, competitors);
+      const result = await analyzeMarketGapsWithScoring(ideaData.idea, ideaData.competitors);
       if (result.success && result.analysis) {
         setScoringAnalysis(result.analysis);
         setHasRunAnalysis(true);
         
-        // Immediately save to database if we have a projectId
         if (projectId && user?.id) {
           try {
             await updateProject(projectId, {
@@ -55,7 +65,6 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
             console.log('Market analysis saved to database successfully');
           } catch (error) {
             console.error('Error saving market analysis to database:', error);
-            // Don't show error to user as the analysis was still generated successfully
           }
         }
         
@@ -71,22 +80,21 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
   };
 
   const handleSelectGap = (index: number) => {
-    setSelectedGapIndex(index);
+    setLocalSelectedGapIndex(index);
   };
   
   const handleNext = () => {
-    if (selectedGapIndex === undefined) {
+    if (localSelectedGapIndex === undefined) {
       toast.error("Please select a market opportunity to continue");
       return;
     }
     
-    // Save the analysis data and proceed
-    onMarketGapsSubmit(initialMarketGaps, initialAnalysis, scoringAnalysis, selectedGapIndex);
+    handleMarketGapsSubmit(ideaData.marketGaps || '', ideaData.marketGapAnalysis, scoringAnalysis, localSelectedGapIndex);
+    navigate('/features');
   };
 
   const handleBack = () => {
-    // Save current analysis before navigating back
-    onMarketGapsSubmit(initialMarketGaps, initialAnalysis, scoringAnalysis, selectedGapIndex);
+    handleMarketGapsSubmit(ideaData.marketGaps || '', ideaData.marketGapAnalysis, scoringAnalysis, localSelectedGapIndex);
     navigate('/competitors');
   };
   
@@ -99,7 +107,6 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
           {isLoading ? (
             <LoadingState message="Hang tight - our AI is analyzing market opportunities and scoring them" />
           ) : !hasRunAnalysis ? (
-            // Initial welcome state
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
               <div className="max-w-2xl">
                 <h1 className="text-3xl font-bold mb-4">Discover Market Opportunities</h1>
@@ -110,13 +117,13 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
                 <Button 
                   onClick={handleRunAnalysis}
                   className="gradient-bg border-none hover:opacity-90 button-transition text-lg px-8 py-3"
-                  disabled={competitors.length === 0}
+                  disabled={ideaData.competitors.length === 0}
                 >
                   <Target className="h-5 w-5 mr-2" />
                   Run Market Analysis
                 </Button>
                 
-                {competitors.length === 0 && (
+                {ideaData.competitors.length === 0 && (
                   <p className="text-sm text-gray-500 mt-4">
                     Please add competitors first to run the analysis
                   </p>
@@ -124,7 +131,6 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
               </div>
             </div>
           ) : (
-            // Results state
             <div className="space-y-8">
               <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold mb-2">Select Your Market Opportunity</h1>
@@ -134,12 +140,11 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
               {scoringAnalysis && (
                 <MarketGapsScoringDisplay 
                   analysis={scoringAnalysis} 
-                  selectedGapIndex={selectedGapIndex}
+                  selectedGapIndex={localSelectedGapIndex}
                   onSelectGap={handleSelectGap}
                 />
               )}
               
-              {/* Navigation */}
               <div className="flex justify-between">
                 <Button
                   type="button"
@@ -153,7 +158,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
                 
                 <Button 
                   onClick={handleNext}
-                  disabled={selectedGapIndex === undefined}
+                  disabled={localSelectedGapIndex === undefined}
                   className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>Next</span>
