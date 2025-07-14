@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,8 +38,35 @@ const IdeaEntryPage: React.FC = () => {
     projectId,
   });
 
-  const [localTitle, setLocalTitle] = useState(projectTitle || '');
-  const [localIdea, setLocalIdea] = useState(ideaData.idea || '');
+  const [localTitle, setLocalTitle] = useState('');
+  const [localIdea, setLocalIdea] = useState('');
+  
+  // Sync local state with loaded project data
+  useEffect(() => {
+    console.log('IdeaEntryPage: Syncing with project data', {
+      projectTitle,
+      ideaDataIdea: ideaData.idea,
+      existingProjectId: existingProject?.id
+    });
+    
+    if (projectTitle && projectTitle !== localTitle) {
+      setLocalTitle(projectTitle);
+    }
+    
+    if (ideaData.idea && ideaData.idea !== localIdea) {
+      setLocalIdea(ideaData.idea);
+    }
+  }, [projectTitle, ideaData.idea, existingProject]);
+  
+  // Also sync when component first mounts
+  useEffect(() => {
+    if (!localTitle && projectTitle) {
+      setLocalTitle(projectTitle);
+    }
+    if (!localIdea && ideaData.idea) {
+      setLocalIdea(ideaData.idea);
+    }
+  }, []);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,9 +81,22 @@ const IdeaEntryPage: React.FC = () => {
       return;
     }
 
-    // Submit the idea with title
-    handleIdeaSubmit(localIdea, localTitle);
-    navigate('/competitors');
+    console.log('IdeaEntryPage: Submitting idea', {
+      title: localTitle,
+      ideaLength: localIdea.length
+    });
+
+    try {
+      // Submit the idea with title
+      await handleIdeaSubmit(localIdea, localTitle);
+      
+      // Navigate to competitors page
+      const nextUrl = projectId ? `/competitors?projectId=${projectId}` : '/competitors';
+      navigate(nextUrl);
+    } catch (error) {
+      console.error('Error submitting idea:', error);
+      toast.error('Failed to save your idea. Please try again.');
+    }
   };
   
   return (
@@ -68,6 +108,11 @@ const IdeaEntryPage: React.FC = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Start Your Project</h1>
             <p className="text-gray-600">Give your project a name and provide a description.</p>
+            {existingProject && (
+              <p className="text-sm text-green-600 mt-2">
+                Editing existing project: {existingProject.title}
+              </p>
+            )}
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
