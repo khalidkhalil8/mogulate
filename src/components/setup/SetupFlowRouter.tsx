@@ -80,10 +80,7 @@ const SetupFlowRouter: React.FC = () => {
         path="/features"
         element={
           <FeatureEntryPage
-            idea={ideaData.idea}
-            competitors={ideaData.competitors}
-            marketGapAnalysis={ideaData.marketGapAnalysis}
-            marketGapScoringAnalysis={ideaData.marketGapScoringAnalysis}
+            ideaData={ideaData}
             selectedGapIndex={selectedGapIndex}
             onFeaturesSubmit={handleFeaturesSubmit}
             initialFeatures={ideaData.features}
@@ -94,8 +91,6 @@ const SetupFlowRouter: React.FC = () => {
         path="/validation-plan"
         element={
           <ValidationPlanPage
-            idea={ideaData.idea}
-            competitors={ideaData.competitors}
             ideaData={ideaData}
             selectedGapIndex={selectedGapIndex}
             onValidationPlanSubmit={handleValidationPlanSubmit}

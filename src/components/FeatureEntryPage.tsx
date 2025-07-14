@@ -18,7 +18,7 @@ interface Feature {
 interface FeatureEntryPageProps {
   initialFeatures?: Feature[];
   onFeaturesSubmit: (features: Feature[]) => void;
-  ideaData?: IdeaData;
+  ideaData: IdeaData;
   selectedGapIndex?: number;
 }
 

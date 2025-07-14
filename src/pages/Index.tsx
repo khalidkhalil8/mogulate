@@ -2,42 +2,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { useProjectData } from '@/hooks/useProjectData';
-import { useSetupHandlers } from '@/hooks/useSetupHandlers';
 import HomePage from '@/components/HomePage';
 import SetupFlowRouter from '@/components/setup/SetupFlowRouter';
 import ProjectDataWarning from '@/components/setup/ProjectDataWarning';
+import { useSearchParams } from 'react-router-dom';
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
-  
-  const {
-    projectId,
-    projectTitle,
-    setProjectTitle,
-    selectedGapIndex,
-    setSelectedGapIndex,
-    ideaData,
-    setIdeaData,
-  } = useProjectData();
-
-  const {
-    handleIdeaSubmit,
-    handleCompetitorsSubmit,
-    handleMarketGapsSubmit,
-    handleFeaturesSubmit,
-    handleValidationPlanSubmit,
-    handleSaveProject,
-  } = useSetupHandlers({
-    projectTitle,
-    setProjectTitle,
-    selectedGapIndex,
-    setSelectedGapIndex,
-    ideaData,
-    setIdeaData,
-    projectId,
-  });
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('projectId');
 
   if (isLoading) {
     return (
@@ -61,17 +35,7 @@ const Index = () => {
   return (
     <>
       <ProjectDataWarning projectId={projectId} />
-      <SetupFlowRouter
-        ideaData={ideaData}
-        projectTitle={projectTitle}
-        selectedGapIndex={selectedGapIndex}
-        onIdeaSubmit={handleIdeaSubmit}
-        onCompetitorsSubmit={handleCompetitorsSubmit}
-        onMarketGapsSubmit={handleMarketGapsSubmit}
-        onFeaturesSubmit={handleFeaturesSubmit}
-        onValidationPlanSubmit={handleValidationPlanSubmit}
-        onSaveProject={handleSaveProject}
-      />
+      <SetupFlowRouter />
     </>
   );
 };
