@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, ArrowLeft, ArrowRight } from 'lucide-react';
 import FeatureCard from './FeatureCard';
 
-interface Feature {
+interface LocalFeature {
   id: string;
   title: string;
   description: string;
@@ -12,11 +12,11 @@ interface Feature {
 }
 
 interface FeatureFormProps {
-  features: Feature[];
+  features: LocalFeature[];
   hasGenerated: boolean;
   canProceed: boolean;
   onAddFeature: () => void;
-  onUpdateFeature: (id: string, field: keyof Feature, value: string) => void;
+  onUpdateFeature: (id: string, field: keyof LocalFeature, value: string) => void;
   onRemoveFeature: (id: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;

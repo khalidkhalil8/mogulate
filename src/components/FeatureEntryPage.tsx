@@ -9,8 +9,9 @@ import FeatureWelcomeState from './features/FeatureWelcomeState';
 import FeatureForm from './features/FeatureForm';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useSetupHandlers } from '@/hooks/useSetupHandlers';
+import { Feature } from '@/lib/types';
 
-interface Feature {
+interface LocalFeature {
   id: string;
   title: string;
   description: string;
@@ -45,7 +46,7 @@ const FeatureEntryPage: React.FC = () => {
     projectId,
   });
   
-  const [features, setFeatures] = useState<Feature[]>(
+  const [features, setFeatures] = useState<LocalFeature[]>(
     project?.features && project.features.length > 0 
       ? project.features.map(f => ({
           id: f.id,
@@ -141,7 +142,7 @@ const FeatureEntryPage: React.FC = () => {
   };
   
   const addFeature = () => {
-    const newFeature: Feature = {
+    const newFeature: LocalFeature = {
       id: Date.now().toString(),
       title: '',
       description: '',
@@ -156,7 +157,7 @@ const FeatureEntryPage: React.FC = () => {
     }
   };
   
-  const updateFeature = (id: string, field: keyof Feature, value: string) => {
+  const updateFeature = (id: string, field: keyof LocalFeature, value: string) => {
     setFeatures(features.map(feature => 
       feature.id === id ? { ...feature, [field]: value } : feature
     ));
@@ -165,7 +166,7 @@ const FeatureEntryPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const fullFeatures = features.map(f => ({
+    const fullFeatures: Feature[] = features.map(f => ({
       id: f.id,
       title: f.title,
       description: f.description,
@@ -177,14 +178,14 @@ const FeatureEntryPage: React.FC = () => {
       await updateProject(projectId, { features: fullFeatures });
     }
     
-    handleFeaturesSubmit(features);
+    handleFeaturesSubmit(fullFeatures);
     
     const nextUrl = projectId ? `/validation-plan?projectId=${projectId}` : '/validation-plan';
     navigate(nextUrl);
   };
   
   const handleBack = async () => {
-    const fullFeatures = features.map(f => ({
+    const fullFeatures: Feature[] = features.map(f => ({
       id: f.id,
       title: f.title,
       description: f.description,
@@ -196,7 +197,7 @@ const FeatureEntryPage: React.FC = () => {
       await updateProject(projectId, { features: fullFeatures });
     }
     
-    handleFeaturesSubmit(features);
+    handleFeaturesSubmit(fullFeatures);
     
     const backUrl = projectId ? `/market-gaps?projectId=${projectId}` : '/market-gaps';
     navigate(backUrl);

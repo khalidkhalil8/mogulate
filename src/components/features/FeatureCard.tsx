@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Trash2 } from 'lucide-react';
 
-interface Feature {
+interface LocalFeature {
   id: string;
   title: string;
   description: string;
@@ -21,10 +21,10 @@ interface Feature {
 }
 
 interface FeatureCardProps {
-  feature: Feature;
+  feature: LocalFeature;
   index: number;
   canDelete: boolean;
-  onUpdate: (id: string, field: keyof Feature, value: string) => void;
+  onUpdate: (id: string, field: keyof LocalFeature, value: string) => void;
   onDelete: (id: string) => void;
 }
 
