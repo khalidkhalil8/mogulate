@@ -1,102 +1,119 @@
 
 import React from 'react';
-import { useLocation } from 'react-router-dom';
-import CompetitorDiscoveryPage from '@/components/CompetitorDiscoveryPage';
-import MarketGapPage from '@/components/MarketGapPage';
-import FeatureEntryPage from '@/components/FeatureEntryPage';
-import ValidationPlanPage from '@/components/ValidationPlanPage';
-import SummaryPage from '@/components/SummaryPage';
-import IdeaEntryPage from '@/components/IdeaEntryPage';
-import type { IdeaData, Competitor, MarketGapAnalysis, Feature } from '@/lib/types';
-import type { MarketGapScoringAnalysis } from '@/lib/api/marketGapsScoring';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import IdeaEntryPage from '../IdeaEntryPage';
+import CompetitorDiscoveryPage from '../CompetitorDiscoveryPage';
+import MarketGapPage from '../MarketGapPage';
+import FeatureEntryPage from '../FeatureEntryPage';
+import ValidationPlanPage from '../ValidationPlanPage';
+import SummaryPage from '../SummaryPage';
+import { useProjectData } from '@/hooks/useProjectData';
+import { useSetupHandlers } from '@/hooks/useSetupHandlers';
 
-interface SetupFlowRouterProps {
-  ideaData: IdeaData;
-  projectTitle: string;
-  selectedGapIndex?: number;
-  onIdeaSubmit: (idea: string, title: string) => Promise<void>;
-  onCompetitorsSubmit: (competitors: Competitor[]) => Promise<void>;
-  onMarketGapsSubmit: (
-    marketGaps: string, 
-    analysis: MarketGapAnalysis | undefined, 
-    scoringAnalysis?: MarketGapScoringAnalysis,
-    selectedIndex?: number
-  ) => Promise<void>;
-  onFeaturesSubmit: (features: Feature[]) => Promise<void>;
-  onValidationPlanSubmit: (validationPlan: string) => Promise<void>;
-  onSaveProject: () => Promise<void>;
-}
+const SetupFlowRouter: React.FC = () => {
+  const {
+    projectId,
+    existingProject,
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+  } = useProjectData();
 
-const SetupFlowRouter: React.FC<SetupFlowRouterProps> = ({
-  ideaData,
-  projectTitle,
-  selectedGapIndex,
-  onIdeaSubmit,
-  onCompetitorsSubmit,
-  onMarketGapsSubmit,
-  onFeaturesSubmit,
-  onValidationPlanSubmit,
-  onSaveProject,
-}) => {
-  const location = useLocation();
-  const currentPath = location.pathname;
+  const {
+    handleIdeaSubmit,
+    handleCompetitorsSubmit,
+    handleMarketGapsSubmit,
+    handleFeaturesSubmit,
+    handleValidationPlanSubmit,
+    handleSaveProject,
+    handleReset,
+  } = useSetupHandlers({
+    projectTitle,
+    setProjectTitle,
+    selectedGapIndex,
+    setSelectedGapIndex,
+    ideaData,
+    setIdeaData,
+    projectId,
+  });
 
-  switch (currentPath) {
-    case '/competitors':
-      return (
-        <CompetitorDiscoveryPage
-          idea={ideaData.idea}
-          initialCompetitors={ideaData.competitors}
-          onCompetitorsSubmit={onCompetitorsSubmit}
-        />
-      );
-    case '/market-gaps':
-      return (
-        <MarketGapPage
-          idea={ideaData.idea}
-          competitors={ideaData.competitors}
-          initialMarketGaps={ideaData.marketGaps}
-          initialAnalysis={ideaData.marketGapAnalysis}
-          onMarketGapsSubmit={onMarketGapsSubmit}
-        />
-      );
-    case '/features':
-      return (
-        <FeatureEntryPage
-          initialFeatures={ideaData.features}
-          onFeaturesSubmit={onFeaturesSubmit}
-          ideaData={ideaData}
-          selectedGapIndex={selectedGapIndex}
-        />
-      );
-    case '/validation-plan':
-      return (
-        <ValidationPlanPage
-          initialValidationPlan={ideaData.validationPlan}
-          onValidationPlanSubmit={onValidationPlanSubmit}
-          ideaData={ideaData}
-          selectedGapIndex={selectedGapIndex}
-        />
-      );
-    case '/summary':
-      return (
-        <SummaryPage
-          data={ideaData}
-          selectedGapIndex={selectedGapIndex}
-          onSaveProject={onSaveProject}
-        />
-      );
-    case '/idea':
-      return (
-        <IdeaEntryPage
-          initialIdea={ideaData.idea}
-          initialTitle={projectTitle}
-          onIdeaSubmit={onIdeaSubmit}
-        />
-      );
-    default:
-      return null;
-  }
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/idea" replace />} />
+      <Route
+        path="/idea"
+        element={
+          <IdeaEntryPage
+            initialIdea={ideaData.idea}
+            initialTitle={projectTitle}
+            onIdeaSubmit={handleIdeaSubmit}
+          />
+        }
+      />
+      <Route
+        path="/competitors"
+        element={
+          <CompetitorDiscoveryPage
+            idea={ideaData.idea}
+            initialCompetitors={ideaData.competitors}
+            onCompetitorsSubmit={handleCompetitorsSubmit}
+          />
+        }
+      />
+      <Route
+        path="/market-gaps"
+        element={
+          <MarketGapPage
+            idea={ideaData.idea}
+            competitors={ideaData.competitors}
+            initialMarketGaps={ideaData.marketGaps}
+            initialAnalysis={ideaData.marketGapAnalysis}
+            projectId={projectId}
+            onMarketGapsSubmit={handleMarketGapsSubmit}
+          />
+        }
+      />
+      <Route
+        path="/features"
+        element={
+          <FeatureEntryPage
+            idea={ideaData.idea}
+            competitors={ideaData.competitors}
+            marketGapAnalysis={ideaData.marketGapAnalysis}
+            marketGapScoringAnalysis={ideaData.marketGapScoringAnalysis}
+            selectedGapIndex={selectedGapIndex}
+            onFeaturesSubmit={handleFeaturesSubmit}
+            initialFeatures={ideaData.features}
+          />
+        }
+      />
+      <Route
+        path="/validation-plan"
+        element={
+          <ValidationPlanPage
+            idea={ideaData.idea}
+            competitors={ideaData.competitors}
+            ideaData={ideaData}
+            selectedGapIndex={selectedGapIndex}
+            onValidationPlanSubmit={handleValidationPlanSubmit}
+          />
+        }
+      />
+      <Route
+        path="/summary"
+        element={
+          <SummaryPage
+            data={ideaData}
+            selectedGapIndex={selectedGapIndex}
+            onSaveProject={handleSaveProject}
+          />
+        }
+      />
+    </Routes>
+  );
 };
 
 export default SetupFlowRouter;

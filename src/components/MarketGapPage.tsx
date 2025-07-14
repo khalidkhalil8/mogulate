@@ -7,6 +7,7 @@ import type { Competitor, MarketGapAnalysis } from '@/lib/types';
 import type { MarketGapScoringAnalysis } from '@/lib/api/marketGapsScoring';
 import { toast } from "@/components/ui/sonner";
 import { useAuth } from '@/context/AuthContext';
+import { useProjects } from '@/hooks/useProjects';
 import { Button } from './ui/button';
 import { ArrowLeft, ArrowRight, Target } from 'lucide-react';
 import SetupNavigation from './setup/SetupNavigation';
@@ -17,6 +18,7 @@ interface MarketGapPageProps {
   competitors: Competitor[];
   initialMarketGaps?: string;
   initialAnalysis?: MarketGapAnalysis;
+  projectId?: string;
   onMarketGapsSubmit: (marketGaps: string, analysis: MarketGapAnalysis | undefined, scoringAnalysis?: MarketGapScoringAnalysis, selectedGapIndex?: number) => void;
 }
 
@@ -25,6 +27,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
   competitors,
   initialMarketGaps = "",
   initialAnalysis,
+  projectId,
   onMarketGapsSubmit
 }) => {
   const [scoringAnalysis, setScoringAnalysis] = useState<MarketGapScoringAnalysis | undefined>();
@@ -33,6 +36,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
   const [hasRunAnalysis, setHasRunAnalysis] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { updateProject } = useProjects();
   
   const handleRunAnalysis = async () => {
     setIsLoading(true);
@@ -41,6 +45,20 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
       if (result.success && result.analysis) {
         setScoringAnalysis(result.analysis);
         setHasRunAnalysis(true);
+        
+        // Immediately save to database if we have a projectId
+        if (projectId && user?.id) {
+          try {
+            await updateProject(projectId, {
+              market_analysis: result.analysis as any
+            });
+            console.log('Market analysis saved to database successfully');
+          } catch (error) {
+            console.error('Error saving market analysis to database:', error);
+            // Don't show error to user as the analysis was still generated successfully
+          }
+        }
+        
         toast.success("Successfully generated market gap analysis with scoring");
       } else {
         toast.error(result.error || "Failed to generate analysis");
@@ -62,7 +80,7 @@ const MarketGapPage: React.FC<MarketGapPageProps> = ({
       return;
     }
     
-    // Save the analysis data and proceed - this will be saved to the project
+    // Save the analysis data and proceed
     onMarketGapsSubmit(initialMarketGaps, initialAnalysis, scoringAnalysis, selectedGapIndex);
   };
 

@@ -56,6 +56,18 @@ export const useSetupHandlers = ({
     if (selectedIndex !== undefined) {
       setSelectedGapIndex(selectedIndex);
     }
+
+    // Save to database immediately if we have projectId and scoringAnalysis
+    if (projectId && scoringAnalysis && user?.id) {
+      try {
+        await updateProject(projectId, {
+          market_analysis: scoringAnalysis as any
+        });
+        console.log('Market analysis saved to database in handleMarketGapsSubmit');
+      } catch (error) {
+        console.error('Error saving market analysis in handleMarketGapsSubmit:', error);
+      }
+    }
     
     navigate('/features');
   };
@@ -77,15 +89,22 @@ export const useSetupHandlers = ({
     }
 
     try {
-      const newProject = await createProject(projectTitle, ideaData.idea);
-      if (!newProject) throw new Error('Project creation failed');
+      let currentProjectId = projectId;
+      
+      // Create new project if we don't have one
+      if (!currentProjectId) {
+        const newProject = await createProject(projectTitle, ideaData.idea);
+        if (!newProject) throw new Error('Project creation failed');
+        currentProjectId = newProject.id;
+      }
 
-      await updateProject(newProject.id, {
+      // Update project with all data
+      await updateProject(currentProjectId, {
         competitors: ideaData.competitors,
         features: ideaData.features,
         validation_plan: ideaData.validationPlan,
-        market_analysis: ideaData.marketGapAnalysis,
-        // Note: marketGapScoringAnalysis not persisted yet
+        // Save the new scored market analysis format
+        market_analysis: ideaData.marketGapScoringAnalysis as any,
       });
 
       setTimeout(() => {
