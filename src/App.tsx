@@ -37,12 +37,12 @@ function AppContent() {
         {showHeader && <Header />}
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/idea" element={<Index />} />
-          <Route path="/competitors" element={<Index />} />
-          <Route path="/market-gaps" element={<Index />} />
-          <Route path="/features" element={<Index />} />
-          <Route path="/validation-plan" element={<Index />} />
-          <Route path="/summary" element={<Index />} />
+          <Route path="/idea/*" element={<Index />} />
+          <Route path="/competitors/*" element={<Index />} />
+          <Route path="/market-gaps/*" element={<Index />} />
+          <Route path="/features/*" element={<Index />} />
+          <Route path="/validation-plan/*" element={<Index />} />
+          <Route path="/summary/*" element={<Index />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />

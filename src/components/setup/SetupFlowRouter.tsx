@@ -42,9 +42,9 @@ const SetupFlowRouter: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/idea" replace />} />
+      <Route path="/" element={<Navigate to="idea" replace />} />
       <Route
-        path="/idea"
+        path="idea"
         element={
           <IdeaEntryPage
             initialIdea={ideaData.idea}
@@ -54,7 +54,7 @@ const SetupFlowRouter: React.FC = () => {
         }
       />
       <Route
-        path="/competitors"
+        path="competitors"
         element={
           <CompetitorDiscoveryPage
             idea={ideaData.idea}
@@ -64,7 +64,7 @@ const SetupFlowRouter: React.FC = () => {
         }
       />
       <Route
-        path="/market-gaps"
+        path="market-gaps"
         element={
           <MarketGapPage
             idea={ideaData.idea}
@@ -77,7 +77,7 @@ const SetupFlowRouter: React.FC = () => {
         }
       />
       <Route
-        path="/features"
+        path="features"
         element={
           <FeatureEntryPage
             ideaData={ideaData}
@@ -88,7 +88,7 @@ const SetupFlowRouter: React.FC = () => {
         }
       />
       <Route
-        path="/validation-plan"
+        path="validation-plan"
         element={
           <ValidationPlanPage
             ideaData={ideaData}
@@ -98,7 +98,7 @@ const SetupFlowRouter: React.FC = () => {
         }
       />
       <Route
-        path="/summary"
+        path="summary"
         element={
           <SummaryPage
             data={ideaData}
