@@ -128,7 +128,6 @@ const CompetitorDiscoveryPage: React.FC = () => {
           {showWelcomeState ? (
             <CompetitorWelcomeState
               onFindCompetitors={() => setShowDialog(true)}
-              onAddManually={addCompetitor}
               isLoading={isLoading}
             />
           ) : (
