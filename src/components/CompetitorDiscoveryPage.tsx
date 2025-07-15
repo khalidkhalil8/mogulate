@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,7 @@ const CompetitorDiscoveryPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
-  
+
   const {
     existingProject,
     projectTitle,
@@ -45,13 +44,7 @@ const CompetitorDiscoveryPage: React.FC = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
 
-  // Load existing competitors when component mounts or ideaData changes
   useEffect(() => {
-    console.log('CompetitorDiscoveryPage: Loading existing competitors', {
-      competitorsCount: ideaData.competitors?.length || 0,
-      hasIdea: !!ideaData.idea
-    });
-    
     if (ideaData.competitors && ideaData.competitors.length > 0) {
       setCompetitors(ideaData.competitors);
       setHasGenerated(true);
@@ -64,26 +57,21 @@ const CompetitorDiscoveryPage: React.FC = () => {
       return;
     }
 
-    console.log('CompetitorDiscoveryPage: Starting competitor discovery for idea:', ideaData.idea.substring(0, 100) + '...');
-    
     setIsLoading(true);
     setShowDialog(false);
-    
+
     try {
       const result = await fetchCompetitors(ideaData.idea);
-      
+
       if (result.competitors && result.competitors.length > 0) {
-        console.log('CompetitorDiscoveryPage: Successfully found competitors:', result.competitors.length);
         setCompetitors(result.competitors);
         setHasGenerated(true);
         toast.success(`Found ${result.competitors.length} competitors!`);
       } else {
-        console.warn('CompetitorDiscoveryPage: No competitors found');
-        toast.error('No competitors found. Please try with a different description or add competitors manually.');
+        toast.error('No competitors found. Try editing your idea or add them manually.');
       }
     } catch (error) {
-      console.error('CompetitorDiscoveryPage: Error during competitor discovery:', error);
-      toast.error('Failed to find competitors. Please try again or add them manually.');
+      toast.error('Failed to find competitors.');
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +89,7 @@ const CompetitorDiscoveryPage: React.FC = () => {
   };
 
   const updateCompetitor = (id: string, field: keyof Competitor, value: string) => {
-    setCompetitors(competitors.map(comp => 
+    setCompetitors(competitors.map(comp =>
       comp.id === id ? { ...comp, [field]: value } : comp
     ));
   };
@@ -112,34 +100,19 @@ const CompetitorDiscoveryPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('CompetitorDiscoveryPage: Submitting competitors:', competitors.length);
-    
     try {
       await handleCompetitorsSubmit(competitors);
-      
-      const nextUrl = projectId ? `/market-gaps?projectId=${projectId}` : '/market-gaps';
-      navigate(nextUrl);
     } catch (error) {
-      console.error('CompetitorDiscoveryPage: Error submitting competitors:', error);
-      toast.error('Failed to save competitors. Please try again.');
+      toast.error('Failed to save competitors');
     }
   };
 
   const handleBack = async () => {
-    console.log('CompetitorDiscoveryPage: Going back to idea page');
-    
     try {
-      // Save current competitors before going back
       await handleCompetitorsSubmit(competitors);
-      
-      const backUrl = projectId ? `/idea?projectId=${projectId}` : '/idea';
-      navigate(backUrl);
+      navigate(`/idea?projectId=${projectId}`);
     } catch (error) {
-      console.error('CompetitorDiscoveryPage: Error saving competitors on back:', error);
-      // Still allow navigation even if save fails
-      const backUrl = projectId ? `/idea?projectId=${projectId}` : '/idea';
-      navigate(backUrl);
+      navigate(`/idea?projectId=${projectId}`);
     }
   };
 
@@ -149,7 +122,7 @@ const CompetitorDiscoveryPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       <SetupNavigation />
-      
+
       <div className="p-6">
         <div className="max-w-6xl mx-auto">
           {showWelcomeState ? (
@@ -165,7 +138,7 @@ const CompetitorDiscoveryPage: React.FC = () => {
                   <div>
                     <h1 className="text-3xl font-bold mb-2">Your Competitors</h1>
                     <p className="text-gray-600">
-                      {hasGenerated 
+                      {hasGenerated
                         ? "Review and edit the competitors we found, or add your own."
                         : "Add competitors to understand your market landscape."
                       }
@@ -176,10 +149,10 @@ const CompetitorDiscoveryPage: React.FC = () => {
                       </p>
                     )}
                   </div>
-                  
+
                   {competitors.length > 0 && (
-                    <Button 
-                      type="button" 
+                    <Button
+                      type="button"
                       variant="outline"
                       onClick={() => setShowDialog(true)}
                       disabled={isLoading || !ideaData.idea}
@@ -198,18 +171,18 @@ const CompetitorDiscoveryPage: React.FC = () => {
               />
 
               <div className="flex justify-between pt-6">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={handleBack}
                   className="flex items-center gap-2"
                 >
                   <ArrowLeft size={18} />
                   <span>Back</span>
                 </Button>
-                
-                <Button 
-                  type="submit" 
+
+                <Button
+                  type="submit"
                   className="flex items-center gap-2"
                   disabled={!canProceed}
                 >
