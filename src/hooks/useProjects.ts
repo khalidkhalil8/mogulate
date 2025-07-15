@@ -29,15 +29,23 @@ export interface Project {
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, isLoading: authIsLoading } = useAuth();
 
   const fetchProjects = async () => {
+    // Don't fetch if auth is still loading
+    if (authIsLoading) {
+      console.log('useProjects: Auth is still loading, skipping fetch');
+      return;
+    }
+
     if (!user?.id) {
+      console.log('useProjects: No user found, setting loading to false');
       setIsLoading(false);
       return;
     }
 
     try {
+      console.log('useProjects: Fetching projects for user:', user.id);
       const { data, error } = await supabase
         .from('projects')
         .select('*')
@@ -58,6 +66,7 @@ export const useProjects = () => {
         market_analysis: item.market_analysis || undefined,
       }));
 
+      console.log('useProjects: Successfully fetched projects:', transformedData.length);
       setProjects(transformedData);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -179,8 +188,14 @@ export const useProjects = () => {
   };
 
   useEffect(() => {
+    console.log('useProjects: Effect triggered', { 
+      authIsLoading, 
+      userId: user?.id,
+      hasUser: !!user 
+    });
+    
     fetchProjects();
-  }, [user?.id]);
+  }, [user?.id, authIsLoading]);
 
   return {
     projects,
