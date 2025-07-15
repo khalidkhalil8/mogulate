@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +11,9 @@ import { useProjectData } from '@/hooks/useProjectData';
 import { useSetupHandlers } from '@/hooks/useSetupHandlers';
 
 const IdeaEntryPage: React.FC = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
-  
+
   const {
     existingProject,
     projectTitle,
@@ -40,25 +38,16 @@ const IdeaEntryPage: React.FC = () => {
 
   const [localTitle, setLocalTitle] = useState('');
   const [localIdea, setLocalIdea] = useState('');
-  
-  // Sync local state with loaded project data
+
   useEffect(() => {
-    console.log('IdeaEntryPage: Syncing with project data', {
-      projectTitle,
-      ideaDataIdea: ideaData.idea,
-      existingProjectId: existingProject?.id
-    });
-    
     if (projectTitle && projectTitle !== localTitle) {
       setLocalTitle(projectTitle);
     }
-    
     if (ideaData.idea && ideaData.idea !== localIdea) {
       setLocalIdea(ideaData.idea);
     }
   }, [projectTitle, ideaData.idea, existingProject]);
-  
-  // Also sync when component first mounts
+
   useEffect(() => {
     if (!localTitle && projectTitle) {
       setLocalTitle(projectTitle);
@@ -67,42 +56,32 @@ const IdeaEntryPage: React.FC = () => {
       setLocalIdea(ideaData.idea);
     }
   }, []);
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!localTitle.trim()) {
       toast.error('Please enter a project title');
       return;
     }
-    
+
     if (!localIdea.trim()) {
       toast.error('Please describe your project');
       return;
     }
 
-    console.log('IdeaEntryPage: Submitting idea', {
-      title: localTitle,
-      ideaLength: localIdea.length
-    });
-
     try {
-      // Submit the idea with title
       await handleIdeaSubmit(localIdea, localTitle);
-      
-      // Navigate to competitors page
-      const nextUrl = projectId ? `/competitors?projectId=${projectId}` : '/competitors';
-      navigate(nextUrl);
     } catch (error) {
       console.error('Error submitting idea:', error);
       toast.error('Failed to save your idea. Please try again.');
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-white">
       <SetupNavigation />
-      
+
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
@@ -114,7 +93,7 @@ const IdeaEntryPage: React.FC = () => {
               </p>
             )}
           </div>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="bg-white rounded-lg border p-6 space-y-6">
               <div className="space-y-2">
@@ -130,7 +109,7 @@ const IdeaEntryPage: React.FC = () => {
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="idea" className="text-sm font-medium">
                   Description
@@ -145,10 +124,10 @@ const IdeaEntryPage: React.FC = () => {
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-end">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="flex items-center gap-2"
                 disabled={!localTitle.trim() || !localIdea.trim()}
               >
