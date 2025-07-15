@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
@@ -8,7 +7,7 @@ import type { MarketGapScoringAnalysis } from '@/lib/api/marketGapsScoring';
 export const useProjectData = () => {
   const [searchParams] = useSearchParams();
   const { projects } = useProjects();
-  
+
   const projectId = searchParams.get('projectId');
   const existingProject = projects.find(p => p.id === projectId);
 
@@ -26,7 +25,6 @@ export const useProjectData = () => {
 
   useEffect(() => {
     if (existingProject) {
-      // Parse market analysis from database
       let marketGapScoringAnalysis: MarketGapScoringAnalysis | undefined;
       if (existingProject.market_analysis) {
         try {
@@ -36,17 +34,17 @@ export const useProjectData = () => {
         }
       }
 
-      setIdeaData({
+      setProjectTitle(existingProject.title || '');
+      setIdeaData(prev => ({
         idea: existingProject.idea || '',
         competitors: existingProject.competitors || [],
-        marketGaps: '', // No longer stored separately
+        marketGaps: '',
         features: existingProject.features || [],
         validationPlan: existingProject.validation_plan || [],
-        marketGapAnalysis: undefined, // Legacy format no longer used
+        marketGapAnalysis: undefined,
         marketGapScoringAnalysis,
-      });
-      setProjectTitle(existingProject.title || '');
-      setSelectedGapIndex(undefined); // No longer persisted
+      }));
+      setSelectedGapIndex(undefined);
     }
   }, [existingProject]);
 
