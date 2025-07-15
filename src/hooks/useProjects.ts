@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/sonner';
@@ -30,6 +29,8 @@ export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, isLoading: authIsLoading } = useAuth();
+  const clearTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasInitiallyLoaded = useRef(false);
 
   const fetchProjects = async () => {
     // Don't fetch if auth is still loading
@@ -39,9 +40,39 @@ export const useProjects = () => {
     }
 
     if (!user?.id) {
-      console.log('useProjects: No user found, setting loading to false');
-      setIsLoading(false);
-      return;
+      console.log('useProjects: No user found');
+      
+      // If we've already loaded projects once and user becomes undefined,
+      // wait a moment before clearing (could be token refresh)
+      if (hasInitiallyLoaded.current) {
+        console.log('useProjects: User undefined after initial load, waiting before clearing...');
+        
+        // Clear any existing timeout
+        if (clearTimeoutRef.current) {
+          clearTimeout(clearTimeoutRef.current);
+        }
+        
+        // Set a timeout to clear projects if user doesn't return
+        clearTimeoutRef.current = setTimeout(() => {
+          console.log('useProjects: Timeout reached, clearing projects');
+          setProjects([]);
+          setIsLoading(false);
+        }, 1000); // Wait 1 second before clearing
+        
+        return;
+      } else {
+        // First time load with no user - set loading to false immediately
+        console.log('useProjects: No user on initial load, setting loading to false');
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Clear any pending clear timeout since we have a user
+    if (clearTimeoutRef.current) {
+      console.log('useProjects: User found, clearing timeout');
+      clearTimeout(clearTimeoutRef.current);
+      clearTimeoutRef.current = null;
     }
 
     try {
@@ -68,6 +99,7 @@ export const useProjects = () => {
 
       console.log('useProjects: Successfully fetched projects:', transformedData.length);
       setProjects(transformedData);
+      hasInitiallyLoaded.current = true;
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast.error('Failed to load projects');
@@ -195,6 +227,13 @@ export const useProjects = () => {
     });
     
     fetchProjects();
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (clearTimeoutRef.current) {
+        clearTimeout(clearTimeoutRef.current);
+      }
+    };
   }, [user?.id, authIsLoading]);
 
   return {
