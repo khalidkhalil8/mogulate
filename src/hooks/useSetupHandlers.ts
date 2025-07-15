@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useProjects } from '@/hooks/useProjects';
@@ -30,56 +29,93 @@ export const useSetupHandlers = ({
   const { createProject, updateProject } = useProjects();
 
   const handleIdeaSubmit = async (idea: string, title: string) => {
-    setIdeaData(prev => ({ ...prev, idea }));
-    setProjectTitle(title);
-    navigate('/competitors');
+    try {
+      let currentProjectId = projectId;
+
+      if (!currentProjectId) {
+        const newProject = await createProject(title, idea);
+        if (!newProject) throw new Error('Project creation failed');
+        currentProjectId = newProject.id;
+      } else {
+        await updateProject(currentProjectId, {
+          title,
+          idea,
+        });
+      }
+
+      setProjectTitle(title);
+      setIdeaData(prev => ({ ...prev, idea }));
+
+      navigate(`/competitors?projectId=${currentProjectId}`);
+    } catch (error) {
+      console.error('handleIdeaSubmit error:', error);
+      toast.error('Failed to save idea');
+    }
   };
 
   const handleCompetitorsSubmit = async (competitors: Competitor[]) => {
-    setIdeaData(prev => ({ ...prev, competitors }));
-    navigate('/market-gaps');
+    try {
+      setIdeaData(prev => ({ ...prev, competitors }));
+
+      if (projectId) {
+        await updateProject(projectId, { competitors });
+      }
+
+      navigate(`/market-gaps?projectId=${projectId}`);
+    } catch (error) {
+      console.error('handleCompetitorsSubmit error:', error);
+      toast.error('Failed to save competitors');
+    }
   };
 
   const handleMarketGapsSubmit = async (
-    marketGaps: string, 
-    analysis: MarketGapAnalysis | undefined, 
+    marketGaps: string,
+    analysis: MarketGapAnalysis | undefined,
     scoringAnalysis?: MarketGapScoringAnalysis,
     selectedIndex?: number
   ) => {
-    setIdeaData(prev => ({ 
-      ...prev, 
-      marketGaps, 
-      marketGapAnalysis: analysis, 
-      marketGapScoringAnalysis: scoringAnalysis 
+    setIdeaData(prev => ({
+      ...prev,
+      marketGaps,
+      marketGapAnalysis: analysis,
+      marketGapScoringAnalysis: scoringAnalysis,
     }));
-    
+
     if (selectedIndex !== undefined) {
       setSelectedGapIndex(selectedIndex);
     }
 
-    // Save to database immediately if we have projectId and scoringAnalysis
     if (projectId && scoringAnalysis && user?.id) {
       try {
         await updateProject(projectId, {
-          market_analysis: scoringAnalysis as any
+          market_analysis: scoringAnalysis as any,
         });
-        console.log('Market analysis saved to database in handleMarketGapsSubmit');
       } catch (error) {
-        console.error('Error saving market analysis in handleMarketGapsSubmit:', error);
+        console.error('Error saving market analysis:', error);
       }
     }
-    
-    navigate('/features');
+
+    navigate(`/features?projectId=${projectId}`);
   };
 
   const handleFeaturesSubmit = async (features: Feature[]) => {
     setIdeaData(prev => ({ ...prev, features }));
-    navigate('/validation-plan');
+
+    if (projectId) {
+      await updateProject(projectId, { features });
+    }
+
+    navigate(`/validation-plan?projectId=${projectId}`);
   };
 
   const handleValidationPlanSubmit = async (validationPlan: any) => {
     setIdeaData(prev => ({ ...prev, validationPlan }));
-    navigate('/summary');
+
+    if (projectId) {
+      await updateProject(projectId, { validation_plan: validationPlan });
+    }
+
+    navigate(`/summary?projectId=${projectId}`);
   };
 
   const handleSaveProject = async () => {
@@ -90,28 +126,23 @@ export const useSetupHandlers = ({
 
     try {
       let currentProjectId = projectId;
-      
-      // Create new project if we don't have one
+
       if (!currentProjectId) {
         const newProject = await createProject(projectTitle, ideaData.idea);
         if (!newProject) throw new Error('Project creation failed');
         currentProjectId = newProject.id;
       }
 
-      // Update project with all data
       await updateProject(currentProjectId, {
         competitors: ideaData.competitors,
         features: ideaData.features,
         validation_plan: ideaData.validationPlan,
-        // Save the new scored market analysis format
         market_analysis: ideaData.marketGapScoringAnalysis as any,
       });
 
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
+      navigate('/dashboard');
     } catch (error) {
-      toast.error('Failed to save project. Please try again.');
+      toast.error('Failed to save project');
     }
   };
 
