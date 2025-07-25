@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Lock } from 'lucide-react';
 
 interface IdeaSummaryCardProps {
@@ -15,7 +16,16 @@ const IdeaSummaryCard: React.FC<IdeaSummaryCardProps> = ({ idea, isLocked = true
         <CardTitle className="flex items-center gap-2">
           Core Idea
           {isLocked && (
-            <Lock className="h-4 w-4 text-gray-500" title="This idea is locked to maintain project consistency" />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Lock className="h-4 w-4 text-gray-500" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>This idea is locked to maintain project consistency</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </CardTitle>
       </CardHeader>
