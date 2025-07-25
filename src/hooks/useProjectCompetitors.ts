@@ -19,7 +19,7 @@ export const useProjectCompetitors = (projectId: string) => {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('competitors')
+        .select('project_competitors')
         .eq('id', projectId)
         .eq('user_id', user.id)
         .single();
@@ -31,7 +31,7 @@ export const useProjectCompetitors = (projectId: string) => {
       }
 
       // Safely parse the Json data as Competitor[]
-      const competitorsData = Array.isArray(data?.competitors) ? data.competitors as Competitor[] : [];
+      const competitorsData = Array.isArray(data?.project_competitors) ? data.project_competitors as Competitor[] : [];
       setCompetitors(competitorsData);
     } catch (error) {
       console.error('Error fetching competitors:', error);
@@ -51,7 +51,7 @@ export const useProjectCompetitors = (projectId: string) => {
       const { error } = await supabase
         .from('projects')
         .update({
-          competitors: updatedCompetitors as any, // Cast to any to satisfy Json type
+          project_competitors: updatedCompetitors as any, // Cast to any to satisfy Json type
           updated_at: new Date().toISOString(),
         })
         .eq('id', projectId)

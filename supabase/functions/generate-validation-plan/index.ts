@@ -1,3 +1,4 @@
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
@@ -25,7 +26,7 @@ serve(async (req) => {
       // Existing project flow - fetch from database
       const { data: project, error } = await supabase
         .from('projects')
-        .select('id, idea, market_gap_analysis, features')
+        .select('id, idea, market_analysis, project_features')
         .eq('id', project_id)
         .single();
 
@@ -37,8 +38,8 @@ serve(async (req) => {
       }
 
       projectIdea = project.idea;
-      projectFeatures = project.features;
-      const selected = project.market_gap_analysis?.selected;
+      projectFeatures = project.project_features;
+      const selected = project.market_analysis?.selected;
       projectPositioning = selected?.positioningSuggestion;
     } else {
       // Initial setup flow - use provided data
@@ -158,7 +159,7 @@ Only return the JSON, no commentary or markdown.
 
       const { error: updateError } = await supabase
         .from('projects')
-        .update({ validation_plan: validationPlan })
+        .update({ project_validation_steps: validationPlan })
         .eq('id', project_id);
 
       if (updateError) {

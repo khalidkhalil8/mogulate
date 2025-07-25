@@ -18,9 +18,9 @@ export interface Project {
   user_id: string;
   title: string;
   idea?: string;
-  competitors?: any[];
-  features?: any[];
-  validation_plan?: ValidationStep[];
+  project_competitors?: any[];
+  project_features?: any[];
+  project_validation_steps?: ValidationStep[];
   market_analysis?: any;
   created_at: string;
   updated_at: string;
@@ -107,9 +107,9 @@ export const useProjects = () => {
 
       const transformedData: Project[] = (data || []).map(item => ({
         ...item,
-        competitors: Array.isArray(item.competitors) ? item.competitors : [],
-        features: Array.isArray(item.features) ? item.features : [],
-        validation_plan: Array.isArray(item.validation_plan) ? item.validation_plan as ValidationStep[] : [],
+        project_competitors: Array.isArray(item.project_competitors) ? item.project_competitors : [],
+        project_features: Array.isArray(item.project_features) ? item.project_features : [],
+        project_validation_steps: Array.isArray(item.project_validation_steps) ? item.project_validation_steps as ValidationStep[] : [],
         market_analysis: item.market_analysis || undefined,
       }));
 
@@ -137,8 +137,8 @@ export const useProjects = () => {
           user_id: user.id,
           title,
           idea: idea || '',
-          features: [],
-          competitors: [],
+          project_features: [],
+          project_competitors: [],
         })
         .select()
         .single();
@@ -151,9 +151,9 @@ export const useProjects = () => {
 
       const transformedProject: Project = {
         ...data,
-        competitors: Array.isArray(data.competitors) ? data.competitors : [],
-        features: Array.isArray(data.features) ? data.features : [],
-        validation_plan: Array.isArray(data.validation_plan) ? data.validation_plan as ValidationStep[] : [],
+        project_competitors: Array.isArray(data.project_competitors) ? data.project_competitors : [],
+        project_features: Array.isArray(data.project_features) ? data.project_features : [],
+        project_validation_steps: Array.isArray(data.project_validation_steps) ? data.project_validation_steps as ValidationStep[] : [],
         market_analysis: data.market_analysis || undefined,
       };
 
@@ -178,9 +178,9 @@ export const useProjects = () => {
         updated_at: new Date().toISOString(),
       };
       
-      // Convert validation_plan to proper JSON format
-      if (updates.validation_plan) {
-        updateData.validation_plan = updates.validation_plan as any;
+      // Convert validation steps to proper JSON format
+      if (updates.project_validation_steps) {
+        updateData.project_validation_steps = updates.project_validation_steps as any;
       }
 
       const { data, error } = await supabase
@@ -199,9 +199,9 @@ export const useProjects = () => {
 
       const transformedProject: Project = {
         ...data,
-        competitors: Array.isArray(data.competitors) ? data.competitors : [],
-        features: Array.isArray(data.features) ? data.features : [],
-        validation_plan: Array.isArray(data.validation_plan) ? data.validation_plan as ValidationStep[] : [],
+        project_competitors: Array.isArray(data.project_competitors) ? data.project_competitors : [],
+        project_features: Array.isArray(data.project_features) ? data.project_features : [],
+        project_validation_steps: Array.isArray(data.project_validation_steps) ? data.project_validation_steps as ValidationStep[] : [],
         market_analysis: data.market_analysis || undefined,
       };
 

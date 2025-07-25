@@ -26,7 +26,7 @@ export const useProjectValidationPlan = (projectId: string) => {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('validation_plan')
+        .select('project_validation_steps')
         .eq('id', projectId)
         .eq('user_id', user.id)
         .single();
@@ -37,7 +37,7 @@ export const useProjectValidationPlan = (projectId: string) => {
         return;
       }
 
-      const planData = data?.validation_plan;
+      const planData = data?.project_validation_steps;
       if (Array.isArray(planData)) {
         setValidationPlan(planData as unknown as ValidationStep[]);
       } else {
@@ -61,7 +61,7 @@ export const useProjectValidationPlan = (projectId: string) => {
       const { error } = await supabase
         .from('projects')
         .update({
-          validation_plan: plan as any,
+          project_validation_steps: plan as any,
           updated_at: new Date().toISOString(),
         })
         .eq('id', projectId)
