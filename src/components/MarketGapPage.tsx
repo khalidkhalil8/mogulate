@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import LoadingState from './ui/LoadingState';
 import { analyzeMarketGapsWithScoring } from '@/lib/api/marketGapsScoring';
@@ -41,30 +41,52 @@ const MarketGapPage: React.FC = () => {
     projectId,
   });
 
-  const [scoringAnalysis, setScoringAnalysis] = useState<MarketGapScoringAnalysis | undefined>(ideaData.marketGapScoringAnalysis);
-  const [localSelectedGapIndex, setLocalSelectedGapIndex] = useState<number | undefined>(selectedGapIndex);
+  const [scoringAnalysis, setScoringAnalysis] = useState<MarketGapScoringAnalysis | undefined>();
+  const [localSelectedGapIndex, setLocalSelectedGapIndex] = useState<number | undefined>();
   const [isLoading, setIsLoading] = useState(false);
-  const [hasRunAnalysis, setHasRunAnalysis] = useState(!!ideaData.marketGapScoringAnalysis);
+  const [hasRunAnalysis, setHasRunAnalysis] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { updateProject } = useProjects();
+
+  // Load existing market analysis data
+  useEffect(() => {
+    if (ideaData.marketGapScoringAnalysis) {
+      console.log('MarketGapPage: Loading existing market analysis');
+      setScoringAnalysis(ideaData.marketGapScoringAnalysis);
+      setHasRunAnalysis(true);
+    }
+    
+    if (selectedGapIndex !== undefined) {
+      setLocalSelectedGapIndex(selectedGapIndex);
+    }
+  }, [ideaData.marketGapScoringAnalysis, selectedGapIndex]);
   
   const handleRunAnalysis = async () => {
     setIsLoading(true);
     try {
+      console.log('MarketGapPage: Running market analysis');
       const result = await analyzeMarketGapsWithScoring(ideaData.idea, ideaData.competitors);
+      
       if (result.success && result.analysis) {
         setScoringAnalysis(result.analysis);
         setHasRunAnalysis(true);
         
+        // Update local state
+        setIdeaData(prev => ({
+          ...prev,
+          marketGapScoringAnalysis: result.analysis
+        }));
+        
+        // Save to database immediately
         if (projectId && user?.id) {
           try {
             await updateProject(projectId, {
               market_analysis: result.analysis as any
             });
-            console.log('Market analysis saved to database successfully');
+            console.log('MarketGapPage: Market analysis saved to database');
           } catch (error) {
-            console.error('Error saving market analysis to database:', error);
+            console.error('MarketGapPage: Error saving market analysis:', error);
           }
         }
         
@@ -73,6 +95,7 @@ const MarketGapPage: React.FC = () => {
         toast.error(result.error || "Failed to generate analysis");
       }
     } catch (error) {
+      console.error('MarketGapPage: Error running analysis:', error);
       toast.error("Failed to generate analysis");
     } finally {
       setIsLoading(false);
@@ -89,13 +112,16 @@ const MarketGapPage: React.FC = () => {
       return;
     }
     
+    console.log('MarketGapPage: Proceeding with selected gap index:', localSelectedGapIndex);
     handleMarketGapsSubmit(ideaData.marketGaps || '', ideaData.marketGapAnalysis, scoringAnalysis, localSelectedGapIndex);
-    navigate('/features');
   };
 
   const handleBack = () => {
-    handleMarketGapsSubmit(ideaData.marketGaps || '', ideaData.marketGapAnalysis, scoringAnalysis, localSelectedGapIndex);
-    navigate('/competitors');
+    // Save current state before navigating back
+    if (scoringAnalysis) {
+      handleMarketGapsSubmit(ideaData.marketGaps || '', ideaData.marketGapAnalysis, scoringAnalysis, localSelectedGapIndex);
+    }
+    navigate(`/competitors?projectId=${projectId}`);
   };
   
   return (

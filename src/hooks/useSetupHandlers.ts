@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useProjects } from '@/hooks/useProjects';
@@ -74,48 +75,59 @@ export const useSetupHandlers = ({
     scoringAnalysis?: MarketGapScoringAnalysis,
     selectedIndex?: number
   ) => {
-    setIdeaData(prev => ({
-      ...prev,
-      marketGaps,
-      marketGapAnalysis: analysis,
-      marketGapScoringAnalysis: scoringAnalysis,
-    }));
+    try {
+      setIdeaData(prev => ({
+        ...prev,
+        marketGaps,
+        marketGapAnalysis: analysis,
+        marketGapScoringAnalysis: scoringAnalysis,
+      }));
 
-    if (selectedIndex !== undefined) {
-      setSelectedGapIndex(selectedIndex);
-    }
+      if (selectedIndex !== undefined) {
+        setSelectedGapIndex(selectedIndex);
+      }
 
-    if (projectId && scoringAnalysis && user?.id) {
-      try {
+      if (projectId && scoringAnalysis && user?.id) {
         await updateProject(projectId, {
           market_analysis: scoringAnalysis as any,
         });
-      } catch (error) {
-        console.error('Error saving market analysis:', error);
       }
-    }
 
-    navigate(`/features?projectId=${projectId}`);
+      navigate(`/features?projectId=${projectId}`);
+    } catch (error) {
+      console.error('handleMarketGapsSubmit error:', error);
+      toast.error('Failed to save market analysis');
+    }
   };
 
   const handleFeaturesSubmit = async (features: Feature[]) => {
-    setIdeaData(prev => ({ ...prev, features }));
+    try {
+      setIdeaData(prev => ({ ...prev, features }));
 
-    if (projectId) {
-      await updateProject(projectId, { features });
+      if (projectId) {
+        await updateProject(projectId, { features });
+      }
+
+      navigate(`/validation-plan?projectId=${projectId}`);
+    } catch (error) {
+      console.error('handleFeaturesSubmit error:', error);
+      toast.error('Failed to save features');
     }
-
-    navigate(`/validation-plan?projectId=${projectId}`);
   };
 
   const handleValidationPlanSubmit = async (validationPlan: any) => {
-    setIdeaData(prev => ({ ...prev, validationPlan }));
+    try {
+      setIdeaData(prev => ({ ...prev, validationPlan }));
 
-    if (projectId) {
-      await updateProject(projectId, { validation_plan: validationPlan });
+      if (projectId) {
+        await updateProject(projectId, { validation_plan: validationPlan });
+      }
+
+      navigate(`/summary?projectId=${projectId}`);
+    } catch (error) {
+      console.error('handleValidationPlanSubmit error:', error);
+      toast.error('Failed to save validation plan');
     }
-
-    navigate(`/summary?projectId=${projectId}`);
   };
 
   const handleSaveProject = async () => {
@@ -133,7 +145,10 @@ export const useSetupHandlers = ({
         currentProjectId = newProject.id;
       }
 
+      // Save all data in final submission
       await updateProject(currentProjectId, {
+        title: projectTitle,
+        idea: ideaData.idea,
         competitors: ideaData.competitors,
         features: ideaData.features,
         validation_plan: ideaData.validationPlan,
@@ -142,6 +157,7 @@ export const useSetupHandlers = ({
 
       navigate('/dashboard');
     } catch (error) {
+      console.error('handleSaveProject error:', error);
       toast.error('Failed to save project');
     }
   };

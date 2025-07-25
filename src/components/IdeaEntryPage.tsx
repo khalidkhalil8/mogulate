@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -39,23 +40,24 @@ const IdeaEntryPage: React.FC = () => {
   const [localTitle, setLocalTitle] = useState('');
   const [localIdea, setLocalIdea] = useState('');
 
+  // Load data from existing project when available
   useEffect(() => {
-    if (projectTitle && projectTitle !== localTitle) {
-      setLocalTitle(projectTitle);
+    if (existingProject) {
+      console.log('IdeaEntryPage: Loading existing project data');
+      setLocalTitle(existingProject.title || '');
+      setLocalIdea(existingProject.idea || '');
     }
-    if (ideaData.idea && ideaData.idea !== localIdea) {
-      setLocalIdea(ideaData.idea);
-    }
-  }, [projectTitle, ideaData.idea, existingProject]);
+  }, [existingProject]);
 
+  // Sync with project data updates
   useEffect(() => {
-    if (!localTitle && projectTitle) {
+    if (projectTitle && projectTitle !== localTitle && !existingProject) {
       setLocalTitle(projectTitle);
     }
-    if (!localIdea && ideaData.idea) {
+    if (ideaData.idea && ideaData.idea !== localIdea && !existingProject) {
       setLocalIdea(ideaData.idea);
     }
-  }, []);
+  }, [projectTitle, ideaData.idea, localTitle, localIdea, existingProject]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +73,7 @@ const IdeaEntryPage: React.FC = () => {
     }
 
     try {
+      console.log('IdeaEntryPage: Submitting idea with title:', localTitle);
       await handleIdeaSubmit(localIdea, localTitle);
     } catch (error) {
       console.error('Error submitting idea:', error);

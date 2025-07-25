@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
@@ -25,28 +26,56 @@ export const useProjectData = () => {
 
   useEffect(() => {
     if (existingProject) {
+      console.log('useProjectData: Loading existing project data:', existingProject);
+      
       let marketGapScoringAnalysis: MarketGapScoringAnalysis | undefined;
       if (existingProject.market_analysis) {
         try {
           marketGapScoringAnalysis = existingProject.market_analysis as MarketGapScoringAnalysis;
+          console.log('useProjectData: Loaded market analysis:', marketGapScoringAnalysis);
         } catch (error) {
           console.error('Error parsing market analysis:', error);
         }
       }
 
+      // Set project title
       setProjectTitle(existingProject.title || '');
+
+      // Set all idea data from the existing project
       setIdeaData(prev => ({
         idea: existingProject.idea || '',
-        competitors: existingProject.competitors || [],
-        marketGaps: '',
-        features: existingProject.features || [],
-        validationPlan: existingProject.validation_plan || [],
-        marketGapAnalysis: undefined,
+        competitors: Array.isArray(existingProject.competitors) ? existingProject.competitors : [],
+        marketGaps: '', // This field is legacy, not used in new format
+        features: Array.isArray(existingProject.features) ? existingProject.features : [],
+        validationPlan: Array.isArray(existingProject.validation_plan) ? existingProject.validation_plan : [],
+        marketGapAnalysis: undefined, // Legacy field
         marketGapScoringAnalysis,
       }));
+
+      // Reset selected gap index when loading existing project
       setSelectedGapIndex(undefined);
+
+      console.log('useProjectData: Fully loaded project data');
+    } else {
+      console.log('useProjectData: No existing project found, using empty state');
     }
   }, [existingProject]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('useProjectData: Current state:', {
+      projectId,
+      projectTitle,
+      selectedGapIndex,
+      ideaDataSummary: {
+        idea: ideaData.idea ? 'present' : 'empty',
+        competitors: ideaData.competitors.length,
+        features: ideaData.features.length,
+        validationPlan: ideaData.validationPlan.length,
+        hasMarketAnalysis: !!ideaData.marketGapScoringAnalysis,
+      }
+    });
+  }, [projectId, projectTitle, selectedGapIndex, ideaData]);
 
   return {
     projectId,
