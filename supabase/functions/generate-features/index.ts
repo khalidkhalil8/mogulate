@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
@@ -29,7 +30,7 @@ serve(async (req) => {
 
       const { data: project, error } = await supabase
         .from('projects')
-        .select('id, idea, market_gap_analysis, selected_gap_index')
+        .select('id, idea, market_analysis')
         .eq('id', project_id)
         .single();
 
@@ -43,11 +44,15 @@ serve(async (req) => {
 
       projectIdea = project.idea;
       
-      // Get the selected positioning suggestion
-      if (project.market_gap_analysis?.marketGaps && project.selected_gap_index !== null && project.selected_gap_index !== undefined) {
-        const selectedGap = project.market_gap_analysis.marketGaps[project.selected_gap_index];
-        if (selectedGap?.positioningSuggestion) {
-          projectPositioning = selectedGap.positioningSuggestion;
+      // Get the positioning suggestion from market_analysis
+      if (project.market_analysis?.marketGaps && Array.isArray(project.market_analysis.marketGaps)) {
+        // Find the highest scored gap or use the first one
+        const marketGaps = project.market_analysis.marketGaps;
+        const bestGap = marketGaps.reduce((best, current) => 
+          current.score > best.score ? current : best
+        );
+        if (bestGap?.positioningSuggestion) {
+          projectPositioning = bestGap.positioningSuggestion;
         }
       }
     }
