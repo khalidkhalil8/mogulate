@@ -59,7 +59,7 @@ export const useSetupHandlers = ({
       setIdeaData(prev => ({ ...prev, competitors }));
 
       if (projectId) {
-        await updateProject(projectId, { competitors });
+        await updateProject(projectId, { project_competitors: competitors });
       }
 
       navigate(`/market-gaps?projectId=${projectId}`);
@@ -105,7 +105,7 @@ export const useSetupHandlers = ({
       setIdeaData(prev => ({ ...prev, features }));
 
       if (projectId) {
-        await updateProject(projectId, { features });
+        await updateProject(projectId, { project_features: features });
       }
 
       navigate(`/validation-plan?projectId=${projectId}`);
@@ -120,7 +120,7 @@ export const useSetupHandlers = ({
       setIdeaData(prev => ({ ...prev, validationPlan }));
 
       if (projectId) {
-        await updateProject(projectId, { validation_plan: validationPlan });
+        await updateProject(projectId, { project_validation_steps: validationPlan });
       }
 
       navigate(`/summary?projectId=${projectId}`);
@@ -149,9 +149,9 @@ export const useSetupHandlers = ({
       await updateProject(currentProjectId, {
         title: projectTitle,
         idea: ideaData.idea,
-        competitors: ideaData.competitors,
-        features: ideaData.features,
-        validation_plan: ideaData.validationPlan,
+        project_competitors: ideaData.competitors,
+        project_features: ideaData.features,
+        project_validation_steps: ideaData.validationPlan,
         market_analysis: ideaData.marketGapScoringAnalysis as any,
       });
 
