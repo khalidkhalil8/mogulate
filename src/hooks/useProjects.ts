@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -31,6 +32,7 @@ export const useProjects = () => {
   const { user, isLoading: authIsLoading } = useAuth();
   const clearTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasInitiallyLoaded = useRef(false);
+  const lastUserId = useRef<string | null>(null);
 
   const fetchProjects = async () => {
     // Don't fetch if auth is still loading
@@ -39,12 +41,20 @@ export const useProjects = () => {
       return;
     }
 
-    if (!user?.id) {
+    const currentUserId = user?.id || null;
+
+    // If user ID hasn't changed and we've already loaded, skip refetch
+    if (currentUserId === lastUserId.current && hasInitiallyLoaded.current) {
+      console.log('useProjects: User ID unchanged, skipping refetch');
+      return;
+    }
+
+    if (!currentUserId) {
       console.log('useProjects: No user found');
       
       // If we've already loaded projects once and user becomes undefined,
       // wait a moment before clearing (could be token refresh)
-      if (hasInitiallyLoaded.current) {
+      if (hasInitiallyLoaded.current && lastUserId.current) {
         console.log('useProjects: User undefined after initial load, waiting before clearing...');
         
         // Clear any existing timeout
@@ -57,13 +67,16 @@ export const useProjects = () => {
           console.log('useProjects: Timeout reached, clearing projects');
           setProjects([]);
           setIsLoading(false);
+          lastUserId.current = null;
         }, 1000); // Wait 1 second before clearing
         
         return;
       } else {
         // First time load with no user - set loading to false immediately
         console.log('useProjects: No user on initial load, setting loading to false');
+        setProjects([]);
         setIsLoading(false);
+        lastUserId.current = null;
         return;
       }
     }
@@ -75,12 +88,15 @@ export const useProjects = () => {
       clearTimeoutRef.current = null;
     }
 
+    // Update the last user ID
+    lastUserId.current = currentUserId;
+
     try {
-      console.log('useProjects: Fetching projects for user:', user.id);
+      console.log('useProjects: Fetching projects for user:', currentUserId);
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', currentUserId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -223,7 +239,8 @@ export const useProjects = () => {
     console.log('useProjects: Effect triggered', { 
       authIsLoading, 
       userId: user?.id,
-      hasUser: !!user 
+      hasUser: !!user,
+      lastUserId: lastUserId.current
     });
     
     fetchProjects();
