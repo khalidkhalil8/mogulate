@@ -20,7 +20,7 @@ const FeaturesPage = () => {
   const [editingFeature, setEditingFeature] = useState<Feature | undefined>();
   
   const project = projects.find(p => p.id === id);
-  const features = project?.project_features || [];
+  const features = project?.features || [];
 
   useEffect(() => {
     if (!isLoading && !project) {
@@ -74,13 +74,13 @@ const FeaturesPage = () => {
       updatedFeatures = [...features, newFeature];
     }
 
-    await updateProject(project.id, { project_features: updatedFeatures });
+    await updateProject(project.id, { features: updatedFeatures });
   };
 
   const handleDeleteFeature = async (featureId: string) => {
     if (confirm('Are you sure you want to delete this feature?')) {
       const updatedFeatures = features.filter(f => f.id !== featureId);
-      await updateProject(project.id, { project_features: updatedFeatures });
+      await updateProject(project.id, { features: updatedFeatures });
     }
   };
 

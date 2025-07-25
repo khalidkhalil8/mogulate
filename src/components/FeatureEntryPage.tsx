@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
@@ -46,8 +47,8 @@ const FeatureEntryPage: React.FC = () => {
   });
   
   const [features, setFeatures] = useState<LocalFeature[]>(
-    project?.project_features && project.project_features.length > 0 
-      ? project.project_features.map(f => ({
+    project?.features && project.features.length > 0 
+      ? project.features.map(f => ({
           id: f.id,
           title: f.title,
           description: f.description,
@@ -68,8 +69,8 @@ const FeatureEntryPage: React.FC = () => {
   
   // Update features when project data loads
   useEffect(() => {
-    if (project?.project_features && project.project_features.length > 0) {
-      setFeatures(project.project_features.map(f => ({
+    if (project?.features && project.features.length > 0) {
+      setFeatures(project.features.map(f => ({
         id: f.id,
         title: f.title,
         description: f.description,
@@ -174,7 +175,7 @@ const FeatureEntryPage: React.FC = () => {
     }));
     
     if (projectId && project) {
-      await updateProject(projectId, { project_features: fullFeatures });
+      await updateProject(projectId, { features: fullFeatures });
     }
     
     handleFeaturesSubmit(fullFeatures);
@@ -193,7 +194,7 @@ const FeatureEntryPage: React.FC = () => {
     }));
     
     if (projectId && project) {
-      await updateProject(projectId, { project_features: fullFeatures });
+      await updateProject(projectId, { features: fullFeatures });
     }
     
     handleFeaturesSubmit(fullFeatures);

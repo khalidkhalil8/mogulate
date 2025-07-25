@@ -44,10 +44,10 @@ export const useProjectData = () => {
       // Set all idea data from the existing project
       setIdeaData(prev => ({
         idea: existingProject.idea || '',
-        competitors: Array.isArray(existingProject.project_competitors) ? existingProject.project_competitors : [],
+        competitors: Array.isArray(existingProject.competitors) ? existingProject.competitors : [],
         marketGaps: '', // This field is legacy, not used in new format
-        features: Array.isArray(existingProject.project_features) ? existingProject.project_features : [],
-        validationPlan: Array.isArray(existingProject.project_validation_steps) ? existingProject.project_validation_steps : [],
+        features: Array.isArray(existingProject.features) ? existingProject.features : [],
+        validationPlan: Array.isArray(existingProject.validation_plan) ? existingProject.validation_plan : [],
         marketGapAnalysis: undefined, // Legacy field
         marketGapScoringAnalysis,
       }));

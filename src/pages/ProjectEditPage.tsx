@@ -40,13 +40,13 @@ const ProjectEditPage = () => {
       title: 'Features',
       icon: List,
       onClick: () => navigate(`/project/${project.id}/features`),
-      preview: `${project.project_features?.length || 0} features added`,
+      preview: `${project.features?.length || 0} features added`,
     },
     {
       title: 'Competitors',
       icon: Users,
       onClick: () => navigate(`/project/${project.id}/competitors`),
-      preview: `${project.project_competitors?.length || 0} competitors tracked`,
+      preview: `${project.competitors?.length || 0} competitors tracked`,
     },
     {
       title: 'Market Analysis',
@@ -58,7 +58,7 @@ const ProjectEditPage = () => {
       title: 'Validation Plan',
       icon: CheckSquare,
       onClick: () => navigate(`/project/${project.id}/validation-plan`),
-      preview: project.project_validation_steps ? 'Plan available' : 'Not started',
+      preview: project.validation_plan ? 'Plan available' : 'Not started',
     },
     {
       title: 'Feedback Tracking',
