@@ -49,7 +49,14 @@ const ValidationPlanPage: React.FC = () => {
 
   // Get the positioning suggestion from market analysis
   const getPositioningSuggestion = () => {
-    if (!ideaData.marketGapScoringAnalysis?.marketGaps) {
+    console.log('ValidationPlanPage: Getting positioning suggestion', {
+      hasMarketAnalysis: !!ideaData.marketGapScoringAnalysis,
+      selectedGapIndex,
+      marketGapsCount: ideaData.marketGapScoringAnalysis?.marketGaps?.length || 0
+    });
+
+    if (!ideaData.marketGapScoringAnalysis?.marketGaps || ideaData.marketGapScoringAnalysis.marketGaps.length === 0) {
+      console.log('ValidationPlanPage: No market gaps available');
       return null;
     }
 
@@ -57,6 +64,7 @@ const ValidationPlanPage: React.FC = () => {
     
     // If a specific gap is selected, use that
     if (selectedGapIndex !== undefined && marketGaps[selectedGapIndex]) {
+      console.log('ValidationPlanPage: Using selected gap at index', selectedGapIndex);
       return marketGaps[selectedGapIndex].positioningSuggestion;
     }
     
@@ -65,13 +73,22 @@ const ValidationPlanPage: React.FC = () => {
       current.score > best.score ? current : best
     );
     
+    console.log('ValidationPlanPage: Using best gap with score', bestGap?.score);
     return bestGap?.positioningSuggestion || null;
   };
 
   const selectedPositioningSuggestion = getPositioningSuggestion();
 
   const handleGenerateValidationPlan = async () => {
+    console.log('ValidationPlanPage: Generating validation plan', {
+      hasPositioningSuggestion: !!selectedPositioningSuggestion,
+      ideaLength: ideaData.idea?.length || 0,
+      competitorsCount: ideaData.competitors?.length || 0,
+      featuresCount: ideaData.features?.length || 0
+    });
+
     if (!selectedPositioningSuggestion) {
+      console.error('ValidationPlanPage: No positioning suggestion available');
       toast.error("No positioning suggestion available. Please complete the market gap analysis first.");
       return;
     }
@@ -86,13 +103,15 @@ const ValidationPlanPage: React.FC = () => {
       );
 
       if (result.success && result.validationPlan) {
+        console.log('ValidationPlanPage: Successfully generated validation plan');
         setValidationSteps(result.validationPlan);
         toast.success("Validation plan generated successfully!");
       } else {
+        console.error('ValidationPlanPage: Failed to generate validation plan', result.error);
         toast.error(result.error || "Failed to generate validation plan");
       }
     } catch (error) {
-      console.error('Error generating validation plan:', error);
+      console.error('ValidationPlanPage: Error generating validation plan:', error);
       toast.error("Failed to generate validation plan");
     } finally {
       setIsGenerating(false);
@@ -116,13 +135,33 @@ const ValidationPlanPage: React.FC = () => {
     navigate('/features');
   };
 
+  // Check if we have market analysis data
+  const hasMarketAnalysis = ideaData.marketGapScoringAnalysis?.marketGaps && 
+                           ideaData.marketGapScoringAnalysis.marketGaps.length > 0;
+
   return (
     <div className="min-h-screen bg-white">
       <SetupNavigation />
       
       <div className="p-6">
         <div className="max-w-6xl mx-auto">
-          {validationSteps.length === 0 ? (
+          {!hasMarketAnalysis ? (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
+              <div className="max-w-2xl">
+                <h1 className="text-3xl font-bold mb-4">Market Analysis Required</h1>
+                <p className="text-gray-600 text-lg mb-8">
+                  You need to complete the market gap analysis before generating a validation plan.
+                </p>
+                
+                <Button 
+                  onClick={() => navigate(`/market-gaps?projectId=${projectId}`)}
+                  className="gradient-bg border-none hover:opacity-90 button-transition text-lg px-8 py-3"
+                >
+                  Go to Market Analysis
+                </Button>
+              </div>
+            </div>
+          ) : validationSteps.length === 0 ? (
             <ValidationPlanWelcomeState
               onGenerateValidationPlan={handleGenerateValidationPlan}
               isGenerating={isGenerating}
