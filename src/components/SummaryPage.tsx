@@ -76,7 +76,8 @@ const SummaryPage: React.FC = () => {
               
               <SummaryActions 
                 data={ideaData} 
-                onSaveProject={handleSaveProject} 
+                onSaveProject={handleSaveProject}
+                projectTitle={projectTitle}
               />
             </div>
           </div>
