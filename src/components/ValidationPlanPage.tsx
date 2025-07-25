@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -48,8 +47,28 @@ const ValidationPlanPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const navigate = useNavigate();
 
-  const selectedPositioningSuggestion = selectedGapIndex !== undefined && 
-    ideaData.marketGapScoringAnalysis?.marketGaps?.[selectedGapIndex]?.positioningSuggestion || '';
+  // Get the positioning suggestion from market analysis
+  const getPositioningSuggestion = () => {
+    if (!ideaData.marketGapScoringAnalysis?.marketGaps) {
+      return null;
+    }
+
+    const marketGaps = ideaData.marketGapScoringAnalysis.marketGaps;
+    
+    // If a specific gap is selected, use that
+    if (selectedGapIndex !== undefined && marketGaps[selectedGapIndex]) {
+      return marketGaps[selectedGapIndex].positioningSuggestion;
+    }
+    
+    // Otherwise, use the highest scoring gap
+    const bestGap = marketGaps.reduce((best, current) => 
+      current.score > best.score ? current : best
+    );
+    
+    return bestGap?.positioningSuggestion || null;
+  };
+
+  const selectedPositioningSuggestion = getPositioningSuggestion();
 
   const handleGenerateValidationPlan = async () => {
     if (!selectedPositioningSuggestion) {
