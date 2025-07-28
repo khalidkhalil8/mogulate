@@ -6,6 +6,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import PricingSection from './pricing/PricingSection';
 import UpcomingFeaturesSection from './features/UpcomingFeaturesSection';
 import { useAuth } from '@/context/AuthContext';
+import Autoplay from "embla-carousel-autoplay";
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,26 +26,30 @@ const HomePage: React.FC = () => {
 
   const screenshots = [
     {
-      title: "Enter Your Idea",
-      description: "Describe your business concept and let our AI understand your vision",
-      image: "/placeholder.svg"
+      title: "Start a Project",
+      description: "Describe your business concept and let our AI understand your vision.",
+      image: "/lovable-uploads/082d75ef-68e3-4996-83c4-2b4fd00c0218.png"
     },
     {
-      title: "Discover Competitors",
-      description: "Find existing players in your market with detailed analysis",
-      image: "/placeholder.svg"
+      title: "Market Analysis",
+      description: "Analyze your competitive landscape and uncover your positioning.",
+      image: "/lovable-uploads/42d3eef2-d185-4b91-9dd1-4e26502e50d5.png"
     },
     {
       title: "Identify Market Gaps",
-      description: "Uncover opportunities your competitors are missing",
-      image: "/placeholder.svg"
+      description: "Spot untapped opportunities your competitors may be missing.",
+      image: "/lovable-uploads/ff868563-f26a-4d23-8231-72ecfd0e67ed.png"
     },
     {
       title: "Get Validation Plan",
-      description: "Receive actionable steps to validate your idea",
-      image: "/placeholder.svg"
+      description: "Receive actionable steps to validate your idea and go to market.",
+      image: "/lovable-uploads/5224b240-9e12-40b2-bf09-707f7eb979df.png"
     }
   ];
+
+  const plugin = React.useRef(
+    Autoplay({ delay: 4000, stopOnInteraction: true })
+  );
   
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -96,33 +101,45 @@ const HomePage: React.FC = () => {
                 From idea to market analysis in minutes. Here's how Mogulate helps you make informed business decisions.
               </p>
               
-              <div className="relative max-w-4xl mx-auto">
-                <Carousel className="w-full">
+              <div className="relative max-w-5xl mx-auto">
+                <Carousel 
+                  className="w-full" 
+                  plugins={[plugin.current]}
+                  onMouseEnter={plugin.current.stop}
+                  onMouseLeave={plugin.current.reset}
+                  opts={{
+                    align: "start",
+                    loop: true,
+                  }}
+                >
                   <CarouselContent>
                     {screenshots.map((screenshot, index) => (
                       <CarouselItem key={index}>
-                        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                          <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                            <img 
-                              src={screenshot.image} 
-                              alt={screenshot.title}
-                              className="max-w-full max-h-full object-contain"
-                            />
-                          </div>
-                          <div className="p-6 text-center">
-                            <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                              {screenshot.title}
-                            </h3>
-                            <p className="text-gray-600">
-                              {screenshot.description}
-                            </p>
+                        <div className="p-1">
+                          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                            <div className="aspect-video bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden">
+                              <img 
+                                src={screenshot.image} 
+                                alt={screenshot.title}
+                                className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+                            </div>
+                            <div className="p-8 text-center">
+                              <h3 className="text-2xl font-bold mb-4 text-gray-900">
+                                {screenshot.title}
+                              </h3>
+                              <p className="text-lg text-gray-600 leading-relaxed">
+                                {screenshot.description}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious className="left-4" />
-                  <CarouselNext className="right-4" />
+                  <CarouselPrevious className="left-4 h-12 w-12 bg-white/90 hover:bg-white shadow-lg border-0" />
+                  <CarouselNext className="right-4 h-12 w-12 bg-white/90 hover:bg-white shadow-lg border-0" />
                 </Carousel>
               </div>
             </div>
