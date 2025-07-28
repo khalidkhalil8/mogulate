@@ -103,6 +103,7 @@ export const useProjects = () => {
       if (error) {
         console.error('Error fetching projects:', error);
         toast.error('Failed to load projects');
+        setIsLoading(false);
         return;
       }
 
@@ -112,7 +113,7 @@ export const useProjects = () => {
         features: Array.isArray(item.features) ? item.features : [],
         validation_plan: Array.isArray(item.validation_plan) ? item.validation_plan as ValidationStep[] : [],
         market_analysis: item.market_analysis || undefined,
-        credits_used: (item as any).credits_used || 0,
+        credits_used: item.credits_used || 0,
       }));
 
       console.log('useProjects: Successfully fetched projects:', transformedData.length);

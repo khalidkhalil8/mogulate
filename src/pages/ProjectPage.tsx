@@ -1,0 +1,287 @@
+
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useProjects } from '@/hooks/useProjects';
+import { useAuth } from '@/context/AuthContext';
+import PageLayout from '@/components/layout/PageLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Target, 
+  Users, 
+  CheckSquare, 
+  ListTodo, 
+  Edit,
+  TrendingUp,
+  Lightbulb,
+  Settings
+} from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
+
+const ProjectPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { projects, isLoading } = useProjects();
+  const { user } = useAuth();
+
+  // Find the project by ID
+  const project = projects.find(p => p.id === id);
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading project...</p>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // Handle project not found
+  if (!project) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Project Not Found</h2>
+            <p className="text-gray-600 mb-6">
+              The project you're looking for doesn't exist or you don't have access to it.
+            </p>
+            <Button onClick={() => navigate('/dashboard')} className="gradient-bg">
+              Back to Dashboard
+            </Button>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  const handleWidgetClick = (path: string) => {
+    navigate(path);
+  };
+
+  const handleEditProject = () => {
+    navigate(`/project/${id}/edit`);
+  };
+
+  // Get project statistics
+  const stats = {
+    competitors: Array.isArray(project.competitors) ? project.competitors.length : 0,
+    features: Array.isArray(project.features) ? project.features.length : 0,
+    validationSteps: Array.isArray(project.validation_plan) ? project.validation_plan.length : 0,
+    creditsUsed: project.credits_used || 0,
+    hasMarketAnalysis: !!project.market_analysis
+  };
+
+  return (
+    <PageLayout>
+      <div className="p-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{project.title}</h1>
+                <p className="text-gray-600">
+                  Created {new Date(project.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="text-sm">
+                  {stats.creditsUsed} credits used
+                </Badge>
+                <Button
+                  variant="outline"
+                  onClick={handleEditProject}
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit Project
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Project Idea */}
+          {project.idea && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lightbulb className="h-5 w-5" />
+                  Project Idea
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700">{project.idea}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Widgets Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Market Analysis Widget */}
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/market-analysis`)}
+            >
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <TrendingUp className="h-5 w-5" />
+                  Market Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Status:</span>
+                    <Badge variant={stats.hasMarketAnalysis ? "default" : "secondary"}>
+                      {stats.hasMarketAnalysis ? "Complete" : "Not Started"}
+                    </Badge>
+                  </div>
+                  {stats.hasMarketAnalysis && (
+                    <p className="text-sm text-gray-600">
+                      Market gaps identified and analyzed
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Competitors Widget */}
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/competitors`)}
+            >
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="h-5 w-5" />
+                  Competitors
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Found:</span>
+                    <Badge variant="outline">{stats.competitors}</Badge>
+                  </div>
+                  {stats.competitors > 0 && (
+                    <p className="text-sm text-gray-600">
+                      {stats.competitors} competitor{stats.competitors !== 1 ? 's' : ''} analyzed
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Features Widget */}
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/features`)}
+            >
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <CheckSquare className="h-5 w-5" />
+                  Features
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Planned:</span>
+                    <Badge variant="outline">{stats.features}</Badge>
+                  </div>
+                  {stats.features > 0 && (
+                    <p className="text-sm text-gray-600">
+                      {stats.features} feature{stats.features !== 1 ? 's' : ''} defined
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Validation Plan Widget */}
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/validation-plan`)}
+            >
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Target className="h-5 w-5" />
+                  Validation Plan
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Steps:</span>
+                    <Badge variant="outline">{stats.validationSteps}</Badge>
+                  </div>
+                  {stats.validationSteps > 0 && (
+                    <p className="text-sm text-gray-600">
+                      {stats.validationSteps} validation step{stats.validationSteps !== 1 ? 's' : ''} planned
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tasks Widget */}
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/todos`)}
+            >
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <ListTodo className="h-5 w-5" />
+                  Tasks
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Manage:</span>
+                    <Badge variant="outline">To-Do List</Badge>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Track progress and milestones
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Feedback Tracking Widget */}
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/feedback`)}
+            >
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Settings className="h-5 w-5" />
+                  Feedback Tracking
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Track:</span>
+                    <Badge variant="outline">User Feedback</Badge>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Monitor user responses and insights
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </PageLayout>
+  );
+};
+
+export default ProjectPage;

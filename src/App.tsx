@@ -1,61 +1,64 @@
 
-import { Helmet, HelmetProvider } from "react-helmet-async";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import PageLayout from "@/components/layout/PageLayout";
-import Index from "@/pages/Index";
-import AuthPage from "@/pages/AuthPage";
-import DashboardPage from "@/pages/DashboardPage";
-import FeaturesPage from "@/pages/FeaturesPage";
-import ProjectEditPage from "@/pages/ProjectEditPage";
-import ProjectCompetitorsPage from "@/pages/ProjectCompetitorsPage";
-import ProjectValidationPlanPage from "@/pages/ProjectValidationPlanPage";
-import ProjectMarketAnalysisPage from "@/pages/ProjectMarketAnalysisPage";
-import ProjectFeedbackTrackingPage from "@/pages/ProjectFeedbackTrackingPage";
-import ProjectTodoPage from "@/pages/ProjectTodoPage";
-import PricingPage from "@/pages/PricingPage";
-import ProfilePage from "@/pages/ProfilePage";
-import SettingsPage from "@/pages/SettingsPage";
-import NotFound from "@/pages/NotFound";
-import "./App.css";
+import Index from "./pages/Index";
+import AuthPage from "./pages/AuthPage";
+import DashboardPage from "./pages/DashboardPage";
+import SettingsPage from "./pages/SettingsPage";
+import ProjectPage from "./pages/ProjectPage";
+import ProjectEditPage from "./pages/ProjectEditPage";
+import ProjectCompetitorsPage from "./pages/ProjectCompetitorsPage";
+import ProjectFeedbackTrackingPage from "./pages/ProjectFeedbackTrackingPage";
+import ProjectMarketAnalysisPage from "./pages/ProjectMarketAnalysisPage";
+import ProjectValidationPlanPage from "./pages/ProjectValidationPlanPage";
+import ProjectTodoPage from "./pages/ProjectTodoPage";
+import FeaturesPage from "./pages/FeaturesPage";
+import PricingPage from "./pages/PricingPage";
+import NotFound from "./pages/NotFound";
+import IdeaEntryPage from "./components/IdeaEntryPage";
+import CompetitorDiscoveryPage from "./components/CompetitorDiscoveryPage";
+import MarketGapPage from "./components/MarketGapPage";
+import FeatureEntryPage from "./components/FeatureEntryPage";
+import ValidationPlanPage from "./components/ValidationPlanPage";
+import SummaryPage from "./components/SummaryPage";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <HelmetProvider>
-        <Router>
+      <TooltipProvider>
+        <Toaster />
+        <BrowserRouter>
           <AuthProvider>
-            <div className="min-h-screen bg-background">
-              <Helmet>
-                <title>Mogulate</title>
-              </Helmet>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/dashboard" element={<PageLayout><DashboardPage /></PageLayout>} />
-                <Route path="/features" element={<PageLayout><FeaturesPage /></PageLayout>} />
-                <Route path="/projects/:id/edit" element={<PageLayout><ProjectEditPage /></PageLayout>} />
-                <Route path="/projects/:id/competitors" element={<PageLayout><ProjectCompetitorsPage /></PageLayout>} />
-                <Route path="/projects/:id/validation-plan" element={<PageLayout><ProjectValidationPlanPage /></PageLayout>} />
-                <Route path="/projects/:id/market-analysis" element={<PageLayout><ProjectMarketAnalysisPage /></PageLayout>} />
-                <Route path="/projects/:id/feedback-tracking" element={<PageLayout><ProjectFeedbackTrackingPage /></PageLayout>} />
-                <Route path="/projects/:id/todos" element={<PageLayout><ProjectTodoPage /></PageLayout>} />
-                <Route path="/pricing" element={<PageLayout><PricingPage /></PageLayout>} />
-                <Route path="/profile" element={<PageLayout><ProfilePage /></PageLayout>} />
-                <Route path="/settings" element={<PageLayout><SettingsPage /></PageLayout>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
-            <Toaster />
-            <Sonner />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/project/:id" element={<ProjectPage />} />
+              <Route path="/project/:id/edit" element={<ProjectEditPage />} />
+              <Route path="/project/:id/competitors" element={<ProjectCompetitorsPage />} />
+              <Route path="/project/:id/feedback" element={<ProjectFeedbackTrackingPage />} />
+              <Route path="/project/:id/market-analysis" element={<ProjectMarketAnalysisPage />} />
+              <Route path="/project/:id/validation-plan" element={<ProjectValidationPlanPage />} />
+              <Route path="/project/:id/todos" element={<ProjectTodoPage />} />
+              <Route path="/project/:id/features" element={<FeaturesPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/idea" element={<IdeaEntryPage />} />
+              <Route path="/competitors" element={<CompetitorDiscoveryPage />} />
+              <Route path="/market-gaps" element={<MarketGapPage />} />
+              <Route path="/features" element={<FeatureEntryPage />} />
+              <Route path="/validation-plan" element={<ValidationPlanPage />} />
+              <Route path="/summary" element={<SummaryPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </AuthProvider>
-        </Router>
-      </HelmetProvider>
+        </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
