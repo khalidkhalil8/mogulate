@@ -20,16 +20,7 @@ const IdeaEntryPage = () => {
     currentTier 
   } = useProjectLimits();
 
-  const handleNext = () => {
-    if (!idea.trim()) {
-      toast.error("Please enter your idea");
-      return;
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleNext = async () => {
     if (!canCreateProject) {
       toast.error('Project limit reached for your current plan');
       return;
@@ -59,11 +50,9 @@ const IdeaEntryPage = () => {
   if (isAtLimit) {
     return (
       <SetupPageLayout
-        currentStep={1}
-        totalSteps={6}
         title="Project Limit Reached"
         description="Upgrade your plan to create more projects"
-        showBackButton={false}
+        showNavigation={false}
       >
         <div className="max-w-2xl mx-auto">
           <ProjectLimitUpgrade 
@@ -78,14 +67,12 @@ const IdeaEntryPage = () => {
 
   return (
     <SetupPageLayout
-      currentStep={1}
-      totalSteps={6}
       title="What's your idea?"
       description="Tell us about your business idea and we'll help you validate it"
-      showBackButton={false}
       onNext={handleNext}
-      nextButtonText={isLoading ? "Creating..." : "Continue"}
-      nextButtonDisabled={!idea.trim() || isLoading}
+      nextLabel={isLoading ? "Creating..." : "Continue"}
+      canProceed={!!idea.trim() && !isLoading}
+      isLoading={isLoading}
     >
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center mb-6">
@@ -94,7 +81,7 @@ const IdeaEntryPage = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
           <div className="space-y-2">
             <label htmlFor="idea" className="text-sm font-medium text-gray-700">
               Describe your business idea
@@ -119,7 +106,7 @@ const IdeaEntryPage = () => {
               <li>• Keep it concise but descriptive</li>
             </ul>
           </div>
-        </form>
+        </div>
       </div>
     </SetupPageLayout>
   );
