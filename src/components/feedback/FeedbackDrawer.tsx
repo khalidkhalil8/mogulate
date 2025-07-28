@@ -74,7 +74,7 @@ const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({
         
         <div className="py-6 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="date">Date *</Label>
+            <Label htmlFor="date">Date</Label>
             <Input
               id="date"
               type="date"
@@ -85,7 +85,7 @@ const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="feedback-source">Feedback Source *</Label>
+            <Label htmlFor="feedback-source">Feedback Source</Label>
             <Input
               id="feedback-source"
               placeholder="e.g., Reddit, Twitter, Interview"
@@ -106,13 +106,13 @@ const FeedbackDrawer: React.FC<FeedbackDrawerProps> = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="feedback-summary">Feedback Summary *</Label>
+            <Label htmlFor="feedback-summary">Feedback Summary</Label>
             <Textarea
               id="feedback-summary"
               placeholder="Summarize the feedback received..."
               value={feedbackSummary}
               onChange={(e) => setFeedbackSummary(e.target.value)}
-              className="min-h-[120px]"
+              className="min-h-[120px] resize-none"
               required
             />
           </div>

@@ -32,14 +32,14 @@ export const useTodos = (projectId: string) => {
 
       if (error) {
         console.error('Error fetching todos:', error);
-        toast.error('Failed to load todos');
+        toast.error('Failed to load tasks');
         return;
       }
 
       setTodos(data || []);
     } catch (error) {
       console.error('Error fetching todos:', error);
-      toast.error('Failed to load todos');
+      toast.error('Failed to load tasks');
     } finally {
       setIsLoading(false);
     }
@@ -61,16 +61,15 @@ export const useTodos = (projectId: string) => {
 
       if (error) {
         console.error('Error adding todo:', error);
-        toast.error('Failed to add todo');
+        toast.error('Failed to add task');
         return false;
       }
 
       await fetchTodos();
-      toast.success('Todo added successfully');
       return true;
     } catch (error) {
       console.error('Error adding todo:', error);
-      toast.error('Failed to add todo');
+      toast.error('Failed to add task');
       return false;
     }
   };
@@ -92,7 +91,7 @@ export const useTodos = (projectId: string) => {
 
       if (error) {
         console.error('Error updating todo:', error);
-        toast.error('Failed to update todo');
+        toast.error('Failed to update task');
         return false;
       }
 
@@ -100,7 +99,7 @@ export const useTodos = (projectId: string) => {
       return true;
     } catch (error) {
       console.error('Error updating todo:', error);
-      toast.error('Failed to update todo');
+      toast.error('Failed to update task');
       return false;
     }
   };
@@ -119,16 +118,15 @@ export const useTodos = (projectId: string) => {
 
       if (error) {
         console.error('Error deleting todo:', error);
-        toast.error('Failed to delete todo');
+        toast.error('Failed to delete task');
         return false;
       }
 
       await fetchTodos();
-      toast.success('Todo deleted successfully');
       return true;
     } catch (error) {
       console.error('Error deleting todo:', error);
-      toast.error('Failed to delete todo');
+      toast.error('Failed to delete task');
       return false;
     }
   };

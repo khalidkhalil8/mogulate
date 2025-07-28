@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Feature } from '@/lib/types';
+import { Circle, Clock, CheckCircle2 } from 'lucide-react';
 
 interface FeatureDrawerProps {
   isOpen: boolean;
@@ -75,24 +76,50 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
     onOpenChange(false);
   };
 
+  const getStatusIcon = (statusValue: string) => {
+    switch (statusValue) {
+      case 'Planned':
+        return <Circle className="h-4 w-4 text-gray-500" />;
+      case 'In Progress':
+        return <Clock className="h-4 w-4 text-blue-500" />;
+      case 'Done':
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      default:
+        return <Circle className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getPriorityColor = (priorityValue: string) => {
+    switch (priorityValue) {
+      case 'High':
+        return 'text-red-600';
+      case 'Medium':
+        return 'text-amber-600';
+      case 'Low':
+        return 'text-green-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetContent className="w-[400px] sm:w-[720px]">
         <SheetHeader>
           <SheetTitle>
-            {feature ? 'Edit Feature' : 'Add New Feature'}
+            {feature ? 'Edit Feature' : 'Add Feature'}
           </SheetTitle>
         </SheetHeader>
         
         <div className="flex flex-col h-full">
           <div className="flex-1 overflow-y-auto py-6 space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="title">Feature Title *</Label>
+              <Label htmlFor="title">Feature Title</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter feature title (e.g., User Authentication, Dashboard)"
+                placeholder="Enter feature title"
               />
             </div>
 
@@ -102,12 +129,12 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe the feature in detail, including functionality and user benefits..."
-                className="min-h-[120px]"
+                placeholder="Describe the feature in detail..."
+                className="min-h-[120px] resize-none"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
                 <Select value={status} onValueChange={(value) => setStatus(value as 'Planned' | 'In Progress' | 'Done')}>
@@ -115,9 +142,24 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Planned">Planned</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Done">Done</SelectItem>
+                    <SelectItem value="Planned">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon('Planned')}
+                        <span>Planned</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="In Progress">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon('In Progress')}
+                        <span>In Progress</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="Done">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon('Done')}
+                        <span>Done</span>
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -129,24 +171,18 @@ const FeatureDrawer: React.FC<FeatureDrawerProps> = ({
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Low">Low</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Low">
+                      <span className={getPriorityColor('Low')}>Low</span>
+                    </SelectItem>
+                    <SelectItem value="Medium">
+                      <span className={getPriorityColor('Medium')}>Medium</span>
+                    </SelectItem>
+                    <SelectItem value="High">
+                      <span className={getPriorityColor('High')}>High</span>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Feature Examples:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• User Authentication & Registration</li>
-                <li>• Dashboard with Analytics</li>
-                <li>• Real-time Notifications</li>
-                <li>• File Upload & Management</li>
-                <li>• Payment Integration</li>
-                <li>• Search & Filtering</li>
-              </ul>
             </div>
           </div>
 

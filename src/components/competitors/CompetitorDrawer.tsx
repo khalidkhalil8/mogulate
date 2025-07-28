@@ -64,7 +64,7 @@ const CompetitorDrawer: React.FC<CompetitorDrawerProps> = ({
         
         <div className="py-6 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
+            <Label htmlFor="name">Name</Label>
             <Input
               id="name"
               placeholder="Competitor name"
@@ -85,13 +85,13 @@ const CompetitorDrawer: React.FC<CompetitorDrawerProps> = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               placeholder="Brief description of the competitor..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="min-h-[120px]"
+              className="min-h-[120px] resize-none"
               required
             />
           </div>

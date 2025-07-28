@@ -1,10 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useTodos, TodoItem } from '@/hooks/useTodos';
-import { Plus, Trash2, Check, X } from 'lucide-react';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { Card, CardContent } from '@/components/ui/card';
+import { Plus, Edit, Trash2, Check, X } from 'lucide-react';
+import { useTodos } from '@/hooks/useTodos';
+import { toast } from '@/components/ui/sonner';
 
 interface TodoListProps {
   projectId: string;
@@ -13,161 +15,160 @@ interface TodoListProps {
 const TodoList: React.FC<TodoListProps> = ({ projectId }) => {
   const { todos, isLoading, addTodo, updateTodo, deleteTodo } = useTodos(projectId);
   const [newTodoTitle, setNewTodoTitle] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingTitle, setEditingTitle] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const editInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (editingId && editInputRef.current) {
-      editInputRef.current.focus();
-    }
-  }, [editingId]);
+  const [editingTodo, setEditingTodo] = useState<{ id: string; title: string } | null>(null);
 
   const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newTodoTitle.trim()) {
-      const success = await addTodo(newTodoTitle);
-      if (success) {
-        setNewTodoTitle('');
-      }
+    if (!newTodoTitle.trim()) return;
+
+    const success = await addTodo(newTodoTitle);
+    if (success) {
+      setNewTodoTitle('');
+      toast.success('Task added successfully');
     }
   };
 
-  const handleToggleComplete = async (todo: TodoItem) => {
-    await updateTodo(todo.id, { completed: !todo.completed });
+  const handleToggleComplete = async (id: string, completed: boolean) => {
+    const success = await updateTodo(id, { completed: !completed });
+    if (success) {
+      toast.success(completed ? 'Task marked as incomplete' : 'Task completed');
+    }
   };
 
-  const handleStartEdit = (todo: TodoItem) => {
-    setEditingId(todo.id);
-    setEditingTitle(todo.title);
+  const handleStartEdit = (id: string, title: string) => {
+    setEditingTodo({ id, title });
   };
 
   const handleSaveEdit = async () => {
-    if (editingId && editingTitle.trim()) {
-      const success = await updateTodo(editingId, { title: editingTitle.trim() });
-      if (success) {
-        setEditingId(null);
-        setEditingTitle('');
-      }
+    if (!editingTodo || !editingTodo.title.trim()) return;
+
+    const success = await updateTodo(editingTodo.id, { title: editingTodo.title.trim() });
+    if (success) {
+      setEditingTodo(null);
+      toast.success('Task updated successfully');
     }
   };
 
   const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditingTitle('');
+    setEditingTodo(null);
   };
 
   const handleDeleteTodo = async (id: string) => {
-    await deleteTodo(id);
+    const success = await deleteTodo(id);
+    if (success) {
+      toast.success('Task deleted successfully');
+    }
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <LoadingSpinner />
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-4 h-4 bg-gray-200 rounded"></div>
+                <div className="flex-1 h-4 bg-gray-200 rounded"></div>
+                <div className="w-8 h-8 bg-gray-200 rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Add new todo form */}
+    <div className="space-y-6">
+      {/* Add Todo Form */}
       <form onSubmit={handleAddTodo} className="flex gap-2">
         <Input
-          ref={inputRef}
           value={newTodoTitle}
           onChange={(e) => setNewTodoTitle(e.target.value)}
-          placeholder="Write a new task..."
+          placeholder="Add a new task..."
           className="flex-1"
         />
         <Button type="submit" disabled={!newTodoTitle.trim()}>
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 mr-2" />
+          Add Task
         </Button>
       </form>
 
-      {/* Todo list */}
+      {/* Todo List */}
       <div className="space-y-2">
         {todos.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <p>You haven't added any tasks yet. Start by writing one above!</p>
+            No tasks yet. Add your first task above.
           </div>
         ) : (
           todos.map((todo) => (
-            <div
-              key={todo.id}
-              className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <Checkbox
-                checked={todo.completed}
-                onCheckedChange={() => handleToggleComplete(todo)}
-                className="flex-shrink-0"
-              />
-              
-              {editingId === todo.id ? (
-                <div className="flex items-center gap-2 flex-1">
-                  <Input
-                    ref={editInputRef}
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.target.value)}
-                    className="flex-1"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSaveEdit();
-                      } else if (e.key === 'Escape') {
-                        handleCancelEdit();
-                      }
-                    }}
+            <Card key={todo.id} className="hover:shadow-sm transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    checked={todo.completed}
+                    onCheckedChange={() => handleToggleComplete(todo.id, todo.completed)}
                   />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleSaveEdit}
-                    disabled={!editingTitle.trim()}
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleCancelEdit}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  
+                  {editingTodo?.id === todo.id ? (
+                    <div className="flex-1 flex items-center gap-2">
+                      <Input
+                        value={editingTodo.title}
+                        onChange={(e) => setEditingTodo({ ...editingTodo, title: e.target.value })}
+                        className="flex-1"
+                        autoFocus
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleSaveEdit}
+                        disabled={!editingTodo.title.trim()}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <span
+                        className={`flex-1 ${
+                          todo.completed
+                            ? 'line-through text-gray-500'
+                            : 'text-gray-900'
+                        }`}
+                      >
+                        {todo.title}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleStartEdit(todo.id, todo.title)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteTodo(todo.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
-              ) : (
-                <>
-                  <span
-                    className={`flex-1 cursor-pointer ${
-                      todo.completed
-                        ? 'line-through text-gray-500'
-                        : 'text-gray-900'
-                    }`}
-                    onClick={() => handleStartEdit(todo)}
-                  >
-                    {todo.title}
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDeleteTodo(todo.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
+              </CardContent>
+            </Card>
           ))
         )}
       </div>
-
-      {/* Summary */}
-      {todos.length > 0 && (
-        <div className="text-sm text-gray-500 pt-2 border-t">
-          {todos.filter(t => t.completed).length} of {todos.length} completed
-        </div>
-      )}
     </div>
   );
 };
