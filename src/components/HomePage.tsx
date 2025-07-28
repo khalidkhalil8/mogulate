@@ -239,7 +239,9 @@ const HomePage: React.FC = () => {
         <UpcomingFeaturesSection />
         
         {/* Pricing Section */}
-        <PricingSection isHomePage={true} />
+        <div id="pricing">
+          <PricingSection isHomePage={true} />
+        </div>
       </main>
       
       <footer className="py-8 px-4 border-t bg-white">
