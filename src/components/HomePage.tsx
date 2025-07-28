@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import PricingSection from './pricing/PricingSection';
 import UpcomingFeaturesSection from './features/UpcomingFeaturesSection';
 import { useAuth } from '@/context/AuthContext';
@@ -21,6 +22,29 @@ const HomePage: React.FC = () => {
       navigate('/auth');
     }
   };
+
+  const screenshots = [
+    {
+      title: "Enter Your Idea",
+      description: "Describe your business concept and let our AI understand your vision",
+      image: "/placeholder.svg"
+    },
+    {
+      title: "Discover Competitors",
+      description: "Find existing players in your market with detailed analysis",
+      image: "/placeholder.svg"
+    },
+    {
+      title: "Identify Market Gaps",
+      description: "Uncover opportunities your competitors are missing",
+      image: "/placeholder.svg"
+    },
+    {
+      title: "Get Validation Plan",
+      description: "Receive actionable steps to validate your idea",
+      image: "/placeholder.svg"
+    }
+  ];
   
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -28,60 +52,167 @@ const HomePage: React.FC = () => {
         {/* Hero Section */}
         <section className="py-16 md:py-24 px-4">
           <div className="container-width">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Have an Idea?<br />Let Us Help You.
+            <div className="max-w-4xl mx-auto text-center">
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-gray-900">
+                Turn Your Idea Into a<br />
+                <span className="bg-gradient-to-r from-teal-600 to-teal-400 bg-clip-text text-transparent">
+                  Market-Ready Business
+                </span>
               </h1>
-              <p className="text-xl md:text-2xl text-gray-600 mb-8">
-                Enter your idea and uncover competitors and market gaps in seconds
+              <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+                Stop guessing about your market. Mogulate uses AI to find your competitors, 
+                identify market gaps, and give you a clear path to validate your business idea.
               </p>
-              <Button 
-                className="px-8 py-6 text-lg gradient-bg border-none hover:opacity-90 button-transition"
-                onClick={handleGetStarted}
-              >
-                Get Started
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+                <Button 
+                  className="px-8 py-6 text-lg gradient-bg border-none hover:opacity-90 button-transition"
+                  onClick={handleGetStarted}
+                >
+                  Analyze My Idea For Free
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="px-8 py-6 text-lg border-gray-300 hover:bg-gray-50"
+                  onClick={scrollToPricing}
+                >
+                  View Pricing
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500">
+                No credit card required • Get results in under 5 minutes
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Product Demo Section */}
+        <section className="py-16 bg-gray-50 px-4">
+          <div className="container-width">
+            <div className="max-w-6xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-900">
+                See Mogulate in Action
+              </h2>
+              <p className="text-xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">
+                From idea to market analysis in minutes. Here's how Mogulate helps you make informed business decisions.
+              </p>
+              
+              <div className="relative max-w-4xl mx-auto">
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {screenshots.map((screenshot, index) => (
+                      <CarouselItem key={index}>
+                        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                          <div className="aspect-video bg-gray-100 flex items-center justify-center">
+                            <img 
+                              src={screenshot.image} 
+                              alt={screenshot.title}
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          </div>
+                          <div className="p-6 text-center">
+                            <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                              {screenshot.title}
+                            </h3>
+                            <p className="text-gray-600">
+                              {screenshot.description}
+                            </p>
+                          </div>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-4" />
+                  <CarouselNext className="right-4" />
+                </Carousel>
+              </div>
             </div>
           </div>
         </section>
 
         {/* How It Works Section */}
-        <section className="py-16 bg-gray-50 px-4">
+        <section className="py-16 px-4">
           <div className="container-width">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">How It Works</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-gray-900">
+              How It Works
+            </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {/* Step 1 */}
-              <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div className="text-center">
                 <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-6 mx-auto">
                   <span className="text-2xl font-bold text-teal-600">1</span>
                 </div>
-                <h3 className="text-xl font-semibold text-center mb-4">Enter Your Idea</h3>
-                <p className="text-gray-600 text-center">
-                  Describe the concept of your idea in detail to help our AI understand your vision.
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Describe Your Idea</h3>
+                <p className="text-gray-600">
+                  Tell us about your business concept in your own words. Our AI will understand your vision and market focus.
                 </p>
               </div>
               
               {/* Step 2 */}
-              <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div className="text-center">
                 <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-6 mx-auto">
                   <span className="text-2xl font-bold text-teal-600">2</span>
                 </div>
-                <h3 className="text-xl font-semibold text-center mb-4">Find Competitors</h3>
-                <p className="text-gray-600 text-center">
-                  Our AI will help you find competition in your market and analyze their offerings.
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Discover Your Market</h3>
+                <p className="text-gray-600">
+                  Get instant insights on competitors, market size, and opportunities you might have missed.
                 </p>
               </div>
               
               {/* Step 3 */}
-              <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div className="text-center">
                 <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-6 mx-auto">
                   <span className="text-2xl font-bold text-teal-600">3</span>
                 </div>
-                <h3 className="text-xl font-semibold text-center mb-4">Identify Market Gaps</h3>
-                <p className="text-gray-600 text-center">
-                  Our AI analysis will help you spot opportunities and gaps in your market to exploit.
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Get Your Action Plan</h3>
+                <p className="text-gray-600">
+                  Receive a clear roadmap with specific steps to validate and launch your business idea.
                 </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Value Proposition Section */}
+        <section className="py-16 bg-gray-50 px-4">
+          <div className="container-width">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-gray-900">
+                Why Entrepreneurs Choose Mogulate
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white p-8 rounded-lg shadow-md">
+                  <h3 className="text-xl font-semibold mb-4 text-gray-900">Save Weeks of Research</h3>
+                  <p className="text-gray-600">
+                    What used to take weeks of manual research now happens in minutes. 
+                    Get comprehensive market analysis instantly.
+                  </p>
+                </div>
+                
+                <div className="bg-white p-8 rounded-lg shadow-md">
+                  <h3 className="text-xl font-semibold mb-4 text-gray-900">Make Data-Driven Decisions</h3>
+                  <p className="text-gray-600">
+                    Stop relying on gut feelings. Get concrete data about your market, 
+                    competitors, and opportunities.
+                  </p>
+                </div>
+                
+                <div className="bg-white p-8 rounded-lg shadow-md">
+                  <h3 className="text-xl font-semibold mb-4 text-gray-900">Find Your Competitive Edge</h3>
+                  <p className="text-gray-600">
+                    Identify gaps in the market that your competitors are missing. 
+                    Position your business for success.
+                  </p>
+                </div>
+                
+                <div className="bg-white p-8 rounded-lg shadow-md">
+                  <h3 className="text-xl font-semibold mb-4 text-gray-900">Validate Before You Build</h3>
+                  <p className="text-gray-600">
+                    Get a clear validation roadmap before investing time and money. 
+                    Reduce risk and increase your chances of success.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -90,11 +221,11 @@ const HomePage: React.FC = () => {
         {/* Features Coming Soon Section */}
         <UpcomingFeaturesSection />
         
-        {/* Add Pricing Section */}
+        {/* Pricing Section */}
         <PricingSection isHomePage={true} />
       </main>
       
-      <footer className="py-8 px-4 border-t">
+      <footer className="py-8 px-4 border-t bg-white">
         <div className="container-width text-center text-gray-500">
           <p>© 2025 Mogulate. All rights reserved.</p>
         </div>
