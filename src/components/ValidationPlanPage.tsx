@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from './ui/button';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-import SetupNavigation from './setup/SetupNavigation';
-import ValidationPlanWelcomeState from './validation-plan/ValidationPlanWelcomeState';
+import { Target } from 'lucide-react';
 import { generateValidationPlan } from '@/lib/api';
 import { toast } from './ui/sonner';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useSetupHandlers } from '@/hooks/useSetupHandlers';
+import SetupPageLayout from './setup/SetupPageLayout';
 
 interface ValidationStepData {
   title: string;
@@ -139,114 +138,92 @@ const ValidationPlanPage: React.FC = () => {
   const hasMarketAnalysis = ideaData.marketGapScoringAnalysis?.marketGaps && 
                            ideaData.marketGapScoringAnalysis.marketGaps.length > 0;
 
-  return (
-    <div className="min-h-screen bg-white">
-      <SetupNavigation />
-      
-      <div className="p-6">
-        <div className="max-w-6xl mx-auto">
-          {!hasMarketAnalysis ? (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
-              <div className="max-w-2xl">
-                <h1 className="text-3xl font-bold mb-4">Market Analysis Required</h1>
-                <p className="text-gray-600 text-lg mb-8">
-                  You need to complete the market gap analysis before generating a validation plan.
-                </p>
-                
-                <Button 
-                  onClick={() => navigate(`/market-gaps?projectId=${projectId}`)}
-                  className="gradient-bg border-none hover:opacity-90 button-transition text-lg px-8 py-3"
-                >
-                  Go to Market Analysis
-                </Button>
-              </div>
-            </div>
-          ) : validationSteps.length === 0 ? (
-            <ValidationPlanWelcomeState
-              onGenerateValidationPlan={handleGenerateValidationPlan}
-              isGenerating={isGenerating}
-            />
-          ) : (
-            <div className="space-y-8">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold mb-2">Create your Validation Plan</h1>
-                <p className="text-gray-600">
-                  Get actionable steps to test your positioning and features before you invest too heavily.
-                </p>
-              </div>
-
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-2">Validation Steps</h2>
-                <p className="text-gray-600 text-sm">
-                  {validationSteps.length} step{validationSteps.length !== 1 ? 's' : ''} defined
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {validationSteps.length > 0 ? (
-                  validationSteps.map((step, index) => (
-                    <div key={index} className="bg-white border rounded-lg p-6 shadow-sm">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                            {step.title}
-                          </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium text-gray-700">Goal:</span>
-                              <p className="text-gray-600 mt-1">{step.goal}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium text-gray-700">Method:</span>
-                              <p className="text-gray-600 mt-1">{step.method}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium text-gray-700">Priority:</span>
-                              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
-                                step.priority === 'High' ? 'bg-red-100 text-red-800' :
-                                step.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-green-100 text-green-800'
-                              }`}>
-                                {step.priority}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                    <p className="text-gray-500 mb-4">No validation steps defined yet.</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-between">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleBack}
-                  className="flex items-center gap-2"
-                >
-                  <ArrowLeft size={18} />
-                  <span>Back</span>
-                </Button>
-                
-                <Button 
-                  onClick={handleNext}
-                  disabled={validationSteps.length === 0}
-                  className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span>Next</span>
-                  <ArrowRight size={18} />
-                </Button>
-              </div>
-            </div>
-          )}
+  if (!hasMarketAnalysis) {
+    return (
+      <SetupPageLayout
+        title="Market Analysis Required"
+        description="You need to complete the market gap analysis before generating a validation plan."
+        showNavigation={false}
+      >
+        <div className="flex flex-col items-center justify-center min-h-[40vh] text-center space-y-6">
+          <Button 
+            onClick={() => navigate(`/market-gaps?projectId=${projectId}`)}
+            className="gradient-bg border-none hover:opacity-90 button-transition text-lg px-8 py-3"
+          >
+            Go to Market Analysis
+          </Button>
         </div>
+      </SetupPageLayout>
+    );
+  }
+
+  if (validationSteps.length === 0) {
+    return (
+      <SetupPageLayout
+        title="Generate Validation Plan"
+        description="Get actionable steps to test your positioning and features before you invest too heavily."
+        showNavigation={false}
+      >
+        <div className="flex flex-col items-center justify-center min-h-[40vh] text-center space-y-6">
+          <Button 
+            onClick={handleGenerateValidationPlan}
+            className="gradient-bg border-none hover:opacity-90 button-transition text-lg px-8 py-3"
+            disabled={isGenerating}
+          >
+            <Target className="h-5 w-5 mr-2" />
+            {isGenerating ? 'Generating Plan...' : 'Generate Validation Plan'}
+          </Button>
+          
+          <p className="text-sm text-gray-500">
+            This will create 3-5 validation steps based on your features and market positioning
+          </p>
+        </div>
+      </SetupPageLayout>
+    );
+  }
+
+  return (
+    <SetupPageLayout
+      title="Your Validation Plan"
+      description="Review your validation steps and proceed to the summary."
+      onBack={handleBack}
+      onNext={handleNext}
+      canProceed={validationSteps.length > 0}
+    >
+      <div className="space-y-4">
+        {validationSteps.map((step, index) => (
+          <div key={index} className="bg-white border rounded-lg p-6 shadow-sm">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {step.title}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Goal:</span>
+                    <p className="text-gray-600 mt-1">{step.goal}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Method:</span>
+                    <p className="text-gray-600 mt-1">{step.method}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Priority:</span>
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                      step.priority === 'High' ? 'bg-red-100 text-red-800' :
+                      step.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {step.priority}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
+    </SetupPageLayout>
   );
 };
 

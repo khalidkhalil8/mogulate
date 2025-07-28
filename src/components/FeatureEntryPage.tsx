@@ -2,14 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
-import SetupNavigation from './setup/SetupNavigation';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
-import FeatureWelcomeState from './features/FeatureWelcomeState';
+import { Button } from '@/components/ui/button';
+import { Target } from 'lucide-react';
 import FeatureForm from './features/FeatureForm';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useSetupHandlers } from '@/hooks/useSetupHandlers';
 import { Feature } from '@/lib/types';
+import SetupPageLayout from './setup/SetupPageLayout';
 
 interface LocalFeature {
   id: string;
@@ -204,33 +205,54 @@ const FeatureEntryPage: React.FC = () => {
   };
 
   const canProceed = hasGenerated || features.length > 0;
+
+  if (!hasGenerated && features.length === 0) {
+    return (
+      <SetupPageLayout
+        title="Generate Product Features"
+        description="AI will suggest features based on your market positioning and competitive analysis."
+        showNavigation={false}
+      >
+        <div className="flex flex-col items-center justify-center min-h-[40vh] text-center space-y-6">
+          <Button 
+            onClick={handleGenerateFeatures}
+            className="gradient-bg border-none hover:opacity-90 button-transition text-lg px-8 py-3"
+            disabled={isGenerating}
+          >
+            <Target className="h-5 w-5 mr-2" />
+            {isGenerating ? 'Generating Features...' : 'Generate Features'}
+          </Button>
+          
+          <p className="text-sm text-gray-500">
+            This will create 3-5 features based on your market analysis
+          </p>
+        </div>
+      </SetupPageLayout>
+    );
+  }
   
   return (
-    <div className="min-h-screen bg-white">
-      <SetupNavigation />
-      
-      <div className="p-6">
-        <div className="max-w-6xl mx-auto">
-          {!hasGenerated && features.length === 0 ? (
-            <FeatureWelcomeState
-              onGenerateFeatures={handleGenerateFeatures}
-              isGenerating={isGenerating}
-            />
-          ) : (
-            <FeatureForm
-              features={features}
-              hasGenerated={hasGenerated}
-              canProceed={canProceed}
-              onAddFeature={addFeature}
-              onUpdateFeature={updateFeature}
-              onRemoveFeature={removeFeature}
-              onSubmit={handleSubmit}
-              onBack={handleBack}
-            />
-          )}
-        </div>
-      </div>
-    </div>
+    <SetupPageLayout
+      title="Review & Edit Your Features"
+      description={hasGenerated 
+        ? "AI has suggested features based on your market positioning. You can edit them or add more."
+        : "Add and configure the features you want to build for your product."
+      }
+      onBack={handleBack}
+      onNext={handleSubmit}
+      canProceed={canProceed}
+    >
+      <FeatureForm
+        features={features}
+        hasGenerated={hasGenerated}
+        canProceed={canProceed}
+        onAddFeature={addFeature}
+        onUpdateFeature={updateFeature}
+        onRemoveFeature={removeFeature}
+        onSubmit={handleSubmit}
+        onBack={handleBack}
+      />
+    </SetupPageLayout>
   );
 };
 
