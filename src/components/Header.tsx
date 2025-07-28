@@ -3,6 +3,7 @@ import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
+import { MessageSquare } from "lucide-react";
 import UserProfileDropdown from "./UserProfileDropdown";
 
 const Header: React.FC = () => {
@@ -11,6 +12,10 @@ const Header: React.FC = () => {
   
   const scrollToPricing = () => {
     document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleFeedback = () => {
+    window.open('https://forms.google.com/feedback', '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -34,6 +39,17 @@ const Header: React.FC = () => {
               </button>
             </nav>
           )}
+          
+          {/* Give Feedback button - always visible */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleFeedback}
+            className="flex items-center gap-2 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span className="hidden sm:inline">Give Feedback</span>
+          </Button>
           
           {isLoading ? (
             <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse"></div>
