@@ -25,11 +25,16 @@ const PricingPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <div className="p-6">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-4xl font-bold">Subscription Plans</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Choose Your Plan</h1>
+              <p className="mt-2 text-gray-600">
+                Select the subscription that best fits your needs
+              </p>
+            </div>
             <Button
               variant="outline"
               onClick={() => navigate('/dashboard')}
@@ -39,21 +44,11 @@ const PricingPage: React.FC = () => {
               Back to Dashboard
             </Button>
           </div>
-          
-          <p className="text-gray-600 text-center mb-8">
-            Choose the plan that works best for your needs
-          </p>
         </div>
       </div>
       
-      <main className="flex-1 px-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <PricingSection showTitle={false} isHomePage={false} />
-        
-        <footer className="py-8 px-4 border-t mt-8">
-          <div className="max-w-3xl mx-auto text-center text-gray-500">
-            <p>© 2025 Mogulate. All rights reserved.</p>
-          </div>
-        </footer>
       </main>
     </div>
   );

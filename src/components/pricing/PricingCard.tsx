@@ -3,17 +3,20 @@ import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { CheckCircle } from "lucide-react";
+import { Check, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 
 interface PricingFeature {
   text: string;
+  highlight?: boolean;
 }
 
 interface PricingCardProps {
   tier: string;
   price: string;
+  period?: string;
+  description?: string;
   features: PricingFeature[];
   popular?: boolean;
   buttonText?: string;
@@ -23,6 +26,8 @@ interface PricingCardProps {
 const PricingCard: React.FC<PricingCardProps> = ({
   tier,
   price,
+  period = "",
+  description = "",
   features,
   popular = false,
   buttonText = "Choose Plan",
@@ -119,47 +124,79 @@ const PricingCard: React.FC<PricingCardProps> = ({
   };
 
   return (
-    <Card className={`flex flex-col border-2 ${popular ? 'border-teal-500' : 'border-gray-200'} ${currentPlan ? 'bg-teal-50' : ''}`}>
+    <Card className={`relative flex flex-col h-full transition-all duration-200 hover:shadow-lg ${
+      popular 
+        ? 'border-2 border-teal-500 shadow-lg' 
+        : currentPlan 
+          ? 'border-2 border-teal-300 bg-teal-50' 
+          : 'border border-gray-200 hover:border-gray-300'
+    }`}>
       {popular && (
-        <div className="bg-teal-500 text-white text-center py-1 text-sm font-medium">
-          POPULAR CHOICE
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          <div className="bg-teal-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+            <Star className="h-3 w-3" />
+            Most Popular
+          </div>
         </div>
       )}
+      
       {currentPlan && (
-        <div className="bg-teal-600 text-white text-center py-1 text-sm font-medium">
-          YOUR CURRENT PLAN
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          <div className="bg-teal-600 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+            <Check className="h-3 w-3" />
+            Current Plan
+          </div>
         </div>
       )}
-      <CardHeader>
-        <CardTitle className="text-xl">{tier}</CardTitle>
-        <div className="mt-4">
-          <span className="text-3xl font-bold">{price}</span>
-          {price !== "$0" && <span className="text-gray-500 ml-1">/month</span>}
+
+      <CardHeader className="text-center pb-4">
+        <CardTitle className="text-2xl font-bold text-gray-900">{tier}</CardTitle>
+        {description && (
+          <CardDescription className="text-gray-600 mt-1">{description}</CardDescription>
+        )}
+        <div className="mt-6">
+          <span className="text-4xl font-bold text-gray-900">{price}</span>
+          {period && <span className="text-gray-600 ml-1">{period}</span>}
         </div>
       </CardHeader>
-      <CardContent className="flex-grow">
-        <ul className="space-y-3">
+
+      <CardContent className="flex-grow px-6">
+        <ul className="space-y-4">
           {features.map((feature, index) => (
-            <li key={index} className="flex items-center gap-2">
-              <CheckCircle className="text-teal-500" size={18} />
-              <span className="text-sm">{feature.text}</span>
+            <li key={index} className="flex items-start gap-3">
+              <Check className={`h-5 w-5 mt-0.5 flex-shrink-0 ${
+                feature.highlight ? 'text-teal-600' : 'text-gray-400'
+              }`} />
+              <span className={`text-sm ${
+                feature.highlight ? 'text-gray-900 font-medium' : 'text-gray-600'
+              }`}>
+                {feature.text}
+              </span>
             </li>
           ))}
         </ul>
       </CardContent>
-      <CardFooter>
+
+      <CardFooter className="px-6 pt-4">
         <Button
           onClick={handleSubscription}
-          className={`w-full ${
+          className={`w-full py-3 text-base font-medium transition-all duration-200 ${
             popular
-              ? "bg-teal-600 hover:bg-teal-700"
+              ? "bg-teal-600 hover:bg-teal-700 text-white"
               : currentPlan
-              ? "bg-gray-500 hover:bg-gray-600"
-              : ""
+              ? "bg-gray-100 text-gray-600 cursor-not-allowed"
+              : "bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white"
           }`}
           disabled={currentPlan || isLoading}
         >
-          {isLoading ? "Processing..." : currentPlan ? "Current Plan" : buttonText}
+          {isLoading ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              Processing...
+            </div>
+          ) : (
+            buttonText
+          )}
         </Button>
       </CardFooter>
     </Card>
