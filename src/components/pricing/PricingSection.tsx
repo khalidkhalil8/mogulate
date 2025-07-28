@@ -1,7 +1,7 @@
-
 import React from "react";
 import PricingCard from "./PricingCard";
 import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
 
 interface PricingSectionProps {
   showTitle?: boolean;
