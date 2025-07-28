@@ -26,10 +26,13 @@ const ProjectEditPage = () => {
   
   if (!project) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center mobile-padding">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">Project not found</h2>
-          <Button onClick={() => navigate('/dashboard')}>
+          <h2 className="text-xl md:text-2xl font-semibold mb-4">Project not found</h2>
+          <Button 
+            onClick={() => navigate('/dashboard')}
+            className="mobile-button"
+          >
             Back to Dashboard
           </Button>
         </div>
@@ -147,22 +150,25 @@ const ProjectEditPage = () => {
           <title>{project.title} | Mogulate</title>
         </Helmet>
 
-        <div className="p-6">
+        <div className="mobile-padding section-spacing">
           <div className="max-w-6xl mx-auto">
             {/* Project Header */}
-            <div className="mb-8">
-              <div className="flex items-start justify-between mb-4">
+            <div className="mb-6 md:mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                 <div className="flex-1">
-                  <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
-                  <div className="flex items-center gap-2">
-                    <p className="text-gray-600 text-lg">
+                  <h1 className="text-2xl md:text-3xl font-bold mb-2 md:mb-3 leading-tight">
+                    {project.title}
+                  </h1>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <p className="text-gray-600 text-base md:text-lg leading-relaxed flex-1">
                       {project.idea || 'No description provided'}
                     </p>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setIsEditDialogOpen(true)}
-                      className="p-1 h-8 w-8 rounded-full hover:bg-gray-100"
+                      className="p-2 h-8 w-8 rounded-full hover:bg-gray-100 self-start sm:self-center focus-ring"
+                      title="Edit project"
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -172,21 +178,21 @@ const ProjectEditPage = () => {
             </div>
 
             {/* Project Widgets Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {widgets.map((widget) => (
                 <Card 
                   key={widget.title}
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02] focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
                   onClick={widget.onClick}
                 >
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="p-3 bg-blue-50 rounded-lg">
-                        <widget.icon className="h-6 w-6 text-blue-600" />
+                  <CardContent className="card-spacing">
+                    <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-4">
+                      <div className="p-2 md:p-3 bg-blue-50 rounded-lg">
+                        <widget.icon className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
                       </div>
-                      <h3 className="font-semibold text-lg">{widget.title}</h3>
+                      <h3 className="font-semibold text-base md:text-lg">{widget.title}</h3>
                     </div>
-                    <p className="text-gray-600 text-sm line-clamp-2">
+                    <p className="text-gray-600 text-sm md:text-base line-clamp-2">
                       {widget.preview}
                     </p>
                   </CardContent>

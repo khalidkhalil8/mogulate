@@ -55,14 +55,58 @@
 
   body {
     @apply bg-background text-foreground font-inter text-left;
+    font-size: 16px;
+    line-height: 1.6;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-inter font-semibold text-charcoal text-left;
+    line-height: 1.3;
   }
 
-  p, div, span, label, input, textarea, button {
-    @apply text-left;
+  h1 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h2 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+
+  h4 {
+    @apply text-lg md:text-xl;
+  }
+
+  h5 {
+    @apply text-base md:text-lg;
+  }
+
+  h6 {
+    @apply text-sm md:text-base;
+  }
+
+  p {
+    @apply text-base leading-relaxed;
+  }
+
+  /* Consistent spacing utilities */
+  .section-spacing {
+    @apply py-8 md:py-12;
+  }
+
+  .content-spacing {
+    @apply space-y-6 md:space-y-8;
+  }
+
+  .form-spacing {
+    @apply space-y-4 md:space-y-6;
+  }
+
+  .card-spacing {
+    @apply p-4 md:p-6;
   }
 
   /* Exception for landing page - preserve center alignment */
@@ -81,6 +125,53 @@
   .homepage-content span {
     @apply text-center;
   }
+
+  /* Enhanced loading animations */
+  .loading-dots {
+    @apply inline-flex space-x-1;
+  }
+
+  .loading-dots > div {
+    @apply w-2 h-2 bg-primary rounded-full animate-bounce;
+  }
+
+  .loading-dots > div:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+
+  .loading-dots > div:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer::before {
+    content: '';
+    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Enhanced pulse animation */
+  .pulse-subtle {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-subtle {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
 }
 
 .gradient-bg {
@@ -88,9 +179,27 @@
 }
 
 .container-width {
-  @apply max-w-6xl mx-auto px-4;
+  @apply max-w-6xl mx-auto px-4 sm:px-6;
 }
 
 .button-transition {
   @apply transition-all duration-200 ease-in-out;
+}
+
+/* Mobile-first responsive utilities */
+.mobile-padding {
+  @apply px-4 sm:px-6 md:px-8;
+}
+
+.mobile-text {
+  @apply text-sm sm:text-base;
+}
+
+.mobile-button {
+  @apply px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base;
+}
+
+/* Focus states for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
 }
