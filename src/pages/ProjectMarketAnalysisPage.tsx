@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectMarketAnalysis } from '@/hooks/useProjectMarketAnalysis';
+import { analyzeMarketGaps } from '@/lib/api/marketGaps';
+import { toast } from '@/components/ui/sonner';
 import LoadingState from '@/components/ui/LoadingState';
 import PageLayout from '@/components/layout/PageLayout';
 import MarketGapsScoringDisplay from '@/components/market-gaps/MarketGapsScoringDisplay';
@@ -20,10 +22,11 @@ const ProjectMarketAnalysisPage = () => {
   const { 
     marketAnalysis, 
     isLoading, 
-    refetchMarketAnalysis
+    updateMarketAnalysis
   } = useProjectMarketAnalysis(id || '');
   
   const [selectedGapIndex, setSelectedGapIndex] = useState<number | undefined>();
+  const [isRunningAnalysis, setIsRunningAnalysis] = useState(false);
 
   const project = projects.find(p => p.id === id);
 
@@ -44,7 +47,29 @@ const ProjectMarketAnalysisPage = () => {
   };
 
   const handleRerunAnalysis = async () => {
-    await refetchMarketAnalysis();
+    if (!project.idea || !project.competitors) {
+      toast.error('Missing project data', {
+        description: 'Please ensure your project has an idea and competitors before running market analysis.'
+      });
+      return;
+    }
+
+    setIsRunningAnalysis(true);
+    try {
+      const result = await analyzeMarketGaps(project.idea, project.competitors);
+      
+      if (result.analysis) {
+        await updateMarketAnalysis(result.analysis);
+        toast.success('Market analysis completed successfully!');
+      } else {
+        toast.error('Failed to generate market analysis');
+      }
+    } catch (error) {
+      console.error('Error running market analysis:', error);
+      toast.error('Failed to run market analysis');
+    } finally {
+      setIsRunningAnalysis(false);
+    }
   };
 
   // Helper function to check if the analysis is in the new scoring format
@@ -110,13 +135,28 @@ const ProjectMarketAnalysisPage = () => {
                       </p>
                       <Button
                         onClick={handleRerunAnalysis}
+                        disabled={isRunningAnalysis}
                         className="flex items-center gap-2"
                       >
-                        <RefreshCw className="h-4 w-4" />
-                        Run Analysis
+                        <RefreshCw className={`h-4 w-4 ${isRunningAnalysis ? 'animate-spin' : ''}`} />
+                        {isRunningAnalysis ? 'Running Analysis...' : 'Run Analysis'}
                       </Button>
                     </CardContent>
                   </Card>
+                )}
+                
+                {marketAnalysis && (
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={handleRerunAnalysis}
+                      disabled={isRunningAnalysis}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${isRunningAnalysis ? 'animate-spin' : ''}`} />
+                      {isRunningAnalysis ? 'Running Analysis...' : 'Run New Analysis'}
+                    </Button>
+                  </div>
                 )}
               </div>
             )}
