@@ -144,6 +144,7 @@ export type Database = {
         Row: {
           competitors: Json | null
           created_at: string
+          credits_used: number
           features: Json | null
           id: string
           idea: string | null
@@ -156,6 +157,7 @@ export type Database = {
         Insert: {
           competitors?: Json | null
           created_at?: string
+          credits_used?: number
           features?: Json | null
           id?: string
           idea?: string | null
@@ -168,6 +170,7 @@ export type Database = {
         Update: {
           competitors?: Json | null
           created_at?: string
+          credits_used?: number
           features?: Json | null
           id?: string
           idea?: string | null

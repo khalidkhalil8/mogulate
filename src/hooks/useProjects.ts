@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -111,7 +112,7 @@ export const useProjects = () => {
         features: Array.isArray(item.features) ? item.features : [],
         validation_plan: Array.isArray(item.validation_plan) ? item.validation_plan as ValidationStep[] : [],
         market_analysis: item.market_analysis || undefined,
-        credits_used: item.credits_used || 0,
+        credits_used: (item as any).credits_used || 0,
       }));
 
       console.log('useProjects: Successfully fetched projects:', transformedData.length);
@@ -157,7 +158,7 @@ export const useProjects = () => {
         features: Array.isArray(data.features) ? data.features : [],
         validation_plan: Array.isArray(data.validation_plan) ? data.validation_plan as ValidationStep[] : [],
         market_analysis: data.market_analysis || undefined,
-        credits_used: data.credits_used || 0,
+        credits_used: (data as any).credits_used || 0,
       };
 
       setProjects(prev => [transformedProject, ...prev]);
@@ -207,7 +208,7 @@ export const useProjects = () => {
         features: Array.isArray(data.features) ? data.features : [],
         validation_plan: Array.isArray(data.validation_plan) ? data.validation_plan as ValidationStep[] : [],
         market_analysis: data.market_analysis || undefined,
-        credits_used: data.credits_used || 0,
+        credits_used: (data as any).credits_used || 0,
       };
 
       setProjects(prev => prev.map(p => p.id === projectId ? transformedProject : p));
