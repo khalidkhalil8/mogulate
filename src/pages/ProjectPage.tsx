@@ -15,9 +15,10 @@ import {
   Edit,
   TrendingUp,
   Lightbulb,
-  Settings
+  Settings,
+  AlertCircle,
+  Home
 } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
 
 const ProjectPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,19 +43,36 @@ const ProjectPage: React.FC = () => {
     );
   }
 
-  // Handle project not found
+  // Handle project not found with improved messaging
   if (!project) {
     return (
       <PageLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Project Not Found</h2>
-            <p className="text-gray-600 mb-6">
-              The project you're looking for doesn't exist or you don't have access to it.
+        <div className="flex items-center justify-center min-h-[500px]">
+          <div className="text-center max-w-md mx-auto p-6">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="h-8 w-8 text-red-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Project Not Found</h2>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              This project may have been deleted, or you don't have permission to access it. 
+              Please check the URL or contact support if you believe this is an error.
             </p>
-            <Button onClick={() => navigate('/dashboard')} className="gradient-bg">
-              Back to Dashboard
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                onClick={() => navigate('/dashboard')} 
+                className="flex items-center gap-2"
+              >
+                <Home className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-2"
+              >
+                Try Again
+              </Button>
+            </div>
           </div>
         </div>
       </PageLayout>

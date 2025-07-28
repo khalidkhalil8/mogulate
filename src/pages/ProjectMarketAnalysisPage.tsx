@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, AlertCircle, Home } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectMarketAnalysis } from '@/hooks/useProjectMarketAnalysis';
 import { analyzeMarketGaps } from '@/lib/api/marketGaps';
@@ -18,10 +18,10 @@ import type { MarketGapWithScore } from '@/lib/api/marketGapsScoring';
 const ProjectMarketAnalysisPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { projects } = useProjects();
+  const { projects, isLoading: projectsLoading } = useProjects();
   const { 
     marketAnalysis, 
-    isLoading, 
+    isLoading: analysisLoading, 
     updateMarketAnalysis
   } = useProjectMarketAnalysis(id || '');
   
@@ -30,12 +30,43 @@ const ProjectMarketAnalysisPage = () => {
 
   const project = projects.find(p => p.id === id);
 
+  if (projectsLoading || analysisLoading) {
+    return <LoadingState />;
+  }
+
   if (!id || !project) {
     return (
       <PageLayout>
-        <div className="p-6">
-          <div className="text-center text-red-600">
-            Project ID not found
+        <div className="min-h-screen">
+          <Helmet>
+            <title>Market Analysis - Project Not Found | Mogulate</title>
+          </Helmet>
+          <div className="flex items-center justify-center min-h-[500px]">
+            <div className="text-center max-w-md mx-auto p-6">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="h-8 w-8 text-red-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Project Not Found</h2>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                {!id ? 'Invalid project ID provided.' : 'This project may have been deleted or you don\'t have access to it.'}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button 
+                  onClick={() => navigate('/dashboard')} 
+                  className="flex items-center gap-2"
+                >
+                  <Home className="h-4 w-4" />
+                  Back to Dashboard
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.location.reload()}
+                  className="flex items-center gap-2"
+                >
+                  Try Again
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </PageLayout>
@@ -109,57 +140,53 @@ const ProjectMarketAnalysisPage = () => {
               </p>
             </div>
 
-            {isLoading ? (
-              <LoadingState />
-            ) : (
-              <div className="space-y-6">
-                {marketAnalysis ? (
-                  // Check if it's the new scoring format or legacy format
-                  isMarketGapScoringAnalysis(marketAnalysis) ? (
-                    <MarketGapsScoringDisplay
-                      analysis={marketAnalysis}
-                      selectedGapIndex={selectedGapIndex}
-                      onSelectGap={setSelectedGapIndex}
-                    />
-                  ) : (
-                    <MarketGapAnalysisCard analysis={marketAnalysis} />
-                  )
+            <div className="space-y-6">
+              {marketAnalysis ? (
+                // Check if it's the new scoring format or legacy format
+                isMarketGapScoringAnalysis(marketAnalysis) ? (
+                  <MarketGapsScoringDisplay
+                    analysis={marketAnalysis}
+                    selectedGapIndex={selectedGapIndex}
+                    onSelectGap={setSelectedGapIndex}
+                  />
                 ) : (
-                  <Card className="bg-blue-50 border-blue-100">
-                    <CardContent className="text-center py-8">
-                      <h3 className="text-xl font-semibold text-blue-800 mb-2">
-                        No Market Analysis Available
-                      </h3>
-                      <p className="text-blue-700 mb-4">
-                        Run the analysis to discover market gaps and positioning strategies.
-                      </p>
-                      <Button
-                        onClick={handleRerunAnalysis}
-                        disabled={isRunningAnalysis}
-                        className="flex items-center gap-2"
-                      >
-                        <RefreshCw className={`h-4 w-4 ${isRunningAnalysis ? 'animate-spin' : ''}`} />
-                        {isRunningAnalysis ? 'Running Analysis...' : 'Run Analysis'}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-                
-                {marketAnalysis && (
-                  <div className="flex justify-center">
+                  <MarketGapAnalysisCard analysis={marketAnalysis} />
+                )
+              ) : (
+                <Card className="bg-blue-50 border-blue-100">
+                  <CardContent className="text-center py-8">
+                    <h3 className="text-xl font-semibold text-blue-800 mb-2">
+                      No Market Analysis Available
+                    </h3>
+                    <p className="text-blue-700 mb-4">
+                      Run the analysis to discover market gaps and positioning strategies.
+                    </p>
                     <Button
                       onClick={handleRerunAnalysis}
                       disabled={isRunningAnalysis}
-                      variant="outline"
                       className="flex items-center gap-2"
                     >
                       <RefreshCw className={`h-4 w-4 ${isRunningAnalysis ? 'animate-spin' : ''}`} />
-                      {isRunningAnalysis ? 'Running Analysis...' : 'Run New Analysis'}
+                      {isRunningAnalysis ? 'Running Analysis...' : 'Run Analysis'}
                     </Button>
-                  </div>
-                )}
-              </div>
-            )}
+                  </CardContent>
+                </Card>
+              )}
+              
+              {marketAnalysis && (
+                <div className="flex justify-center">
+                  <Button
+                    onClick={handleRerunAnalysis}
+                    disabled={isRunningAnalysis}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isRunningAnalysis ? 'animate-spin' : ''}`} />
+                    {isRunningAnalysis ? 'Running Analysis...' : 'Run New Analysis'}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
