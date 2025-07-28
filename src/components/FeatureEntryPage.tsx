@@ -185,6 +185,11 @@ const FeatureEntryPage: React.FC = () => {
     navigate(nextUrl);
   };
   
+  const handleNext = () => {
+    const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
+    handleSubmit(syntheticEvent);
+  };
+  
   const handleBack = async () => {
     const fullFeatures: Feature[] = features.map(f => ({
       id: f.id,
@@ -239,7 +244,7 @@ const FeatureEntryPage: React.FC = () => {
         : "Add and configure the features you want to build for your product."
       }
       onBack={handleBack}
-      onNext={handleSubmit}
+      onNext={handleNext}
       canProceed={canProceed}
     >
       <FeatureForm
