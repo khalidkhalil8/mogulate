@@ -43,8 +43,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ onNewProject }) => 
     {
       icon: Settings,
       label: "Settings",
-      path: "/profile",
-      onClick: () => navigate("/profile"),
+      path: "/settings",
+      onClick: () => navigate("/settings"),
     },
     {
       icon: CreditCard,
