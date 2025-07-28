@@ -1,8 +1,8 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/sonner';
+import { useProjectLimits } from "@/hooks/useProjectLimits";
 
 export interface ValidationStep {
   title: string;
@@ -158,6 +158,7 @@ export const useProjects = () => {
       };
 
       setProjects(prev => [transformedProject, ...prev]);
+      toast.success('Project created successfully');
       return transformedProject;
     } catch (error) {
       console.error('Error creating project:', error);

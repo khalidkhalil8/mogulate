@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
@@ -9,18 +8,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, FileText, Calendar, Trash2 } from "lucide-react";
 import LoadingState from "@/components/ui/LoadingState";
 import PageLayout from "@/components/layout/PageLayout";
+import { useProjectLimits } from "@/hooks/useProjectLimits";
+import ProjectLimitUpgrade from "@/components/projects/ProjectLimitUpgrade";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { projects, isLoading, deleteProject } = useProjects();
+  const { 
+    projectLimit, 
+    currentProjectCount, 
+    canCreateProject, 
+    isAtLimit, 
+    currentTier 
+  } = useProjectLimits();
 
   const handleProjectClick = (project: any) => {
     navigate(`/project/${project.id}`);
   };
 
   const handleNewProject = () => {
-    navigate("/idea");
+    if (canCreateProject) {
+      navigate("/idea");
+    }
   };
 
   if (isLoading) {
@@ -36,13 +46,33 @@ const DashboardPage = () => {
 
         <div className="p-6">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center gap-4 mb-8">
-              <h1 className="text-3xl font-bold">Your Projects</h1>
-              <Button onClick={handleNewProject} className="gap-2">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <h1 className="text-3xl font-bold">Your Projects</h1>
+                <div className="text-sm text-gray-600">
+                  {currentProjectCount}/{projectLimit === Infinity ? '∞' : projectLimit} projects
+                </div>
+              </div>
+              <Button 
+                onClick={handleNewProject} 
+                className="gap-2"
+                disabled={!canCreateProject}
+              >
                 <Plus className="h-4 w-4" />
                 New Project
               </Button>
             </div>
+
+            {/* Show upgrade CTA if at limit */}
+            {isAtLimit && (
+              <div className="mb-6">
+                <ProjectLimitUpgrade 
+                  currentTier={currentTier}
+                  projectLimit={projectLimit}
+                  currentProjectCount={currentProjectCount}
+                />
+              </div>
+            )}
 
             {projects.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -52,10 +82,20 @@ const DashboardPage = () => {
                   <p className="text-gray-600 mb-6">
                     Create your first project to start validating your business ideas
                   </p>
-                  <Button onClick={handleNewProject} size="lg" className="gap-2">
+                  <Button 
+                    onClick={handleNewProject} 
+                    size="lg" 
+                    className="gap-2"
+                    disabled={!canCreateProject}
+                  >
                     <Plus className="h-4 w-4" />
                     Get Started
                   </Button>
+                  {!canCreateProject && (
+                    <p className="text-sm text-orange-600 mt-2">
+                      Project limit reached for {currentTier} plan
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (
