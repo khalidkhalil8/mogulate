@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useProjects } from '@/hooks/useProjects';
+import { useProjectTodos } from '@/hooks/useProjectTodos';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pencil, List, Users, TrendingUp, MessageSquare, CheckSquare, Plus } from 'lucide-react';
@@ -14,6 +15,7 @@ const ProjectEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { projects, isLoading } = useProjects();
+  const { todos } = useProjectTodos(id || '');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   const project = projects.find(p => p.id === id);
@@ -35,12 +37,76 @@ const ProjectEditPage = () => {
     );
   }
 
+  // Helper functions for widget summaries
+  const getMarketAnalysisSummary = () => {
+    if (!project.market_analysis) return 'Not started';
+    
+    const analysis = project.market_analysis;
+    
+    // Check for scoring analysis first
+    if (analysis.marketGapScoringAnalysis?.marketGaps?.length > 0) {
+      const selectedGapIndex = analysis.selectedGapIndex || 0;
+      const selectedGap = analysis.marketGapScoringAnalysis.marketGaps[selectedGapIndex];
+      if (selectedGap) {
+        return `Focus: ${selectedGap.positioningSuggestion.substring(0, 60)}...`;
+      }
+    }
+    
+    // Fallback to legacy analysis
+    if (analysis.marketGapAnalysis?.positioningSuggestions?.length > 0) {
+      return `Strategy: ${analysis.marketGapAnalysis.positioningSuggestions[0].substring(0, 60)}...`;
+    }
+    
+    return 'Analysis completed';
+  };
+
+  const getValidationPlanSummary = () => {
+    if (!project.validation_plan || !Array.isArray(project.validation_plan)) {
+      return 'Not started';
+    }
+    
+    const nextStep = project.validation_plan.find(step => !step.isDone);
+    if (nextStep) {
+      return `Next: ${nextStep.title}`;
+    }
+    
+    return 'All steps completed';
+  };
+
+  const getFeaturesSummary = () => {
+    if (!project.features || !Array.isArray(project.features)) {
+      return '0 features added';
+    }
+    
+    const incompleteFeatures = project.features.filter(f => f.status !== 'Done');
+    const totalFeatures = project.features.length;
+    
+    if (incompleteFeatures.length === 0) {
+      return `${totalFeatures} features (all complete)`;
+    }
+    
+    return `${incompleteFeatures.length} of ${totalFeatures} features active`;
+  };
+
+  const getTodoSummary = () => {
+    if (todos.length === 0) {
+      return 'No tasks yet';
+    }
+    
+    const nextPendingTask = todos.find(todo => !todo.completed);
+    if (nextPendingTask) {
+      return `Next: ${nextPendingTask.title}`;
+    }
+    
+    return 'All tasks completed';
+  };
+
   const widgets = [
     {
       title: 'Features',
       icon: List,
       onClick: () => navigate(`/project/${project.id}/features`),
-      preview: `${project.features?.length || 0} features added`,
+      preview: getFeaturesSummary(),
     },
     {
       title: 'Competitors',
@@ -52,13 +118,13 @@ const ProjectEditPage = () => {
       title: 'Market Analysis',
       icon: TrendingUp,
       onClick: () => navigate(`/project/${project.id}/market-analysis`),
-      preview: project.market_analysis ? 'Analysis completed' : 'Not started',
+      preview: getMarketAnalysisSummary(),
     },
     {
       title: 'Validation Plan',
       icon: CheckSquare,
       onClick: () => navigate(`/project/${project.id}/validation-plan`),
-      preview: project.validation_plan ? 'Plan available' : 'Not started',
+      preview: getValidationPlanSummary(),
     },
     {
       title: 'Feedback Tracking',
@@ -70,7 +136,7 @@ const ProjectEditPage = () => {
       title: 'To-do List',
       icon: Plus,
       onClick: () => navigate(`/project/${project.id}/todos`),
-      preview: 'Manage development tasks',
+      preview: getTodoSummary(),
     },
   ];
 
@@ -120,7 +186,7 @@ const ProjectEditPage = () => {
                       </div>
                       <h3 className="font-semibold text-lg">{widget.title}</h3>
                     </div>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-600 text-sm line-clamp-2">
                       {widget.preview}
                     </p>
                   </CardContent>

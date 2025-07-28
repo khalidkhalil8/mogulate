@@ -1,72 +1,72 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { useProjects } from '@/hooks/useProjects';
-import { useProjectMarketAnalysis } from '@/hooks/useProjectMarketAnalysis';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Crown, TrendingUp } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { useProjects } from '@/hooks/useProjects';
+import { useProjectMarketAnalysis } from '@/hooks/useProjectMarketAnalysis';
+import { useOutdatedContent } from '@/hooks/useOutdatedContent';
 import LoadingState from '@/components/ui/LoadingState';
 import PageLayout from '@/components/layout/PageLayout';
-import type { MarketGapScoringAnalysis } from '@/lib/api/marketGapsScoring';
+import MarketGapsScoringDisplay from '@/components/market-gaps/MarketGapsScoringDisplay';
+import MarketGapAnalysisCard from '@/components/market-gaps/MarketGapAnalysisCard';
+import OutdatedBanner from '@/components/ui/OutdatedBanner';
+import MarketAnalysisRerunButton from '@/components/market-analysis/MarketAnalysisRerunButton';
 
 const ProjectMarketAnalysisPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { projects, isLoading: projectsLoading } = useProjects();
-  const { marketAnalysis, isLoading: analysisLoading } = useProjectMarketAnalysis(id!);
-  
+  const { projects } = useProjects();
+  const { 
+    analysis, 
+    isLoading, 
+    isOutdated, 
+    refetchAnalysis,
+    selectedGapIndex,
+    setSelectedGapIndex
+  } = useProjectMarketAnalysis(id || '');
+  const { isContentOutdated, setIsContentOutdated } = useOutdatedContent();
+
   const project = projects.find(p => p.id === id);
-  
-  if (projectsLoading || analysisLoading) {
-    return <LoadingState />;
-  }
-  
-  if (!project) {
+
+  if (!id || !project) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">Project not found</h2>
-          <Button onClick={() => navigate('/dashboard')}>
-            Back to Dashboard
-          </Button>
+      <PageLayout>
+        <div className="p-6">
+          <div className="text-center text-red-600">
+            Project ID not found
+          </div>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
-  // Parse market gap analysis data
-  const marketGapScoringAnalysis = project.market_analysis as MarketGapScoringAnalysis | null;
-  const selectedGapIndex = undefined; // No longer used
-  const hasAnalysisData = marketGapScoringAnalysis?.marketGaps && marketGapScoringAnalysis.marketGaps.length > 0;
-  const hasMarketGaps = false; // No longer stored separately
-  const lastAnalyzed = project.updated_at ? format(new Date(project.updated_at), 'MMMM d, yyyy') : null;
+  const handleBackClick = () => {
+    navigate(`/project/${id}`);
+  };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 8) return 'bg-green-500';
-    if (score >= 6) return 'bg-yellow-500';
-    return 'bg-red-500';
+  const handleRerunAnalysis = async () => {
+    setIsContentOutdated(true);
+    await refetchAnalysis();
+    setIsContentOutdated(false);
   };
 
   return (
     <PageLayout>
       <div className="min-h-screen">
         <Helmet>
-          <title>Market Analysis - {project.title} | Mogulate</title>
+          <title>{project.title} Market Analysis | Mogulate</title>
         </Helmet>
 
         <div className="p-6">
-          <div className="max-w-6xl mx-auto">
-            {/* Header */}
-            <div className="mb-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-6">
               <div className="flex items-center gap-4 mb-4">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate(`/project/${project.id}`)}
+                  onClick={handleBackClick}
                   className="flex items-center gap-2"
                 >
                   <ArrowLeft className="h-4 w-4" />
@@ -74,158 +74,41 @@ const ProjectMarketAnalysisPage = () => {
                 </Button>
               </div>
               
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold mb-2">Market Analysis</h1>
-                <p className="text-gray-600">
-                  These opportunities were generated based on your project and competition.
-                </p>
-              </div>
-
-              {/* Last analyzed timestamp */}
-              {lastAnalyzed && hasAnalysisData && (
-                <div className="text-sm text-gray-500 mb-6">
-                  Last analyzed: {lastAnalyzed}
-                </div>
-              )}
+              <h1 className="text-3xl font-bold text-gray-900">Market Analysis</h1>
+              <p className="text-gray-600 mt-2">
+                Understand your market position and identify opportunities.
+              </p>
             </div>
 
-            {/* Content */}
-            {hasAnalysisData ? (
-              // Analysis Content - Display all gaps with selected one highlighted
-              <div className="space-y-6">
-                {/* Summary Card */}
-                <Card className="bg-blue-50 border-blue-200">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">i</span>
-                      </div>
-                      <div>
-                        <p className="text-blue-800 font-medium mb-1">
-                          Market Analysis Results
-                        </p>
-                        <p className="text-blue-700 text-sm">
-                          Your market opportunities were analyzed and scored based on market size, competition, ease of implementation, 
-                          and alignment with your project. {selectedGapIndex !== undefined && selectedGapIndex !== null ? 
-                          'Your selected opportunity is highlighted below.' : 
-                          'Review the opportunities below to understand your market positioning.'}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-                  {marketGapScoringAnalysis.marketGaps
-                    .map((gap, index) => ({ gap, originalIndex: index }))
-                    .sort((a, b) => b.gap.score - a.gap.score)
-                    .map(({ gap, originalIndex }) => {
-                      const isSelected = selectedGapIndex === originalIndex;
-                      
-                      return (
-                        <Card 
-                          key={originalIndex} 
-                          className={`relative transition-all duration-200 ${
-                            isSelected 
-                              ? 'border-teal-500 border-2 bg-teal-50 shadow-lg' 
-                              : 'border-gray-200'
-                          }`}
-                        >
-                          {isSelected && (
-                            <div className="absolute -top-2 -right-2">
-                              <Badge className="bg-teal-600 text-white flex items-center gap-1">
-                                <Crown className="h-3 w-3" />
-                                Selected Opportunity
-                              </Badge>
-                            </div>
-                          )}
-                          
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <CardTitle className="text-lg">Market Gap</CardTitle>
-                              <Badge className={`${getScoreColor(gap.score)} text-white`}>
-                                {gap.score}/10
-                              </Badge>
-                            </div>
-                          </CardHeader>
-                          
-                          <CardContent className="space-y-4">
-                            <div>
-                              <h4 className="font-medium text-gray-900 mb-2">Gap Description:</h4>
-                              <p className={isSelected ? "text-teal-800" : "text-gray-700"}>
-                                {gap.gap}
-                              </p>
-                            </div>
-                            
-                            <div>
-                              <h4 className="font-medium text-gray-900 mb-2">Positioning Suggestion:</h4>
-                              <p className={isSelected ? "text-teal-800" : "text-gray-700"}>
-                                {gap.positioningSuggestion}
-                              </p>
-                            </div>
-                            
-                            <div>
-                              <h4 className="font-medium text-gray-900 mb-2">Score Rationale:</h4>
-                              <p className={isSelected ? "text-teal-700 text-sm" : "text-gray-600 text-sm"}>
-                                {gap.rationale}
-                              </p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                </div>
-              </div>
-            ) : hasMarketGaps ? (
-              // Basic market gaps data (fallback)
-              <div className="space-y-6">
-                <Card className="bg-amber-50 border-amber-200">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">i</span>
-                      </div>
-                      <div>
-                        <p className="text-amber-800 font-medium mb-1">
-                          Market Gaps Data Available
-                        </p>
-                        <p className="text-amber-700 text-sm">
-                          Your project has market gap information, but the detailed scoring analysis wasn't saved. This may be from an earlier version of the setup process.
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      Market Gaps
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="whitespace-pre-wrap text-gray-700">
-                      {/* Legacy market gaps data not available */}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+            {isLoading ? (
+              <LoadingState />
             ) : (
-              // Empty State
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="max-w-md mx-auto">
-                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <TrendingUp className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h2 className="text-2xl font-semibold mb-2">No market analysis available</h2>
-                  <p className="text-gray-600 mb-6">
-                    Market analysis is generated during the project setup process. If you haven't completed the setup flow, you can start a new project to generate market analysis.
-                  </p>
-                  <Button onClick={() => navigate('/dashboard')}>
-                    Back to Dashboard
-                  </Button>
-                </div>
+              <div className="space-y-6">
+                {isOutdated && (
+                  <OutdatedBanner onConfirm={handleRerunAnalysis} />
+                )}
+
+                {analysis?.marketGapScoringAnalysis ? (
+                  <MarketGapsScoringDisplay
+                    analysis={analysis.marketGapScoringAnalysis}
+                    selectedGapIndex={selectedGapIndex}
+                    onSelectGap={setSelectedGapIndex}
+                  />
+                ) : analysis?.marketGapAnalysis ? (
+                  <MarketGapAnalysisCard analysis={analysis.marketGapAnalysis} />
+                ) : (
+                  <Card className="bg-blue-50 border-blue-100">
+                    <CardContent className="text-center py-8">
+                      <h3 className="text-xl font-semibold text-blue-800 mb-2">
+                        No Market Analysis Available
+                      </h3>
+                      <p className="text-blue-700">
+                        Run the analysis to discover market gaps and positioning strategies.
+                      </p>
+                      <MarketAnalysisRerunButton onClick={handleRerunAnalysis} />
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
           </div>
