@@ -1,8 +1,9 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
 import { useProjects } from "@/hooks/useProjects";
-import SetupPageLayout from "@/components/layout/SetupPageLayout";
+import SetupPageLayout from "@/components/setup/SetupPageLayout";
 import { useProjectLimits } from "@/hooks/useProjectLimits";
 import ProjectLimitUpgrade from "@/components/projects/ProjectLimitUpgrade";
 
