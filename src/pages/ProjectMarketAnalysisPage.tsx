@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -6,27 +7,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectMarketAnalysis } from '@/hooks/useProjectMarketAnalysis';
-import { useOutdatedContent } from '@/hooks/useOutdatedContent';
 import LoadingState from '@/components/ui/LoadingState';
 import PageLayout from '@/components/layout/PageLayout';
 import MarketGapsScoringDisplay from '@/components/market-gaps/MarketGapsScoringDisplay';
 import MarketGapAnalysisCard from '@/components/market-gaps/MarketGapAnalysisCard';
-import OutdatedBanner from '@/components/ui/OutdatedBanner';
-import MarketAnalysisRerunButton from '@/components/market-analysis/MarketAnalysisRerunButton';
 
 const ProjectMarketAnalysisPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { projects } = useProjects();
   const { 
-    analysis, 
+    marketAnalysis, 
     isLoading, 
-    isOutdated, 
-    refetchAnalysis,
-    selectedGapIndex,
-    setSelectedGapIndex
+    refetchMarketAnalysis
   } = useProjectMarketAnalysis(id || '');
-  const { isContentOutdated, setIsContentOutdated } = useOutdatedContent();
+  
+  const [selectedGapIndex, setSelectedGapIndex] = useState<number | undefined>();
 
   const project = projects.find(p => p.id === id);
 
@@ -47,9 +43,7 @@ const ProjectMarketAnalysisPage = () => {
   };
 
   const handleRerunAnalysis = async () => {
-    setIsContentOutdated(true);
-    await refetchAnalysis();
-    setIsContentOutdated(false);
+    await refetchMarketAnalysis();
   };
 
   return (
@@ -84,28 +78,36 @@ const ProjectMarketAnalysisPage = () => {
               <LoadingState />
             ) : (
               <div className="space-y-6">
-                {isOutdated && (
-                  <OutdatedBanner onConfirm={handleRerunAnalysis} />
-                )}
-
-                {analysis?.marketGapScoringAnalysis ? (
-                  <MarketGapsScoringDisplay
-                    analysis={analysis.marketGapScoringAnalysis}
-                    selectedGapIndex={selectedGapIndex}
-                    onSelectGap={setSelectedGapIndex}
-                  />
-                ) : analysis?.marketGapAnalysis ? (
-                  <MarketGapAnalysisCard analysis={analysis.marketGapAnalysis} />
+                {marketAnalysis ? (
+                  // Check if it's the new scoring format or legacy format
+                  marketAnalysis.marketGaps && Array.isArray(marketAnalysis.marketGaps) && 
+                  marketAnalysis.marketGaps.length > 0 && 
+                  typeof marketAnalysis.marketGaps[0] === 'object' && 
+                  'score' in marketAnalysis.marketGaps[0] ? (
+                    <MarketGapsScoringDisplay
+                      analysis={{ marketGaps: marketAnalysis.marketGaps }}
+                      selectedGapIndex={selectedGapIndex}
+                      onSelectGap={setSelectedGapIndex}
+                    />
+                  ) : (
+                    <MarketGapAnalysisCard analysis={marketAnalysis} />
+                  )
                 ) : (
                   <Card className="bg-blue-50 border-blue-100">
                     <CardContent className="text-center py-8">
                       <h3 className="text-xl font-semibold text-blue-800 mb-2">
                         No Market Analysis Available
                       </h3>
-                      <p className="text-blue-700">
+                      <p className="text-blue-700 mb-4">
                         Run the analysis to discover market gaps and positioning strategies.
                       </p>
-                      <MarketAnalysisRerunButton onClick={handleRerunAnalysis} />
+                      <Button
+                        onClick={handleRerunAnalysis}
+                        className="flex items-center gap-2"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Run Analysis
+                      </Button>
                     </CardContent>
                   </Card>
                 )}
