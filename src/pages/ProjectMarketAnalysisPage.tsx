@@ -11,6 +11,7 @@ import LoadingState from '@/components/ui/LoadingState';
 import PageLayout from '@/components/layout/PageLayout';
 import MarketGapsScoringDisplay from '@/components/market-gaps/MarketGapsScoringDisplay';
 import MarketGapAnalysisCard from '@/components/market-gaps/MarketGapAnalysisCard';
+import type { MarketGapWithScore } from '@/lib/api/marketGapsScoring';
 
 const ProjectMarketAnalysisPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +45,15 @@ const ProjectMarketAnalysisPage = () => {
 
   const handleRerunAnalysis = async () => {
     await refetchMarketAnalysis();
+  };
+
+  // Helper function to check if the analysis is in the new scoring format
+  const isMarketGapScoringAnalysis = (analysis: any): analysis is { marketGaps: MarketGapWithScore[] } => {
+    return analysis && 
+           Array.isArray(analysis.marketGaps) && 
+           analysis.marketGaps.length > 0 && 
+           typeof analysis.marketGaps[0] === 'object' && 
+           'score' in analysis.marketGaps[0];
   };
 
   return (
@@ -80,12 +90,9 @@ const ProjectMarketAnalysisPage = () => {
               <div className="space-y-6">
                 {marketAnalysis ? (
                   // Check if it's the new scoring format or legacy format
-                  marketAnalysis.marketGaps && Array.isArray(marketAnalysis.marketGaps) && 
-                  marketAnalysis.marketGaps.length > 0 && 
-                  typeof marketAnalysis.marketGaps[0] === 'object' && 
-                  'score' in marketAnalysis.marketGaps[0] ? (
+                  isMarketGapScoringAnalysis(marketAnalysis) ? (
                     <MarketGapsScoringDisplay
-                      analysis={{ marketGaps: marketAnalysis.marketGaps }}
+                      analysis={marketAnalysis}
                       selectedGapIndex={selectedGapIndex}
                       onSelectGap={setSelectedGapIndex}
                     />
