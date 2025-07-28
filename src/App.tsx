@@ -30,8 +30,8 @@ const queryClient = new QueryClient();
 function AppContent() {
   const location = useLocation();
   
-  // Only show header on landing page for unauthenticated users
-  const showHeader = location.pathname === '/' && !location.search;
+  // Show header on homepage (/) regardless of authentication status
+  const showHeader = location.pathname === '/';
 
   return (
     <>
