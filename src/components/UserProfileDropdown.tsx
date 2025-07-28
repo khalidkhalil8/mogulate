@@ -52,6 +52,11 @@ const UserProfileDropdown: React.FC = () => {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
+          <Link to="/settings" className="w-full cursor-pointer">
+            Settings
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <Link to="/pricing" className="w-full cursor-pointer">
             Pricing Plans
           </Link>

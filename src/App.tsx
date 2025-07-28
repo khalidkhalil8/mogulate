@@ -1,82 +1,62 @@
 
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { Routes, Route, BrowserRouter, useLocation } from "react-router-dom";
-import { Toaster } from "@/components/ui/sonner";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
-import Header from "@/components/Header";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import Index from "@/pages/Index";
 import AuthPage from "@/pages/AuthPage";
-import ProfilePage from "@/pages/ProfilePage";
 import DashboardPage from "@/pages/DashboardPage";
+import FeaturesPage from "@/pages/FeaturesPage";
 import ProjectEditPage from "@/pages/ProjectEditPage";
 import ProjectCompetitorsPage from "@/pages/ProjectCompetitorsPage";
-import ProjectMarketAnalysisPage from "@/pages/ProjectMarketAnalysisPage";
 import ProjectValidationPlanPage from "@/pages/ProjectValidationPlanPage";
+import ProjectMarketAnalysisPage from "@/pages/ProjectMarketAnalysisPage";
 import ProjectFeedbackTrackingPage from "@/pages/ProjectFeedbackTrackingPage";
 import ProjectTodoPage from "@/pages/ProjectTodoPage";
-import FeaturesPage from "@/pages/FeaturesPage";
 import PricingPage from "@/pages/PricingPage";
+import ProfilePage from "@/pages/ProfilePage";
+import SettingsPage from "@/pages/SettingsPage";
 import NotFound from "@/pages/NotFound";
-import IdeaEntryPage from "@/components/IdeaEntryPage";
-import CompetitorDiscoveryPage from "@/components/CompetitorDiscoveryPage";
-import MarketGapPage from "@/components/MarketGapPage";
-import FeatureEntryPage from "@/components/FeatureEntryPage";
-import ValidationPlanPage from "@/components/ValidationPlanPage";
-import SummaryPage from "@/components/SummaryPage";
+import "./App.css";
 
 const queryClient = new QueryClient();
-
-function AppContent() {
-  const location = useLocation();
-  
-  // Show header on homepage (/) regardless of authentication status
-  const showHeader = location.pathname === '/';
-
-  return (
-    <>
-      <Helmet>
-        <title>Mogulate - Validate Your Business Ideas</title>
-        <meta name="description" content="Validate your business ideas with AI-powered market research and competitor analysis." />
-      </Helmet>
-      <div className="min-h-screen bg-white">
-        {showHeader && <Header />}
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/idea" element={<IdeaEntryPage />} />
-          <Route path="/competitors" element={<CompetitorDiscoveryPage />} />
-          <Route path="/market-gaps" element={<MarketGapPage />} />
-          <Route path="/features" element={<FeatureEntryPage />} />
-          <Route path="/validation-plan" element={<ValidationPlanPage />} />
-          <Route path="/summary" element={<SummaryPage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/project/:id" element={<ProjectEditPage />} />
-          <Route path="/project/:id/competitors" element={<ProjectCompetitorsPage />} />
-          <Route path="/project/:id/market-analysis" element={<ProjectMarketAnalysisPage />} />
-          <Route path="/project/:id/validation-plan" element={<ProjectValidationPlanPage />} />
-          <Route path="/project/:id/features" element={<FeaturesPage />} />
-          <Route path="/project/:id/feedback-tracking" element={<ProjectFeedbackTrackingPage />} />
-          <Route path="/project/:id/todos" element={<ProjectTodoPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
-      </div>
-    </>
-  );
-}
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
-        <BrowserRouter>
+        <Router>
           <AuthProvider>
-            <AppContent />
+            <SidebarProvider>
+              <div className="min-h-screen bg-background">
+                <Helmet>
+                  <title>Mogulate</title>
+                </Helmet>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/features" element={<FeaturesPage />} />
+                  <Route path="/projects/:id/edit" element={<ProjectEditPage />} />
+                  <Route path="/projects/:id/competitors" element={<ProjectCompetitorsPage />} />
+                  <Route path="/projects/:id/validation-plan" element={<ProjectValidationPlanPage />} />
+                  <Route path="/projects/:id/market-analysis" element={<ProjectMarketAnalysisPage />} />
+                  <Route path="/projects/:id/feedback-tracking" element={<ProjectFeedbackTrackingPage />} />
+                  <Route path="/projects/:id/todos" element={<ProjectTodoPage />} />
+                  <Route path="/pricing" element={<PricingPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+              <Toaster />
+              <Sonner />
+            </SidebarProvider>
           </AuthProvider>
-        </BrowserRouter>
+        </Router>
       </HelmetProvider>
     </QueryClientProvider>
   );
