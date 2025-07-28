@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/sonner';
-import { useProjectLimits } from "@/hooks/useProjectLimits";
 
 export interface ValidationStep {
   title: string;
@@ -10,7 +9,7 @@ export interface ValidationStep {
   method: string;
   priority: 'High' | 'Medium' | 'Low';
   isDone: boolean;
-  [key: string]: any; // Add index signature to make it Json-compatible
+  [key: string]: any;
 }
 
 export interface Project {
@@ -22,6 +21,7 @@ export interface Project {
   features?: any[];
   validation_plan?: ValidationStep[];
   market_analysis?: any;
+  credits_used?: number;
   created_at: string;
   updated_at: string;
 }
@@ -111,6 +111,7 @@ export const useProjects = () => {
         features: Array.isArray(item.features) ? item.features : [],
         validation_plan: Array.isArray(item.validation_plan) ? item.validation_plan as ValidationStep[] : [],
         market_analysis: item.market_analysis || undefined,
+        credits_used: item.credits_used || 0,
       }));
 
       console.log('useProjects: Successfully fetched projects:', transformedData.length);
@@ -139,6 +140,7 @@ export const useProjects = () => {
           idea: idea || '',
           features: [],
           competitors: [],
+          credits_used: 0,
         })
         .select()
         .single();
@@ -155,6 +157,7 @@ export const useProjects = () => {
         features: Array.isArray(data.features) ? data.features : [],
         validation_plan: Array.isArray(data.validation_plan) ? data.validation_plan as ValidationStep[] : [],
         market_analysis: data.market_analysis || undefined,
+        credits_used: data.credits_used || 0,
       };
 
       setProjects(prev => [transformedProject, ...prev]);
@@ -204,6 +207,7 @@ export const useProjects = () => {
         features: Array.isArray(data.features) ? data.features : [],
         validation_plan: Array.isArray(data.validation_plan) ? data.validation_plan as ValidationStep[] : [],
         market_analysis: data.market_analysis || undefined,
+        credits_used: data.credits_used || 0,
       };
 
       setProjects(prev => prev.map(p => p.id === projectId ? transformedProject : p));
