@@ -107,7 +107,7 @@ const ProjectSetupFlow: React.FC = () => {
         element={
           <ProjectFeaturesStep 
             projectData={projectData} 
-            updateProjectData={updateData} 
+            updateProjectData={updateProjectData} 
           />
         } 
       />
