@@ -22,6 +22,7 @@ export interface Project {
   features?: any[];
   validation_plan?: ValidationStep[];
   market_analysis?: any;
+  selected_gap_index?: number;
   credits_used?: number;
   created_at: string;
   updated_at: string;
