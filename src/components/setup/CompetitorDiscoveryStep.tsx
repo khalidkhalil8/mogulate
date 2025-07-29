@@ -8,7 +8,7 @@ import { fetchCompetitors } from '@/lib/api/competitors';
 import { toast } from '@/components/ui/sonner';
 import { Competitor } from '@/lib/types';
 import CompetitorCard from '@/components/competitors/CompetitorCard';
-import CompetitorForm from '@/components/competitors/CompetitorForm';
+import AddCompetitorForm from '@/components/competitors/AddCompetitorForm';
 
 interface CompetitorDiscoveryStepProps {
   setupData: ProjectSetupData;
@@ -121,7 +121,7 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
         {showAddForm && (
           <div className="bg-gray-50 p-6 rounded-lg">
             <h3 className="font-medium text-gray-900 mb-4">Add Competitor</h3>
-            <CompetitorForm
+            <AddCompetitorForm
               onSave={handleAddCompetitor}
               onCancel={() => setShowAddForm(false)}
             />

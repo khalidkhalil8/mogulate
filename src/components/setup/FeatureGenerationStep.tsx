@@ -7,7 +7,7 @@ import { Plus, Lightbulb, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { Feature } from '@/lib/types';
 import FeatureCard from '@/components/features/FeatureCard';
-import FeatureForm from '@/components/features/FeatureForm';
+import AddFeatureForm from '@/components/features/AddFeatureForm';
 
 interface FeatureGenerationStepProps {
   setupData: ProjectSetupData;
@@ -139,7 +139,7 @@ const FeatureGenerationStep: React.FC<FeatureGenerationStepProps> = ({
         {showAddForm && (
           <div className="bg-gray-50 p-6 rounded-lg">
             <h3 className="font-medium text-gray-900 mb-4">Add Feature</h3>
-            <FeatureForm
+            <AddFeatureForm
               onSave={handleAddFeature}
               onCancel={() => setShowAddForm(false)}
             />
