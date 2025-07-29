@@ -33,7 +33,7 @@ import "./App.css";
 
 const queryClient = new QueryClient();
 
-function QueryClient({ children }: { children: React.ReactNode }) {
+function QueryProvider({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
@@ -46,7 +46,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <QueryClient>
+        <QueryProvider>
           <div className="App">
             <Routes>
               <Route path="/" element={<Index />} />
@@ -80,7 +80,7 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
-        </QueryClient>
+        </QueryProvider>
       </AuthProvider>
     </Router>
   );

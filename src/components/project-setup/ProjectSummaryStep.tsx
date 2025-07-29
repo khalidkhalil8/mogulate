@@ -90,8 +90,8 @@ const ProjectSummaryStep: React.FC<ProjectSummaryStepProps> = ({
         <CompetitorsSummaryCard competitors={projectData.competitors || []} />
         
         <MarketGapsSummaryCard 
-          marketGaps={[]} // Legacy field, not used
-          marketGapAnalysis={undefined} // Legacy field, not used
+          marketGaps="" 
+          marketGapAnalysis={undefined}
           marketGapScoringAnalysis={projectData.marketAnalysis}
           selectedGapIndex={projectData.selectedGapIndex}
         />
