@@ -27,6 +27,7 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
 }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [marketAnalysis, setMarketAnalysis] = useState(setupData.marketAnalysis);
+  const [selectedGapIndex, setSelectedGapIndex] = useState<number | undefined>();
 
   useEffect(() => {
     setMarketAnalysis(setupData.marketAnalysis);
@@ -57,6 +58,7 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
 
       if (response.success && response.analysis) {
         setMarketAnalysis(response.analysis);
+        setSelectedGapIndex(undefined); // Reset selection when new analysis is generated
         toast.success('Market analysis completed successfully');
       } else {
         toast.error(response.error || 'Failed to analyze market');
@@ -67,6 +69,11 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const handleSelectGap = (index: number) => {
+    setSelectedGapIndex(index);
+    console.log('Selected gap index:', index);
   };
 
   return (
@@ -104,8 +111,8 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
         {marketAnalysis && (
           <MarketGapsScoringDisplay
             analysis={marketAnalysis}
-            selectedGapIndex={undefined}
-            onSelectGap={() => {}}
+            selectedGapIndex={selectedGapIndex}
+            onSelectGap={handleSelectGap}
           />
         )}
 
