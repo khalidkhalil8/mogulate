@@ -187,6 +187,16 @@ const ProjectSetupPage: React.FC = () => {
     );
   }
 
+  // Determine if user can proceed based on current step requirements
+  const canProceed = () => {
+    switch (currentStep) {
+      case 'summary':
+        return setupData.title.trim() !== '' && setupData.description.trim() !== '';
+      default:
+        return true;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Progress indicator */}
@@ -215,7 +225,7 @@ const ProjectSetupPage: React.FC = () => {
         onBack={stepIndex > 0 ? handleBack : undefined}
         onSave={currentStep === 'summary' ? handleSaveProject : undefined}
         isLoading={isLoading}
-        canProceed={true}
+        canProceed={canProceed()}
       />
     </div>
   );
