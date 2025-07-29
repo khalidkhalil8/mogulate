@@ -18,17 +18,17 @@ const MarketGapsSummaryCard: React.FC<MarketGapsSummaryCardProps> = ({
   marketGapScoringAnalysis,
   selectedGapIndex 
 }) => {
-  // Get the selected gap or fallback to highest scoring
+  // Get the selected gap based on saved selectedGapIndex
   const getSelectedGap = () => {
     if (!marketGapScoringAnalysis?.marketGaps?.length) return null;
     
-    if (selectedGapIndex !== undefined && marketGapScoringAnalysis.marketGaps[selectedGapIndex]) {
+    // Use the selectedGapIndex from database if available
+    if (selectedGapIndex !== undefined && selectedGapIndex >= 0 && marketGapScoringAnalysis.marketGaps[selectedGapIndex]) {
       return marketGapScoringAnalysis.marketGaps[selectedGapIndex];
     }
     
-    // Fallback to highest scoring for legacy projects
-    return marketGapScoringAnalysis.marketGaps
-      .sort((a, b) => b.score - a.score)[0];
+    // If no valid selectedGapIndex, don't show anything to force user to select
+    return null;
   };
 
   const selectedGap = getSelectedGap();
@@ -62,6 +62,12 @@ const MarketGapsSummaryCard: React.FC<MarketGapsSummaryCardProps> = ({
                 <p className="text-teal-700 text-sm">{selectedGap.rationale}</p>
               </div>
             </div>
+          </div>
+        ) : marketGapScoringAnalysis?.marketGaps?.length ? (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-800">
+              Market analysis completed but no opportunity was selected. Please return to the market analysis step to select your preferred opportunity.
+            </p>
           </div>
         ) : marketGapAnalysis ? (
           <div className="space-y-4">
