@@ -18,20 +18,32 @@ const MarketGapsSummaryCard: React.FC<MarketGapsSummaryCardProps> = ({
   marketGapScoringAnalysis,
   selectedGapIndex 
 }) => {
+  console.log('MarketGapsSummaryCard: Props received:', {
+    hasMarketGapScoringAnalysis: !!marketGapScoringAnalysis,
+    marketGapsLength: marketGapScoringAnalysis?.marketGaps?.length || 0,
+    selectedGapIndex,
+    selectedGapIndexType: typeof selectedGapIndex
+  });
+
   // Get the selected gap based on saved selectedGapIndex
   const getSelectedGap = () => {
-    if (!marketGapScoringAnalysis?.marketGaps?.length) return null;
+    if (!marketGapScoringAnalysis?.marketGaps?.length) {
+      console.log('MarketGapsSummaryCard: No market gaps available');
+      return null;
+    }
     
-    // Use the selectedGapIndex from database if available
+    // Use the selectedGapIndex from database if available and valid
     if (selectedGapIndex !== undefined && selectedGapIndex >= 0 && marketGapScoringAnalysis.marketGaps[selectedGapIndex]) {
+      console.log('MarketGapsSummaryCard: Using selected gap at index:', selectedGapIndex);
       return marketGapScoringAnalysis.marketGaps[selectedGapIndex];
     }
     
-    // If no valid selectedGapIndex, don't show anything to force user to select
+    console.log('MarketGapsSummaryCard: No valid selected gap index');
     return null;
   };
 
   const selectedGap = getSelectedGap();
+  console.log('MarketGapsSummaryCard: Selected gap:', selectedGap);
 
   return (
     <Card>

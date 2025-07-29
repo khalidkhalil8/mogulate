@@ -88,8 +88,10 @@ export const useSetupHandlers = ({
       }
 
       if (projectId && scoringAnalysis && user?.id) {
+        // Save both the market analysis and the selected gap index
         await updateProject(projectId, {
           market_analysis: scoringAnalysis as any,
+          selected_gap_index: selectedIndex,
         });
       }
 
@@ -145,7 +147,7 @@ export const useSetupHandlers = ({
         currentProjectId = newProject.id;
       }
 
-      // Save all data in final submission
+      // Save all data in final submission including the selected gap index
       await updateProject(currentProjectId, {
         title: projectTitle,
         idea: ideaData.idea,
@@ -153,6 +155,7 @@ export const useSetupHandlers = ({
         features: ideaData.features,
         validation_plan: ideaData.validationPlan,
         market_analysis: ideaData.marketGapScoringAnalysis as any,
+        selected_gap_index: selectedGapIndex,
       });
 
       navigate('/dashboard');

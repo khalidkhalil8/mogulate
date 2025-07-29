@@ -52,9 +52,10 @@ export const useProjectData = () => {
         marketGapScoringAnalysis,
       }));
 
-      // Reset selected gap index when loading existing project
-      setSelectedGapIndex(undefined);
+      // Set the selected gap index from the database
+      setSelectedGapIndex(existingProject.selected_gap_index);
 
+      console.log('useProjectData: Loaded selected gap index:', existingProject.selected_gap_index);
       console.log('useProjectData: Fully loaded project data');
     } else {
       console.log('useProjectData: No existing project found, using empty state');
