@@ -89,9 +89,9 @@ const FeatureGenerationStep: React.FC<FeatureGenerationStepProps> = ({
     setShowAddForm(false);
   };
 
-  const handleUpdateFeature = (featureId: string, updates: Partial<Feature>) => {
+  const handleUpdateFeature = (featureId: string, field: keyof Feature, value: string) => {
     const updatedFeatures = features.map(feature =>
-      feature.id === featureId ? { ...feature, ...updates } : feature
+      feature.id === featureId ? { ...feature, [field]: value } : feature
     );
     setFeatures(updatedFeatures);
   };
@@ -152,12 +152,14 @@ const FeatureGenerationStep: React.FC<FeatureGenerationStepProps> = ({
               Features ({features.length})
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {features.map((feature) => (
+              {features.map((feature, index) => (
                 <FeatureCard
                   key={feature.id}
                   feature={feature}
-                  onUpdate={(updates) => handleUpdateFeature(feature.id, updates)}
-                  onRemove={() => handleRemoveFeature(feature.id)}
+                  index={index}
+                  canDelete={true}
+                  onUpdate={handleUpdateFeature}
+                  onDelete={handleRemoveFeature}
                 />
               ))}
             </div>

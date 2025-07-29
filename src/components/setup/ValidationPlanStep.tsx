@@ -138,7 +138,8 @@ const ValidationPlanStep: React.FC<ValidationPlanStepProps> = ({
                 <ValidationStepCard
                   key={index}
                   step={step}
-                  onUpdate={(updates) => handleUpdateStep(index, updates)}
+                  onToggle={() => handleUpdateStep(index, { isDone: !step.isDone })}
+                  onEdit={(updates) => handleUpdateStep(index, updates)}
                   onRemove={() => handleRemoveStep(index)}
                 />
               ))}

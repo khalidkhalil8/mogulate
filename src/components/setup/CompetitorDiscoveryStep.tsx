@@ -134,11 +134,12 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
               Competitors ({competitors.length})
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {competitors.map((competitor) => (
+              {competitors.map((competitor, index) => (
                 <CompetitorCard
                   key={competitor.id}
                   competitor={competitor}
-                  onUpdate={(updates) => handleUpdateCompetitor(competitor.id, updates)}
+                  index={index}
+                  onUpdate={(field, value) => handleUpdateCompetitor(competitor.id, { [field]: value })}
                   onRemove={() => handleRemoveCompetitor(competitor.id)}
                 />
               ))}
