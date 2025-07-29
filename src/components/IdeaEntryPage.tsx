@@ -2,16 +2,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
-import { useProjects } from "@/hooks/useProjects";
-import SetupPageLayout from "@/components/setup/SetupPageLayout";
 import { useProjectLimits } from "@/hooks/useProjectLimits";
+import SetupPageLayout from "@/components/setup/SetupPageLayout";
 import ProjectLimitUpgrade from "@/components/projects/ProjectLimitUpgrade";
 
 const IdeaEntryPage = () => {
   const [idea, setIdea] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { createProject } = useProjects();
   const { 
     projectLimit, 
     currentProjectCount, 
@@ -34,13 +32,11 @@ const IdeaEntryPage = () => {
     setIsLoading(true);
 
     try {
-      const project = await createProject(idea.trim(), idea.trim());
-      if (project) {
-        navigate(`/project/${project.id}/setup`);
-      }
+      // Navigate to the new project setup flow
+      navigate(`/project/setup?step=title`);
     } catch (error) {
-      console.error('Error creating project:', error);
-      toast.error('Failed to create project');
+      console.error('Error starting project setup:', error);
+      toast.error('Failed to start project setup');
     } finally {
       setIsLoading(false);
     }
@@ -67,10 +63,10 @@ const IdeaEntryPage = () => {
 
   return (
     <SetupPageLayout
-      title="What's your idea?"
+      title="Start Your Project"
       description="Tell us about your business idea and we'll help you validate it"
       onNext={handleNext}
-      nextLabel={isLoading ? "Creating..." : "Continue"}
+      nextLabel={isLoading ? "Starting..." : "Start Project"}
       canProceed={!!idea.trim() && !isLoading}
       isLoading={isLoading}
     >
@@ -84,7 +80,7 @@ const IdeaEntryPage = () => {
         <div className="space-y-6">
           <div className="space-y-2">
             <label htmlFor="idea" className="text-sm font-medium text-gray-700">
-              Describe your business idea
+              Brief description of your idea
             </label>
             <textarea
               id="idea"
