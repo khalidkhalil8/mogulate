@@ -14,7 +14,7 @@ import { Project } from '@/hooks/useProjects';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { projects, isLoading, deleteProject, createProject } = useProjects();
+  const { projects, isLoading, deleteProject } = useProjects();
   const { user } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
 
@@ -24,17 +24,8 @@ const DashboardPage: React.FC = () => {
       return;
     }
 
-    setIsCreating(true);
-    try {
-      const project = await createProject('New Project', 'Enter your project idea here...');
-      if (project) {
-        navigate(`/project/${project.id}/edit`);
-      }
-    } catch (error) {
-      toast.error('Failed to create project');
-    } finally {
-      setIsCreating(false);
-    }
+    // Navigate directly to the project setup flow
+    navigate('/project-setup?step=title');
   };
 
   const handleDeleteProject = async (projectId: string) => {
