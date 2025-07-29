@@ -104,7 +104,8 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
         {marketAnalysis && (
           <MarketGapsScoringDisplay
             analysis={marketAnalysis}
-            selectedIndex={undefined}
+            selectedGapIndex={undefined}
+            onSelectGap={() => {}}
           />
         )}
 
