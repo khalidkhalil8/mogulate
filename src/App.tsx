@@ -1,10 +1,12 @@
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
 import PricingPage from "./pages/PricingPage";
 import FeaturesPage from "./pages/FeaturesPage";
 import NotFound from "./pages/NotFound";
@@ -44,45 +46,48 @@ function QueryProvider({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <QueryProvider>
-          <div className="App">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/pricing" element={<PricingPage />} />
-              <Route path="/settings" element={<ProfilePage />} />
-              <Route path="/features" element={<FeaturesPage />} />
-              
-              {/* Legacy setup routes - kept for backward compatibility */}
-              <Route path="/idea" element={<IdeaEntryPage />} />
-              <Route path="/competitors" element={<CompetitorDiscoveryPage />} />
-              <Route path="/market-gaps" element={<MarketGapPage />} />
-              <Route path="/features-setup" element={<FeatureEntryPage />} />
-              <Route path="/validation-plan" element={<ValidationPlanPage />} />
-              <Route path="/summary" element={<SummaryPage />} />
-              
-              {/* New guided project setup flow */}
-              <Route path="/project-setup/*" element={<ProjectSetupFlow />} />
-              
-              {/* Project management routes */}
-              <Route path="/project/:projectId" element={<ProjectPage />} />
-              <Route path="/project/:projectId/edit" element={<ProjectEditPage />} />
-              <Route path="/project/:projectId/setup" element={<ProjectEditPage />} />
-              <Route path="/project/:projectId/competitors" element={<ProjectCompetitorsPage />} />
-              <Route path="/project/:projectId/market-analysis" element={<ProjectMarketAnalysisPage />} />
-              <Route path="/project/:projectId/validation-plan" element={<ProjectValidationPlanPage />} />
-              <Route path="/project/:projectId/feedback" element={<ProjectFeedbackTrackingPage />} />
-              <Route path="/project/:projectId/todo" element={<ProjectTodoPage />} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
-        </QueryProvider>
-      </AuthProvider>
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <AuthProvider>
+          <QueryProvider>
+            <div className="App">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/features" element={<FeaturesPage />} />
+                
+                {/* Legacy setup routes - kept for backward compatibility */}
+                <Route path="/idea" element={<IdeaEntryPage />} />
+                <Route path="/competitors" element={<CompetitorDiscoveryPage />} />
+                <Route path="/market-gaps" element={<MarketGapPage />} />
+                <Route path="/features-setup" element={<FeatureEntryPage />} />
+                <Route path="/validation-plan" element={<ValidationPlanPage />} />
+                <Route path="/summary" element={<SummaryPage />} />
+                
+                {/* New guided project setup flow */}
+                <Route path="/project-setup/*" element={<ProjectSetupFlow />} />
+                
+                {/* Project management routes */}
+                <Route path="/project/:projectId" element={<ProjectPage />} />
+                <Route path="/project/:projectId/edit" element={<ProjectEditPage />} />
+                <Route path="/project/:projectId/setup" element={<ProjectEditPage />} />
+                <Route path="/project/:projectId/competitors" element={<ProjectCompetitorsPage />} />
+                <Route path="/project/:projectId/market-analysis" element={<ProjectMarketAnalysisPage />} />
+                <Route path="/project/:projectId/validation-plan" element={<ProjectValidationPlanPage />} />
+                <Route path="/project/:projectId/feedback" element={<ProjectFeedbackTrackingPage />} />
+                <Route path="/project/:projectId/todo" element={<ProjectTodoPage />} />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          </QueryProvider>
+        </AuthProvider>
+      </Router>
+    </HelmetProvider>
   );
 }
 
