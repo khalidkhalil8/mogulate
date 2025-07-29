@@ -34,8 +34,10 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
   }, [setupData.marketAnalysis]);
 
   const handleNext = () => {
-    // Save the market analysis data to setupData before proceeding
-    updateSetupData({ marketAnalysis });
+    // Ensure market analysis is saved before proceeding
+    if (marketAnalysis) {
+      updateSetupData({ marketAnalysis });
+    }
     onNext();
   };
 
@@ -61,7 +63,7 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
         setMarketAnalysis(response.analysis);
         setSelectedGapIndex(undefined);
         
-        // Immediately save to setupData
+        // Immediately save to setupData to ensure persistence
         updateSetupData({ marketAnalysis: response.analysis });
         
         toast.success('Market analysis completed successfully');
@@ -88,46 +90,68 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
       onNext={handleNext}
       onBack={onBack}
       nextLabel="Continue"
-      canProceed={!isLoading}
+      canProceed={!isLoading && !!marketAnalysis}
       isLoading={isLoading}
     >
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="text-center">
-          <Button
-            onClick={handleAnalyzeMarket}
-            disabled={isAnalyzing || !setupData.description.trim() || setupData.competitors.length === 0}
-            className="flex items-center gap-2"
-          >
-            {isAnalyzing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Brain className="w-4 h-4" />
+      <div className="space-y-8">
+        {!marketAnalysis && (
+          <div className="text-center">
+            <div className="mb-8">
+              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Brain className="w-8 h-8 text-blue-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                No Market Analysis Available
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Run the analysis to discover market gaps and positioning strategies.
+              </p>
+            </div>
+            
+            <Button
+              onClick={handleAnalyzeMarket}
+              disabled={isAnalyzing || !setupData.description.trim() || setupData.competitors.length === 0}
+              className="px-8 py-3 text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
+            >
+              {isAnalyzing ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Brain className="w-5 h-5" />
+              )}
+              {isAnalyzing ? 'Analyzing Market...' : 'Run Analysis'}
+            </Button>
+            
+            {setupData.competitors.length === 0 && (
+              <p className="text-sm text-gray-500 mt-4">
+                Add competitors first to enable market analysis
+              </p>
             )}
-            {isAnalyzing ? 'Analyzing Market...' : 'Analyze Market'}
-          </Button>
-          
-          {setupData.competitors.length === 0 && (
-            <p className="text-sm text-gray-500 mt-2">
-              Add competitors first to enable market analysis
-            </p>
-          )}
-        </div>
-
-        {marketAnalysis && (
-          <MarketGapsScoringDisplay
-            analysis={marketAnalysis}
-            selectedGapIndex={selectedGapIndex}
-            onSelectGap={handleSelectGap}
-          />
+          </div>
         )}
 
-        {!marketAnalysis && (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <div className="text-gray-500 mb-4">
-              <Brain className="w-12 h-12 mx-auto mb-2" />
-              <p>No market analysis yet</p>
-              <p className="text-sm">Click the button above to analyze market opportunities</p>
+        {marketAnalysis && (
+          <div className="space-y-6">
+            <div className="flex justify-center">
+              <Button
+                onClick={handleAnalyzeMarket}
+                disabled={isAnalyzing}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                {isAnalyzing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Brain className="w-4 h-4" />
+                )}
+                {isAnalyzing ? 'Running Analysis...' : 'Run New Analysis'}
+              </Button>
             </div>
+
+            <MarketGapsScoringDisplay
+              analysis={marketAnalysis}
+              selectedGapIndex={selectedGapIndex}
+              onSelectGap={handleSelectGap}
+            />
           </div>
         )}
       </div>

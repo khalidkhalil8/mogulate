@@ -33,53 +33,51 @@ const SetupPageLayout: React.FC<SetupPageLayoutProps> = ({
     <div className="min-h-screen bg-white">
       <SetupNavigation />
       
-      <div className="mobile-padding py-4 md:py-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="content-spacing">
-            {/* Standardized Header */}
-            <div className="text-center mb-6 md:mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold mb-2 md:mb-3">{title}</h1>
-              <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                {description}
-              </p>
-            </div>
-            
-            {/* Content */}
-            <div className="form-spacing">
-              {children}
-            </div>
-            
-            {/* Standardized Navigation */}
-            {showNavigation && (onBack || onNext) && (
-              <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6 md:pt-8">
-                {onBack ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onBack}
-                    className="flex items-center justify-center gap-2 mobile-button order-2 sm:order-1"
-                    disabled={isLoading}
-                  >
-                    <ArrowLeft size={16} />
-                    <span>{backLabel}</span>
-                  </Button>
-                ) : (
-                  <div className="hidden sm:block" />
-                )}
-                
-                {onNext && (
-                  <Button
-                    onClick={onNext}
-                    disabled={!canProceed || isLoading}
-                    className="gradient-bg border-none hover:opacity-90 button-transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mobile-button order-1 sm:order-2"
-                  >
-                    <span>{isLoading ? 'Loading...' : nextLabel}</span>
-                    {!isLoading && <ArrowRight size={16} />}
-                  </Button>
-                )}
-              </div>
-            )}
+      <div className="max-w-4xl mx-auto px-6 py-16">
+        <div className="content-spacing">
+          {/* Consistent Header Layout */}
+          <div className="mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">{title}</h1>
+            <p className="text-xl text-gray-600 leading-relaxed">
+              {description}
+            </p>
           </div>
+          
+          {/* Content */}
+          <div className="form-spacing">
+            {children}
+          </div>
+          
+          {/* Standardized Navigation */}
+          {showNavigation && (onBack || onNext) && (
+            <div className="flex flex-col sm:flex-row justify-between gap-4 pt-12">
+              {onBack ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onBack}
+                  className="flex items-center justify-center gap-2 px-8 py-3 text-lg"
+                  disabled={isLoading}
+                >
+                  <ArrowLeft size={20} />
+                  <span>{backLabel}</span>
+                </Button>
+              ) : (
+                <div className="hidden sm:block" />
+              )}
+              
+              {onNext && (
+                <Button
+                  onClick={onNext}
+                  disabled={!canProceed || isLoading}
+                  className="px-8 py-3 text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                >
+                  <span>{isLoading ? 'Loading...' : nextLabel}</span>
+                  {!isLoading && <ArrowRight size={20} />}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

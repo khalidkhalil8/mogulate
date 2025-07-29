@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -37,7 +36,7 @@ const ProjectSetupPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { createProject, updateProject } = useProjects();
+  const { createProject, updateProject, projects } = useProjects();
   const { canCreateProject, isAtLimit, currentTier, projectLimit, currentProjectCount } = useProjectLimits();
 
   const currentStep = searchParams.get('step') || 'start';
@@ -54,13 +53,31 @@ const ProjectSetupPage: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  // Load existing project data if editing
+  useEffect(() => {
+    if (projectId && projects.length > 0) {
+      const existingProject = projects.find(p => p.id === projectId);
+      if (existingProject) {
+        console.log('Loading existing project:', existingProject);
+        setSetupData({
+          title: existingProject.title || '',
+          description: existingProject.idea || '',
+          competitors: existingProject.competitors || [],
+          features: existingProject.features || [],
+          validationPlan: existingProject.validation_plan || [],
+          marketAnalysis: existingProject.market_analysis || undefined,
+        });
+      }
+    }
+  }, [projectId, projects]);
+
   // Load data from localStorage on mount
   useEffect(() => {
     const savedData = localStorage.getItem(`project-setup-${projectId || 'new'}`);
     if (savedData) {
       try {
         const parsedData = JSON.parse(savedData);
-        setSetupData(parsedData);
+        setSetupData(prev => ({ ...prev, ...parsedData }));
       } catch (error) {
         console.error('Error loading setup data:', error);
       }
@@ -73,7 +90,21 @@ const ProjectSetupPage: React.FC = () => {
   }, [setupData, projectId]);
 
   const updateSetupData = (updates: Partial<ProjectSetupData>) => {
-    setSetupData(prev => ({ ...prev, ...updates }));
+    setSetupData(prev => {
+      const newData = { ...prev, ...updates };
+      console.log('Updating setup data:', updates);
+      
+      // If we're updating market analysis and have a projectId, save immediately
+      if (updates.marketAnalysis && projectId && user?.id) {
+        updateProject(projectId, {
+          market_analysis: updates.marketAnalysis as any
+        }).catch(error => {
+          console.error('Error saving market analysis:', error);
+        });
+      }
+      
+      return newData;
+    });
   };
 
   const navigateToStep = (stepId: string) => {
@@ -112,15 +143,21 @@ const ProjectSetupPage: React.FC = () => {
         currentProjectId = newProject.id;
       }
 
-      // Save all setup data to the project
-      await updateProject(currentProjectId, {
+      // Save all setup data to the project, including market analysis
+      const updateData = {
         title: setupData.title,
         idea: setupData.description,
         competitors: setupData.competitors,
         features: setupData.features,
         validation_plan: setupData.validationPlan,
-        market_analysis: setupData.marketAnalysis as any,
-      });
+      };
+
+      // Only include market_analysis if it exists
+      if (setupData.marketAnalysis) {
+        (updateData as any).market_analysis = setupData.marketAnalysis;
+      }
+
+      await updateProject(currentProjectId, updateData);
 
       // Clear localStorage after successful save
       localStorage.removeItem(`project-setup-${projectId || 'new'}`);

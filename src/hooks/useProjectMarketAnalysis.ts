@@ -4,9 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/sonner';
 import type { MarketGapAnalysis } from '@/lib/types';
+import type { MarketGapScoringAnalysis } from '@/lib/api/marketGapsScoring';
 
 export const useProjectMarketAnalysis = (projectId: string) => {
-  const [marketAnalysis, setMarketAnalysis] = useState<MarketGapAnalysis | null>(null);
+  const [marketAnalysis, setMarketAnalysis] = useState<MarketGapAnalysis | MarketGapScoringAnalysis | null>(null);
   const [marketGaps, setMarketGaps] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
@@ -31,15 +32,24 @@ export const useProjectMarketAnalysis = (projectId: string) => {
         return;
       }
 
-      // Safely parse the JSON data with proper type checking
-      let analysisData: MarketGapAnalysis | null = null;
+      // Handle both new and legacy market analysis formats
+      let analysisData: MarketGapAnalysis | MarketGapScoringAnalysis | null = null;
       if (data?.market_analysis && typeof data.market_analysis === 'object' && !Array.isArray(data.market_analysis)) {
         const rawAnalysis = data.market_analysis as Record<string, any>;
-        if (rawAnalysis.marketGaps && rawAnalysis.positioningSuggestions) {
+        
+        // Check if it's the new scoring format
+        if (rawAnalysis.marketGaps && Array.isArray(rawAnalysis.marketGaps) && 
+            rawAnalysis.marketGaps.length > 0 && 
+            typeof rawAnalysis.marketGaps[0] === 'object' && 
+            'score' in rawAnalysis.marketGaps[0]) {
+          // New scoring format
+          analysisData = rawAnalysis as MarketGapScoringAnalysis;
+        } else if (rawAnalysis.marketGaps && rawAnalysis.positioningSuggestions) {
+          // Legacy format
           analysisData = {
             marketGaps: Array.isArray(rawAnalysis.marketGaps) ? rawAnalysis.marketGaps : [],
             positioningSuggestions: Array.isArray(rawAnalysis.positioningSuggestions) ? rawAnalysis.positioningSuggestions : []
-          };
+          } as MarketGapAnalysis;
         }
       }
       
@@ -53,7 +63,7 @@ export const useProjectMarketAnalysis = (projectId: string) => {
     }
   };
 
-  const updateMarketAnalysis = async (analysis: MarketGapAnalysis | null) => {
+  const updateMarketAnalysis = async (analysis: MarketGapAnalysis | MarketGapScoringAnalysis | null) => {
     if (!user?.id) {
       toast.error('You must be logged in to update market analysis');
       return false;
