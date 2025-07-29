@@ -53,8 +53,9 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
     <div className="min-h-screen bg-white">
       <SetupNavigation />
       
-      <div className="max-w-2xl mx-auto px-6 py-12">
-        <div className="text-center mb-12">
+      <div className="max-w-2xl mx-auto px-6 py-16">
+        {/* Header section with consistent alignment */}
+        <div className="mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Start Your Project
           </h1>
@@ -63,6 +64,7 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
           </p>
         </div>
 
+        {/* Form section with consistent left alignment */}
         <div className="space-y-8">
           <div className="space-y-3">
             <Label htmlFor="title" className="text-lg font-medium text-gray-900">

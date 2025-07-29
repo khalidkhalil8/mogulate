@@ -34,6 +34,7 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
   }, [setupData.marketAnalysis]);
 
   const handleNext = () => {
+    // Save the market analysis data to setupData before proceeding
     updateSetupData({ marketAnalysis });
     onNext();
   };
@@ -58,7 +59,11 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
 
       if (response.success && response.analysis) {
         setMarketAnalysis(response.analysis);
-        setSelectedGapIndex(undefined); // Reset selection when new analysis is generated
+        setSelectedGapIndex(undefined);
+        
+        // Immediately save to setupData
+        updateSetupData({ marketAnalysis: response.analysis });
+        
         toast.success('Market analysis completed successfully');
       } else {
         toast.error(response.error || 'Failed to analyze market');
