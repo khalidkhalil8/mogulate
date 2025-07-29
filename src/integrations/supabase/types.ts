@@ -149,6 +149,7 @@ export type Database = {
           id: string
           idea: string | null
           market_analysis: Json | null
+          selected_gap_index: number | null
           title: string
           updated_at: string
           user_id: string
@@ -162,6 +163,7 @@ export type Database = {
           id?: string
           idea?: string | null
           market_analysis?: Json | null
+          selected_gap_index?: number | null
           title: string
           updated_at?: string
           user_id: string
@@ -175,6 +177,7 @@ export type Database = {
           id?: string
           idea?: string | null
           market_analysis?: Json | null
+          selected_gap_index?: number | null
           title?: string
           updated_at?: string
           user_id?: string

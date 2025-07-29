@@ -14,10 +14,10 @@ const CompetitorsSummaryCard: React.FC<CompetitorsSummaryCardProps> = ({ competi
       <CardHeader>
         <CardTitle>Competitors ({competitors.length})</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {competitors.length > 0 ? (
           <div className="space-y-4">
-            {competitors.map((competitor) => (
+            {competitors.map((competitor, index) => (
               <div key={competitor.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">

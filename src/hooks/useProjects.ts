@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -114,6 +113,7 @@ export const useProjects = () => {
         features: Array.isArray(item.features) ? item.features : [],
         validation_plan: Array.isArray(item.validation_plan) ? item.validation_plan as ValidationStep[] : [],
         market_analysis: item.market_analysis || undefined,
+        selected_gap_index: item.selected_gap_index || undefined,
         credits_used: item.credits_used || 0,
       }));
 
@@ -160,6 +160,7 @@ export const useProjects = () => {
         features: Array.isArray(data.features) ? data.features : [],
         validation_plan: Array.isArray(data.validation_plan) ? data.validation_plan as ValidationStep[] : [],
         market_analysis: data.market_analysis || undefined,
+        selected_gap_index: data.selected_gap_index || undefined,
         credits_used: (data as any).credits_used || 0,
       };
 
@@ -190,6 +191,8 @@ export const useProjects = () => {
         updateData.validation_plan = updates.validation_plan as any;
       }
 
+      console.log('useProjects: Updating project with data:', updateData);
+
       const { data, error } = await supabase
         .from('projects')
         .update(updateData)
@@ -210,9 +213,11 @@ export const useProjects = () => {
         features: Array.isArray(data.features) ? data.features : [],
         validation_plan: Array.isArray(data.validation_plan) ? data.validation_plan as ValidationStep[] : [],
         market_analysis: data.market_analysis || undefined,
+        selected_gap_index: data.selected_gap_index || undefined,
         credits_used: (data as any).credits_used || 0,
       };
 
+      console.log('useProjects: Successfully updated project:', transformedProject);
       setProjects(prev => prev.map(p => p.id === projectId ? transformedProject : p));
       return transformedProject;
     } catch (error) {
