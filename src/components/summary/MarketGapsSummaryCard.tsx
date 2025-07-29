@@ -40,45 +40,36 @@ const MarketGapsSummaryCard: React.FC<MarketGapsSummaryCardProps> = ({
         <CardTitle>Market Gap & Positioning Strategy</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div>
-          <h3 className="font-medium mb-2">Your Approach:</h3>
-          <p className="text-gray-700">{marketGaps}</p>
-        </div>
-        
         {selectedGap && (
-          <>
-            <Separator />
-            <div>
-              <h3 className="font-medium mb-3 flex items-center gap-2">
-                Selected Market Opportunity
-                <Badge className="bg-teal-600 text-white text-xs">
-                  Score: {selectedGap.score}/10
-                </Badge>
-              </h3>
-              
-              <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-medium text-teal-900 mb-1">Market Gap:</h4>
-                    <p className="text-teal-800">{selectedGap.gap}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-teal-900 mb-1">Your Positioning Strategy:</h4>
-                    <p className="text-teal-800">{selectedGap.positioningSuggestion}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-teal-900 mb-1">Why This Opportunity:</h4>
-                    <p className="text-teal-700 text-sm">{selectedGap.rationale}</p>
-                  </div>
+          <div>
+            <h3 className="font-medium mb-3 flex items-center gap-2">
+              Selected Market Opportunity
+              <Badge className="bg-teal-600 text-white text-xs">
+                Score: {selectedGap.score}/10
+              </Badge>
+            </h3>
+            
+            <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+              <div className="space-y-3">
+                <div>
+                  <h4 className="font-medium text-teal-900 mb-1">Market Gap:</h4>
+                  <p className="text-teal-800">{selectedGap.gap}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-teal-900 mb-1">Your Positioning Strategy:</h4>
+                  <p className="text-teal-800">{selectedGap.positioningSuggestion}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-teal-900 mb-1">Why This Opportunity:</h4>
+                  <p className="text-teal-700 text-sm">{selectedGap.rationale}</p>
                 </div>
               </div>
             </div>
-          </>
+          </div>
         )}
         
         {marketGapAnalysis && !marketGapScoringAnalysis && (
           <>
-            <Separator />
             <div>
               <h3 className="font-medium mb-2">AI-Identified Market Gaps:</h3>
               <ul className="list-disc pl-5 space-y-2">
@@ -87,6 +78,8 @@ const MarketGapsSummaryCard: React.FC<MarketGapsSummaryCardProps> = ({
                 ))}
               </ul>
             </div>
+            
+            <Separator />
             
             <div>
               <h3 className="font-medium mb-2">AI-Suggested Positioning:</h3>
@@ -97,6 +90,10 @@ const MarketGapsSummaryCard: React.FC<MarketGapsSummaryCardProps> = ({
               </ul>
             </div>
           </>
+        )}
+
+        {!selectedGap && !marketGapAnalysis && (
+          <p className="text-gray-500">No market analysis available</p>
         )}
       </CardContent>
     </Card>

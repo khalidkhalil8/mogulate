@@ -19,6 +19,7 @@ export interface ProjectSetupData {
   description: string;
   competitors: Competitor[];
   marketAnalysis?: MarketGapScoringAnalysis;
+  selectedGapIndex?: number;
   features: Feature[];
   validationPlan: ValidationStep[];
 }
@@ -66,6 +67,7 @@ const ProjectSetupPage: React.FC = () => {
           features: existingProject.features || [],
           validationPlan: existingProject.validation_plan || [],
           marketAnalysis: existingProject.market_analysis || undefined,
+          selectedGapIndex: existingProject.selected_gap_index || undefined,
         });
       }
     }
@@ -94,12 +96,18 @@ const ProjectSetupPage: React.FC = () => {
       const newData = { ...prev, ...updates };
       console.log('Updating setup data:', updates);
       
-      // If we're updating market analysis and have a projectId, save immediately
-      if (updates.marketAnalysis && projectId && user?.id) {
-        updateProject(projectId, {
-          market_analysis: updates.marketAnalysis as any
-        }).catch(error => {
-          console.error('Error saving market analysis:', error);
+      // If we're updating market analysis or selected gap and have a projectId, save immediately
+      if ((updates.marketAnalysis || updates.selectedGapIndex !== undefined) && projectId && user?.id) {
+        const updatePayload: any = {};
+        if (updates.marketAnalysis) {
+          updatePayload.market_analysis = updates.marketAnalysis;
+        }
+        if (updates.selectedGapIndex !== undefined) {
+          updatePayload.selected_gap_index = updates.selectedGapIndex;
+        }
+        
+        updateProject(projectId, updatePayload).catch(error => {
+          console.error('Error saving market analysis data:', error);
         });
       }
       
@@ -143,8 +151,8 @@ const ProjectSetupPage: React.FC = () => {
         currentProjectId = newProject.id;
       }
 
-      // Save all setup data to the project, including market analysis
-      const updateData = {
+      // Save all setup data to the project, including market analysis and selected gap
+      const updateData: any = {
         title: setupData.title,
         idea: setupData.description,
         competitors: setupData.competitors,
@@ -152,9 +160,12 @@ const ProjectSetupPage: React.FC = () => {
         validation_plan: setupData.validationPlan,
       };
 
-      // Only include market_analysis if it exists
+      // Include market analysis and selected gap if they exist
       if (setupData.marketAnalysis) {
-        (updateData as any).market_analysis = setupData.marketAnalysis;
+        updateData.market_analysis = setupData.marketAnalysis;
+      }
+      if (setupData.selectedGapIndex !== undefined) {
+        updateData.selected_gap_index = setupData.selectedGapIndex;
       }
 
       await updateProject(currentProjectId, updateData);

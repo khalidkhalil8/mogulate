@@ -27,16 +27,20 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
 }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [marketAnalysis, setMarketAnalysis] = useState(setupData.marketAnalysis);
-  const [selectedGapIndex, setSelectedGapIndex] = useState<number | undefined>();
+  const [selectedGapIndex, setSelectedGapIndex] = useState<number | undefined>(setupData.selectedGapIndex);
 
   useEffect(() => {
     setMarketAnalysis(setupData.marketAnalysis);
-  }, [setupData.marketAnalysis]);
+    setSelectedGapIndex(setupData.selectedGapIndex);
+  }, [setupData.marketAnalysis, setupData.selectedGapIndex]);
 
   const handleNext = () => {
-    // Ensure market analysis is saved before proceeding
+    // Ensure market analysis and selected gap are saved before proceeding
     if (marketAnalysis) {
-      updateSetupData({ marketAnalysis });
+      updateSetupData({ 
+        marketAnalysis,
+        selectedGapIndex
+      });
     }
     onNext();
   };
@@ -64,7 +68,10 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
         setSelectedGapIndex(undefined);
         
         // Immediately save to setupData to ensure persistence
-        updateSetupData({ marketAnalysis: response.analysis });
+        updateSetupData({ 
+          marketAnalysis: response.analysis,
+          selectedGapIndex: undefined
+        });
         
         toast.success('Market analysis completed successfully');
       } else {
@@ -80,6 +87,7 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
 
   const handleSelectGap = (index: number) => {
     setSelectedGapIndex(index);
+    updateSetupData({ selectedGapIndex: index });
     console.log('Selected gap index:', index);
   };
 
