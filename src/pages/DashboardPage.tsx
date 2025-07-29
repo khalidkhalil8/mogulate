@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
@@ -18,14 +17,8 @@ const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
 
-  const handleCreateProject = async () => {
-    if (!user) {
-      toast.error('Please log in to create a project');
-      return;
-    }
-
-    // Navigate directly to the project setup flow
-    navigate('/project-setup?step=title');
+  const handleCreateProject = () => {
+    navigate('/project-setup?step=start');
   };
 
   const handleDeleteProject = async (projectId: string) => {

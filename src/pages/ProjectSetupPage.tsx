@@ -5,8 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectLimits } from '@/hooks/useProjectLimits';
 import { toast } from '@/components/ui/sonner';
-import ProjectTitleStep from '@/components/setup/ProjectTitleStep';
-import ProjectDescriptionStep from '@/components/setup/ProjectDescriptionStep';
+import ProjectStartStep from '@/components/setup/ProjectStartStep';
 import CompetitorDiscoveryStep from '@/components/setup/CompetitorDiscoveryStep';
 import MarketAnalysisStep from '@/components/setup/MarketAnalysisStep';
 import FeatureGenerationStep from '@/components/setup/FeatureGenerationStep';
@@ -26,8 +25,7 @@ export interface ProjectSetupData {
 }
 
 const SETUP_STEPS = [
-  { id: 'title', name: 'Project Title', component: ProjectTitleStep },
-  { id: 'description', name: 'Project Description', component: ProjectDescriptionStep },
+  { id: 'start', name: 'Start Project', component: ProjectStartStep },
   { id: 'competitors', name: 'Competitor Discovery', component: CompetitorDiscoveryStep },
   { id: 'market-analysis', name: 'Market Analysis', component: MarketAnalysisStep },
   { id: 'features', name: 'Feature Generation', component: FeatureGenerationStep },
@@ -42,7 +40,7 @@ const ProjectSetupPage: React.FC = () => {
   const { createProject, updateProject } = useProjects();
   const { canCreateProject, isAtLimit, currentTier, projectLimit, currentProjectCount } = useProjectLimits();
 
-  const currentStep = searchParams.get('step') || 'title';
+  const currentStep = searchParams.get('step') || 'start';
   const projectId = searchParams.get('projectId');
   const stepIndex = SETUP_STEPS.findIndex(step => step.id === currentStep);
 
@@ -167,13 +165,25 @@ const ProjectSetupPage: React.FC = () => {
       >
         <div className="text-center">
           <button
-            onClick={() => navigateToStep('title')}
+            onClick={() => navigateToStep('start')}
             className="text-blue-600 hover:text-blue-800"
           >
-            Return to Project Title
+            Return to Start
           </button>
         </div>
       </SetupPageLayout>
+    );
+  }
+
+  // Handle the start step without progress indicator
+  if (currentStep === 'start') {
+    return (
+      <CurrentStepComponent
+        setupData={setupData}
+        updateSetupData={updateSetupData}
+        onNext={handleNext}
+        isLoading={isLoading}
+      />
     );
   }
 
