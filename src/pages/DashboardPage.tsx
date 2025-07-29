@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
@@ -20,14 +19,14 @@ const DashboardPage: React.FC = () => {
 
   const handleCreateProject = async () => {
     if (!user) {
-      toast.error('Please log in to create a project');
+      toast.error('You must be logged in to create a project');
       return;
     }
 
     setIsCreating(true);
     try {
       // Navigate to the new guided setup flow instead of creating project immediately
-      navigate('/project-setup/title');
+      navigate('/project-setup/start');
     } catch (error) {
       toast.error('Failed to start project creation');
     } finally {

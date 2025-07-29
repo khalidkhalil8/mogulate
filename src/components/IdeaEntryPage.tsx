@@ -7,7 +7,7 @@ const IdeaEntryPage = () => {
 
   useEffect(() => {
     // Redirect to new guided setup flow
-    navigate('/project-setup/title', { replace: true });
+    navigate('/project-setup/start', { replace: true });
   }, [navigate]);
 
   return null;

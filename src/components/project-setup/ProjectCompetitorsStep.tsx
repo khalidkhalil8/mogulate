@@ -80,7 +80,7 @@ const ProjectCompetitorsStep: React.FC<ProjectCompetitorsStepProps> = ({
 
   const handleBack = () => {
     updateProjectData({ competitors });
-    navigate('/project-setup/description');
+    navigate('/project-setup/start');
   };
 
   const canProceed = competitors.length > 0;

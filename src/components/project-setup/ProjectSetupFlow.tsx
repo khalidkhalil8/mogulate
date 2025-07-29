@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import ProjectTitleStep from './ProjectTitleStep';
-import ProjectDescriptionStep from './ProjectDescriptionStep';
+import ProjectStartStep from './ProjectStartStep';
 import ProjectCompetitorsStep from './ProjectCompetitorsStep';
 import ProjectMarketAnalysisStep from './ProjectMarketAnalysisStep';
 import ProjectFeaturesStep from './ProjectFeaturesStep';
@@ -77,18 +76,9 @@ const ProjectSetupFlow: React.FC = () => {
   return (
     <Routes>
       <Route 
-        path="title" 
+        path="start" 
         element={
-          <ProjectTitleStep 
-            projectData={projectData} 
-            updateProjectData={updateProjectData} 
-          />
-        } 
-      />
-      <Route 
-        path="description" 
-        element={
-          <ProjectDescriptionStep 
+          <ProjectStartStep 
             projectData={projectData} 
             updateProjectData={updateProjectData} 
           />
@@ -117,7 +107,7 @@ const ProjectSetupFlow: React.FC = () => {
         element={
           <ProjectFeaturesStep 
             projectData={projectData} 
-            updateProjectData={updateProjectData} 
+            updateProjectData={updateData} 
           />
         } 
       />
