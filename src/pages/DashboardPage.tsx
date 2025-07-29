@@ -41,8 +41,9 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleProjectClick = (projectId: string) => {
-    // Navigate to the project edit page instead of a non-existent route
-    navigate(`/project/${projectId}/edit`);
+    console.log('Navigating to project:', projectId);
+    // Navigate to the project page instead of edit page
+    navigate(`/project/${projectId}`);
   };
 
   const getProjectStats = (project: Project) => {
@@ -149,7 +150,7 @@ const DashboardPage: React.FC = () => {
                             <DropdownMenuItem 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/project/${project.id}/edit`);
+                                navigate(`/project/${project.id}`);
                               }}
                             >
                               <Edit className="h-4 w-4 mr-2" />
