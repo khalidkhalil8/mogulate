@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
@@ -13,22 +14,24 @@ import { Project } from '@/hooks/useProjects';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { projects, isLoading, deleteProject } = useProjects();
+  const { projects, isLoading, deleteProject, createProject } = useProjects();
   const { user } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreateProject = async () => {
     if (!user) {
-      toast.error('You must be logged in to create a project');
+      toast.error('Please log in to create a project');
       return;
     }
 
     setIsCreating(true);
     try {
-      // Navigate to the new guided setup flow instead of creating project immediately
-      navigate('/project-setup/start');
+      const project = await createProject('New Project', 'Enter your project idea here...');
+      if (project) {
+        navigate(`/project/${project.id}/edit`);
+      }
     } catch (error) {
-      toast.error('Failed to start project creation');
+      toast.error('Failed to create project');
     } finally {
       setIsCreating(false);
     }
@@ -41,8 +44,6 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleProjectClick = (projectId: string) => {
-    console.log('Navigating to project:', projectId);
-    // Navigate to the project page instead of edit page
     navigate(`/project/${projectId}`);
   };
 
@@ -150,7 +151,7 @@ const DashboardPage: React.FC = () => {
                             <DropdownMenuItem 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/project/${project.id}`);
+                                navigate(`/project/${project.id}/edit`);
                               }}
                             >
                               <Edit className="h-4 w-4 mr-2" />
@@ -218,15 +219,6 @@ const DashboardPage: React.FC = () => {
       </div>
     </PageLayout>
   );
-};
-
-const getProjectStats = (project: Project) => {
-  const competitors = Array.isArray(project.competitors) ? project.competitors.length : 0;
-  const features = Array.isArray(project.features) ? project.features.length : 0;
-  const validationSteps = Array.isArray(project.validation_plan) ? project.validation_plan.length : 0;
-  const hasMarketAnalysis = !!project.market_analysis;
-  
-  return { competitors, features, validationSteps, hasMarketAnalysis };
 };
 
 export default DashboardPage;

@@ -26,16 +26,10 @@ const ProjectPage: React.FC = () => {
   const { projects, isLoading } = useProjects();
   const { user } = useAuth();
 
-  console.log('ProjectPage: Current project ID:', id);
-  console.log('ProjectPage: Available projects:', projects.length);
-  console.log('ProjectPage: Is loading:', isLoading);
-  console.log('ProjectPage: User:', user?.id);
-
   // Find the project by ID
   const project = projects.find(p => p.id === id);
-  console.log('ProjectPage: Found project:', !!project);
 
-  // Handle loading state - wait for both auth and projects to load
+  // Handle loading state
   if (isLoading) {
     return (
       <PageLayout>
@@ -49,9 +43,8 @@ const ProjectPage: React.FC = () => {
     );
   }
 
-  // If not loading but no project found, show error
-  if (!project && !isLoading) {
-    console.log('ProjectPage: Project not found after loading completed');
+  // Handle project not found with improved messaging
+  if (!project) {
     return (
       <PageLayout>
         <div className="flex items-center justify-center min-h-[500px]">
@@ -91,32 +84,17 @@ const ProjectPage: React.FC = () => {
   };
 
   const handleEditProject = () => {
-    // For now, we'll show an edit dialog or navigate to a simple edit view
-    console.log('Edit project clicked for:', id);
+    navigate(`/project/${id}/edit`);
   };
 
   // Get project statistics
   const stats = {
-    competitors: Array.isArray(project?.competitors) ? project.competitors.length : 0,
-    features: Array.isArray(project?.features) ? project.features.length : 0,
-    validationSteps: Array.isArray(project?.validation_plan) ? project.validation_plan.length : 0,
-    creditsUsed: project?.credits_used || 0,
-    hasMarketAnalysis: !!project?.market_analysis
+    competitors: Array.isArray(project.competitors) ? project.competitors.length : 0,
+    features: Array.isArray(project.features) ? project.features.length : 0,
+    validationSteps: Array.isArray(project.validation_plan) ? project.validation_plan.length : 0,
+    creditsUsed: project.credits_used || 0,
+    hasMarketAnalysis: !!project.market_analysis
   };
-
-  // If we somehow get here without a project, show loading
-  if (!project) {
-    return (
-      <PageLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading project...</p>
-          </div>
-        </div>
-      </PageLayout>
-    );
-  }
 
   return (
     <PageLayout>
@@ -165,7 +143,10 @@ const ProjectPage: React.FC = () => {
           {/* Widgets Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Market Analysis Widget */}
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/market-analysis`)}
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <TrendingUp className="h-5 w-5" />
@@ -190,7 +171,10 @@ const ProjectPage: React.FC = () => {
             </Card>
 
             {/* Competitors Widget */}
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/competitors`)}
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Users className="h-5 w-5" />
@@ -213,7 +197,10 @@ const ProjectPage: React.FC = () => {
             </Card>
 
             {/* Features Widget */}
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/features`)}
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <CheckSquare className="h-5 w-5" />
@@ -236,7 +223,10 @@ const ProjectPage: React.FC = () => {
             </Card>
 
             {/* Validation Plan Widget */}
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/validation-plan`)}
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Target className="h-5 w-5" />
@@ -259,7 +249,10 @@ const ProjectPage: React.FC = () => {
             </Card>
 
             {/* Tasks Widget */}
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/todos`)}
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <ListTodo className="h-5 w-5" />
@@ -280,7 +273,10 @@ const ProjectPage: React.FC = () => {
             </Card>
 
             {/* Feedback Tracking Widget */}
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleWidgetClick(`/project/${id}/feedback`)}
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Settings className="h-5 w-5" />
