@@ -41,7 +41,8 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleProjectClick = (projectId: string) => {
-    navigate(`/project/${projectId}`);
+    // Navigate to the project edit page instead of a non-existent route
+    navigate(`/project/${projectId}/edit`);
   };
 
   const getProjectStats = (project: Project) => {
