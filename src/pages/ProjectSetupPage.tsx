@@ -135,6 +135,18 @@ const ProjectSetupPage: React.FC = () => {
     }
   };
 
+  // Determine if user can proceed based on current step requirements
+  const canProceed = () => {
+    switch (currentStep) {
+      case 'start':
+        return setupData.title.trim() !== '' && setupData.description.trim() !== '';
+      case 'summary':
+        return setupData.title.trim() !== '' && setupData.description.trim() !== '';
+      default:
+        return true;
+    }
+  };
+
   // Show upgrade prompt if at limit
   if (isAtLimit && !projectId) {
     return (
@@ -183,19 +195,10 @@ const ProjectSetupPage: React.FC = () => {
         updateSetupData={updateSetupData}
         onNext={handleNext}
         isLoading={isLoading}
+        canProceed={canProceed()}
       />
     );
   }
-
-  // Determine if user can proceed based on current step requirements
-  const canProceed = () => {
-    switch (currentStep) {
-      case 'summary':
-        return setupData.title.trim() !== '' && setupData.description.trim() !== '';
-      default:
-        return true;
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white">
