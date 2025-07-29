@@ -140,7 +140,7 @@ const FeatureGenerationStep: React.FC<FeatureGenerationStepProps> = ({
           <div className="bg-gray-50 p-6 rounded-lg">
             <h3 className="font-medium text-gray-900 mb-4">Add Feature</h3>
             <FeatureForm
-              onSubmit={handleAddFeature}
+              onSave={handleAddFeature}
               onCancel={() => setShowAddForm(false)}
             />
           </div>

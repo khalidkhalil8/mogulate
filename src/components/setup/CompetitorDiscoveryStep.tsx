@@ -122,7 +122,7 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
           <div className="bg-gray-50 p-6 rounded-lg">
             <h3 className="font-medium text-gray-900 mb-4">Add Competitor</h3>
             <CompetitorForm
-              onSubmit={handleAddCompetitor}
+              onSave={handleAddCompetitor}
               onCancel={() => setShowAddForm(false)}
             />
           </div>
