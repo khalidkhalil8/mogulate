@@ -22,7 +22,7 @@ const AddCompetitorForm: React.FC<AddCompetitorFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !website.trim() || !description.trim()) {
+    if (!name.trim() || !description.trim()) {
       return;
     }
 
@@ -57,7 +57,6 @@ const AddCompetitorForm: React.FC<AddCompetitorFormProps> = ({
           value={website}
           onChange={(e) => setWebsite(e.target.value)}
           placeholder="example.com"
-          required
         />
       </div>
       

@@ -95,22 +95,6 @@ const ProjectSetupPage: React.FC = () => {
     setSetupData(prev => {
       const newData = { ...prev, ...updates };
       console.log('Updating setup data:', updates);
-      
-      // If we're updating market analysis or selected gap and have a projectId, save immediately
-      if ((updates.marketAnalysis || updates.selectedGapIndex !== undefined) && projectId && user?.id) {
-        const updatePayload: any = {};
-        if (updates.marketAnalysis) {
-          updatePayload.market_analysis = updates.marketAnalysis;
-        }
-        if (updates.selectedGapIndex !== undefined) {
-          updatePayload.selected_gap_index = updates.selectedGapIndex;
-        }
-        
-        updateProject(projectId, updatePayload).catch(error => {
-          console.error('Error saving market analysis data:', error);
-        });
-      }
-      
       return newData;
     });
   };
@@ -122,6 +106,31 @@ const ProjectSetupPage: React.FC = () => {
   };
 
   const handleNext = async () => {
+    // Save current step data if we have a project ID
+    if (projectId && user?.id) {
+      try {
+        const updatePayload: any = {
+          title: setupData.title,
+          idea: setupData.description,
+          competitors: setupData.competitors,
+          features: setupData.features,
+          validation_plan: setupData.validationPlan,
+        };
+        
+        if (setupData.marketAnalysis) {
+          updatePayload.market_analysis = setupData.marketAnalysis;
+        }
+        if (setupData.selectedGapIndex !== undefined) {
+          updatePayload.selected_gap_index = setupData.selectedGapIndex;
+        }
+        
+        await updateProject(projectId, updatePayload);
+      } catch (error) {
+        console.error('Error saving step data:', error);
+        toast.error('Failed to save progress');
+      }
+    }
+
     const nextStepIndex = stepIndex + 1;
     if (nextStepIndex < SETUP_STEPS.length) {
       navigateToStep(SETUP_STEPS[nextStepIndex].id);

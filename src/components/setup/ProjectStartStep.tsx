@@ -41,14 +41,6 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
     }
   };
 
-  // Update setupData whenever local state changes
-  useEffect(() => {
-    updateSetupData({ 
-      title: title.trim(),
-      description: description.trim()
-    });
-  }, [title, description, updateSetupData]);
-
   return (
     <div className="min-h-screen bg-white">
       <SetupNavigation />

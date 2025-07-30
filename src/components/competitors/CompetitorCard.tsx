@@ -20,7 +20,7 @@ const CompetitorCard: React.FC<CompetitorCardProps> = ({
 }) => {
   return (
     <div 
-      className={`p-4 border rounded-lg ${competitor.isAiGenerated ? 'border-teal-200 bg-teal-50' : 'border-gray-200'}`}
+      className={`p-6 border rounded-lg w-full ${competitor.isAiGenerated ? 'border-teal-200 bg-teal-50' : 'border-gray-200'}`}
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-medium">

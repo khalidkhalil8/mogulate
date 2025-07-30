@@ -71,15 +71,18 @@ const SetupSummaryStep: React.FC<SetupSummaryStepProps> = ({
         {/* Market Analysis */}
         <div className="bg-white border rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Market Analysis</h3>
-          {setupData.marketAnalysis ? (
+          {setupData.marketAnalysis && setupData.selectedGapIndex !== undefined ? (
             <div className="space-y-3">
-              {setupData.marketAnalysis.marketGaps.map((gap, index) => (
-                <div key={index} className="border-l-4 border-teal-500 pl-4">
-                  <p className="font-medium text-gray-900">{gap.gap}</p>
-                  <p className="text-sm text-gray-600 mt-1">{gap.positioningSuggestion}</p>
-                  <p className="text-sm text-teal-600 mt-1">Score: {gap.score}/10</p>
-                </div>
-              ))}
+              {(() => {
+                const selectedGap = setupData.marketAnalysis.marketGaps[setupData.selectedGapIndex];
+                return selectedGap ? (
+                  <div className="border-l-4 border-teal-500 pl-4">
+                    <p className="font-medium text-gray-900">{selectedGap.gap}</p>
+                    <p className="text-sm text-gray-600 mt-1">{selectedGap.positioningSuggestion}</p>
+                    <p className="text-sm text-teal-600 mt-1">Score: {selectedGap.score}/10</p>
+                  </div>
+                ) : null;
+              })()}
             </div>
           ) : (
             <p className="text-gray-500">No market analysis available</p>
