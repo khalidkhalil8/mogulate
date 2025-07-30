@@ -126,7 +126,7 @@ const ProjectCompetitorsPage = () => {
               </div>
             ) : (
               // Competitors Grid
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-6">
                 {competitors.map((competitor) => (
                   <Card key={competitor.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-6">
