@@ -126,59 +126,64 @@ const ProjectCompetitorsPage = () => {
               </div>
             ) : (
               // Competitors Grid
-              <div className="space-y-6">
-                {competitors.map((competitor) => (
-                  <Card key={competitor.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-lg">{competitor.name}</h3>
-                            {competitor.isAiGenerated && (
-                              <span className="px-2 py-1 bg-teal-100 text-teal-800 text-xs font-medium rounded-full">
-                                AI Found
-                              </span>
-                            )}
-                          </div>
-                          {competitor.website && (
-                            <a
-                              href={formatWebsiteUrl(competitor.website)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline text-sm flex items-center gap-1 mb-3"
-                            >
-                              {competitor.website}
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
+              <div className="space-y-6 max-w-3xl mx-auto w-full">
+              {competitors.map((competitor) => (
+                <Card
+                  key={competitor.id}
+                  className="border border-teal-200 bg-teal-50 shadow-sm"
+                >
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-lg">{competitor.name}</h3>
+                          {competitor.isAiGenerated && (
+                            <span className="px-2 py-1 bg-teal-100 text-teal-800 text-xs font-medium rounded-full">
+                              AI Found
+                            </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-1">
+                        {competitor.website && (
+                          <a
+                            href={formatWebsiteUrl(competitor.website)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline text-sm flex items-center gap-1 mb-3"
+                          >
+                            {competitor.website}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditCompetitor(competitor)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        {!competitor.isAiGenerated && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleEditCompetitor(competitor)}
-                            className="h-8 w-8 p-0"
+                            onClick={() => handleDeleteCompetitor(competitor.id)}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                          {!competitor.isAiGenerated && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteCompetitor(competitor.id)}
-                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+                        )}
                       </div>
-                      <p className="text-gray-600 text-sm leading-relaxed">
-                        {competitor.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </div>
+                    <p className="text-gray-600 text-sm leading-relaxed">
+                      {competitor.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
               </div>
             )}
           </div>
