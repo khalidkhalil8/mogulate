@@ -95,15 +95,11 @@ const SummaryPage: React.FC = () => {
       validationPlan: selectedValidationData,
     };
 
-    // Temporarily update ideaData with filtered data for save
+    // Update ideaData with filtered data permanently for saving
     setIdeaData(filteredIdeaData);
     
-    try {
-      await originalHandleSaveProject();
-    } finally {
-      // Restore original data (though this might not be necessary since we're navigating away)
-      setIdeaData(ideaData);
-    }
+    // Call the original save handler which will use the updated ideaData
+    await originalHandleSaveProject();
   };
 
   return (
