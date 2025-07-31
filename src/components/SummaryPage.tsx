@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import IdeaSummaryCard from './summary/IdeaSummaryCard';
 import CompetitorsSummaryCard from './summary/CompetitorsSummaryCard';
 import MarketGapsSummaryCard from './summary/MarketGapsSummaryCard';
-import ValidationPlanSummaryCard from './summary/ValidationPlanSummaryCard';
+import FeaturesSummaryCard from './summary/FeaturesSummaryCard';
+import ValidationPlanEditableCard from './summary/ValidationPlanEditableCard';
 import SummaryActions from './summary/SummaryActions';
 import SetupNavigation from './setup/SetupNavigation';
 import { Button } from './ui/button';
@@ -17,6 +18,10 @@ const SummaryPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
   
+  // Selection state for features and validation steps
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [selectedValidationSteps, setSelectedValidationSteps] = useState<string[]>([]);
+  
   const {
     existingProject,
     projectTitle,
@@ -28,7 +33,7 @@ const SummaryPage: React.FC = () => {
   } = useProjectData();
 
   const {
-    handleSaveProject,
+    handleSaveProject: originalHandleSaveProject,
   } = useSetupHandlers({
     projectTitle,
     setProjectTitle,
@@ -38,6 +43,68 @@ const SummaryPage: React.FC = () => {
     setIdeaData,
     projectId,
   });
+
+  // Initialize selections when ideaData changes
+  useEffect(() => {
+    // Select all features by default
+    if (ideaData.features.length > 0) {
+      setSelectedFeatures(ideaData.features.map(f => f.id));
+    }
+    
+    // Select all validation steps by default
+    if (ideaData.validationPlan.length > 0) {
+      setSelectedValidationSteps(ideaData.validationPlan.map((_, index) => index.toString()));
+    }
+  }, [ideaData.features, ideaData.validationPlan]);
+
+  // Handle feature selection toggle
+  const handleFeatureToggle = (featureId: string) => {
+    setSelectedFeatures(prev => 
+      prev.includes(featureId) 
+        ? prev.filter(id => id !== featureId)
+        : [...prev, featureId]
+    );
+  };
+
+  // Handle validation step selection toggle
+  const handleValidationStepToggle = (stepIndex: number) => {
+    const stepId = stepIndex.toString();
+    setSelectedValidationSteps(prev => 
+      prev.includes(stepId) 
+        ? prev.filter(id => id !== stepId)
+        : [...prev, stepId]
+    );
+  };
+
+  // Custom save handler that only saves selected items
+  const handleSaveProject = async () => {
+    // Filter to only selected features
+    const selectedFeaturesData = ideaData.features.filter(feature => 
+      selectedFeatures.includes(feature.id)
+    );
+    
+    // Filter to only selected validation steps
+    const selectedValidationData = ideaData.validationPlan.filter((_, index) => 
+      selectedValidationSteps.includes(index.toString())
+    );
+
+    // Create filtered idea data with only selected items
+    const filteredIdeaData = {
+      ...ideaData,
+      features: selectedFeaturesData,
+      validationPlan: selectedValidationData,
+    };
+
+    // Temporarily update ideaData with filtered data for save
+    setIdeaData(filteredIdeaData);
+    
+    try {
+      await originalHandleSaveProject();
+    } finally {
+      // Restore original data (though this might not be necessary since we're navigating away)
+      setIdeaData(ideaData);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -61,7 +128,16 @@ const SummaryPage: React.FC = () => {
               marketGapScoringAnalysis={ideaData.marketGapScoringAnalysis}
               selectedGapIndex={selectedGapIndex}
             />
-            <ValidationPlanSummaryCard validationPlan={ideaData.validationPlan} />
+            <FeaturesSummaryCard 
+              features={ideaData.features}
+              selectedFeatures={selectedFeatures}
+              onFeatureToggle={handleFeatureToggle}
+            />
+            <ValidationPlanEditableCard 
+              validationPlan={ideaData.validationPlan}
+              selectedSteps={selectedValidationSteps}
+              onStepToggle={handleValidationStepToggle}
+            />
             
             <div className="flex justify-between items-center pt-6">
               <Button
