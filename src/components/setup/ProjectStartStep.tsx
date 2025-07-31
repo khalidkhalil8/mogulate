@@ -32,11 +32,16 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
   }, [setupData.title, setupData.description]);
 
   const handleNext = () => {
-    updateSetupData({ 
-      title: title.trim(),
-      description: description.trim()
-    });
-    onNext();
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+    
+    if (trimmedTitle && trimmedDescription) {
+      updateSetupData({ 
+        title: trimmedTitle,
+        description: trimmedDescription
+      });
+      onNext();
+    }
   };
 
   const canProceedLocal = title.trim() !== '' && description.trim() !== '' && !isLoading;

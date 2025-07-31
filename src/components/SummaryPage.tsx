@@ -88,11 +88,22 @@ const SummaryPage: React.FC = () => {
       selectedValidationSteps.includes(index.toString())
     );
 
+    // Create filtered market analysis with only selected gap
+    let filteredMarketAnalysis = ideaData.marketGapScoringAnalysis;
+    if (selectedGapIndex !== undefined && ideaData.marketGapScoringAnalysis?.marketGaps) {
+      const selectedGap = ideaData.marketGapScoringAnalysis.marketGaps[selectedGapIndex];
+      filteredMarketAnalysis = {
+        ...ideaData.marketGapScoringAnalysis,
+        marketGaps: [selectedGap]
+      };
+    }
+
     // Create filtered idea data with only selected items
     const filteredIdeaData = {
       ...ideaData,
       features: selectedFeaturesData,
       validationPlan: selectedValidationData,
+      marketGapScoringAnalysis: filteredMarketAnalysis,
     };
 
     // Update ideaData with filtered data permanently for saving
