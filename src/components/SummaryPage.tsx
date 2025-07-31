@@ -1,18 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import IdeaSummaryCard from './summary/IdeaSummaryCard';
 import CompetitorsSummaryCard from './summary/CompetitorsSummaryCard';
 import MarketGapsSummaryCard from './summary/MarketGapsSummaryCard';
-import FeaturesSummaryCard from './summary/FeaturesSummaryCard';
-import ValidationPlanEditableCard from './summary/ValidationPlanEditableCard';
+import ValidationPlanSummaryCard from './summary/ValidationPlanSummaryCard';
 import SummaryActions from './summary/SummaryActions';
 import SetupNavigation from './setup/SetupNavigation';
 import { Button } from './ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useSetupHandlers } from '@/hooks/useSetupHandlers';
-import type { Feature } from '@/lib/types';
 
 const SummaryPage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,16 +27,6 @@ const SummaryPage: React.FC = () => {
     setIdeaData,
   } = useProjectData();
 
-  // State for selected features and validation steps
-  const [selectedFeatures, setSelectedFeatures] = useState<Feature[]>(ideaData.features);
-  const [selectedValidationSteps, setSelectedValidationSteps] = useState<any[]>(ideaData.validationPlan);
-
-  // Update selected items when ideaData changes
-  useEffect(() => {
-    setSelectedFeatures(ideaData.features);
-    setSelectedValidationSteps(ideaData.validationPlan);
-  }, [ideaData.features, ideaData.validationPlan]);
-
   const {
     handleSaveProject,
   } = useSetupHandlers({
@@ -46,11 +34,7 @@ const SummaryPage: React.FC = () => {
     setProjectTitle,
     selectedGapIndex,
     setSelectedGapIndex,
-    ideaData: {
-      ...ideaData,
-      features: selectedFeatures,
-      validationPlan: selectedValidationSteps
-    },
+    ideaData,
     setIdeaData,
     projectId,
   });
@@ -77,16 +61,7 @@ const SummaryPage: React.FC = () => {
               marketGapScoringAnalysis={ideaData.marketGapScoringAnalysis}
               selectedGapIndex={selectedGapIndex}
             />
-            <FeaturesSummaryCard 
-              features={ideaData.features}
-              onSelectionChange={setSelectedFeatures}
-              initialSelectedFeatures={selectedFeatures}
-            />
-            <ValidationPlanEditableCard 
-              validationPlan={ideaData.validationPlan}
-              onSelectionChange={setSelectedValidationSteps}
-              initialSelectedSteps={selectedValidationSteps}
-            />
+            <ValidationPlanSummaryCard validationPlan={ideaData.validationPlan} />
             
             <div className="flex justify-between items-center pt-6">
               <Button
@@ -100,11 +75,7 @@ const SummaryPage: React.FC = () => {
               </Button>
               
               <SummaryActions 
-                data={{
-                  ...ideaData,
-                  features: selectedFeatures,
-                  validationPlan: selectedValidationSteps
-                }}
+                data={ideaData} 
                 onSaveProject={handleSaveProject}
                 projectTitle={projectTitle}
               />
