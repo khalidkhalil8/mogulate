@@ -106,9 +106,40 @@ const ProjectSetupPage: React.FC = () => {
   };
 
   const handleNext = async () => {
-    // Save current step data if we have a project ID
-    if (projectId && user?.id) {
-      try {
+    if (!user) {
+      toast.error('You must be logged in to continue');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      let currentProjectId = projectId;
+
+      // For the start step, create project first if it doesn't exist
+      if (currentStep === 'start' && !currentProjectId) {
+        if (!setupData.title.trim() || !setupData.description.trim()) {
+          toast.error('Please enter both title and description');
+          setIsLoading(false);
+          return;
+        }
+        
+        const newProject = await createProject(setupData.title.trim(), setupData.description.trim());
+        if (!newProject) {
+          toast.error('Failed to create project');
+          setIsLoading(false);
+          return;
+        }
+        
+        currentProjectId = newProject.id;
+        
+        // Update URL with projectId
+        const params = new URLSearchParams(searchParams);
+        params.set('projectId', currentProjectId);
+        setSearchParams(params, { replace: true });
+      }
+
+      // Save current step data if we have a project ID
+      if (currentProjectId) {
         const updatePayload: any = {
           title: setupData.title,
           idea: setupData.description,
@@ -124,16 +155,19 @@ const ProjectSetupPage: React.FC = () => {
           updatePayload.selected_gap_index = setupData.selectedGapIndex;
         }
         
-        await updateProject(projectId, updatePayload);
-      } catch (error) {
-        console.error('Error saving step data:', error);
-        toast.error('Failed to save progress');
+        await updateProject(currentProjectId, updatePayload);
       }
-    }
 
-    const nextStepIndex = stepIndex + 1;
-    if (nextStepIndex < SETUP_STEPS.length) {
-      navigateToStep(SETUP_STEPS[nextStepIndex].id);
+      // Navigate to next step
+      const nextStepIndex = stepIndex + 1;
+      if (nextStepIndex < SETUP_STEPS.length) {
+        navigateToStep(SETUP_STEPS[nextStepIndex].id);
+      }
+    } catch (error) {
+      console.error('Error in handleNext:', error);
+      toast.error('Failed to save progress');
+    } finally {
+      setIsLoading(false);
     }
   };
 
