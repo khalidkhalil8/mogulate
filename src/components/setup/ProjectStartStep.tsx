@@ -41,6 +41,8 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
     }
   };
 
+  const canProceedLocal = title.trim() !== '' && description.trim() !== '' && !isLoading;
+
   return (
     <div className="min-h-screen bg-white">
       <SetupNavigation />
@@ -92,7 +94,7 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
           <div className="flex justify-end pt-8">
             <Button
               onClick={handleNext}
-              disabled={!canProceed || isLoading}
+              disabled={!canProceedLocal}
               className="px-8 py-3 text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
             >
               {isLoading ? 'Loading...' : 'Next'}

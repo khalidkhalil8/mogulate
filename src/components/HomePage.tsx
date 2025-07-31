@@ -18,7 +18,7 @@ const HomePage: React.FC = () => {
   
   const handleGetStarted = () => {
     if (user) {
-      navigate('/idea');
+      navigate('/project-setup?step=start');
     } else {
       navigate('/auth');
     }
