@@ -163,7 +163,18 @@ const ProjectPage: React.FC = () => {
                   </div>
                   {stats.hasMarketAnalysis && (
                     <p className="text-sm text-gray-600">
-                      Market gaps identified and analyzed
+                      {(() => {
+                        const marketAnalysis = project.market_analysis;
+                        if (marketAnalysis?.marketGaps && project.selected_gap_index !== undefined) {
+                          const selectedGap = marketAnalysis.marketGaps[project.selected_gap_index];
+                          if (selectedGap?.gap) {
+                            return selectedGap.gap.length > 100 
+                              ? `${selectedGap.gap.substring(0, 100)}...`
+                              : selectedGap.gap;
+                          }
+                        }
+                        return "Market gaps identified and analyzed";
+                      })()}
                     </p>
                   )}
                 </div>
