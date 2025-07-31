@@ -69,7 +69,7 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="AI-Powered Resume Portfolio Generator"
+              placeholder="Enter your project title"
               className="w-full h-14 px-4 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               disabled={isLoading}
               maxLength={100}
@@ -84,7 +84,7 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="The portfolio is generated using TailwindCSS-based templates with animations, and users can preview the portfolio live and export it as a PDF."
+              placeholder="Briefly describe your idea or product"
               className="w-full h-32 px-4 py-4 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               disabled={isLoading}
               maxLength={500}

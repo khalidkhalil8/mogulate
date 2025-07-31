@@ -113,33 +113,25 @@ const ProjectSetupPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      let currentProjectId = projectId;
-
-      // For the start step, create project first if it doesn't exist
-      if (currentStep === 'start' && !currentProjectId) {
+      // For the start step, just validate and navigate - don't save to database yet
+      if (currentStep === 'start') {
         if (!setupData.title.trim() || !setupData.description.trim()) {
           toast.error('Please enter both title and description');
           setIsLoading(false);
           return;
         }
         
-        const newProject = await createProject(setupData.title.trim(), setupData.description.trim());
-        if (!newProject) {
-          toast.error('Failed to create project');
-          setIsLoading(false);
-          return;
+        // Just navigate to the next step without saving to database
+        const nextStepIndex = stepIndex + 1;
+        if (nextStepIndex < SETUP_STEPS.length) {
+          navigateToStep(SETUP_STEPS[nextStepIndex].id);
         }
-        
-        currentProjectId = newProject.id;
-        
-        // Update URL with projectId
-        const params = new URLSearchParams(searchParams);
-        params.set('projectId', currentProjectId);
-        setSearchParams(params, { replace: true });
+        setIsLoading(false);
+        return;
       }
 
-      // Save current step data if we have a project ID
-      if (currentProjectId) {
+      // For other steps, only save if we have a project ID (which means we're editing an existing project)
+      if (projectId) {
         const updatePayload: any = {
           title: setupData.title,
           idea: setupData.description,
@@ -155,7 +147,7 @@ const ProjectSetupPage: React.FC = () => {
           updatePayload.selected_gap_index = setupData.selectedGapIndex;
         }
         
-        await updateProject(currentProjectId, updatePayload);
+        await updateProject(projectId, updatePayload);
       }
 
       // Navigate to next step
