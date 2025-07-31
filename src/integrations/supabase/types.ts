@@ -140,6 +140,182 @@ export type Database = {
         }
         Relationships: []
       }
+      project_competitors: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_ai_generated: boolean | null
+          name: string
+          project_id: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          name: string
+          project_id: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          name?: string
+          project_id?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_competitors_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_features: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_ai_generated: boolean | null
+          priority: string | null
+          project_id: string
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          priority?: string | null
+          project_id: string
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          priority?: string | null
+          project_id?: string
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_features_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_market_gaps: {
+        Row: {
+          created_at: string
+          gap_text: string
+          id: string
+          is_selected: boolean | null
+          positioning_suggestion: string | null
+          project_id: string
+          rationale: string | null
+          score: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gap_text: string
+          id?: string
+          is_selected?: boolean | null
+          positioning_suggestion?: string | null
+          project_id: string
+          rationale?: string | null
+          score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gap_text?: string
+          id?: string
+          is_selected?: boolean | null
+          positioning_suggestion?: string | null
+          project_id?: string
+          rationale?: string | null
+          score?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_market_gaps_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_validation_steps: {
+        Row: {
+          created_at: string
+          goal: string | null
+          id: string
+          is_ai_generated: boolean | null
+          is_done: boolean | null
+          method: string | null
+          priority: string | null
+          project_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          goal?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          is_done?: boolean | null
+          method?: string | null
+          priority?: string | null
+          project_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          goal?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          is_done?: boolean | null
+          method?: string | null
+          priority?: string | null
+          project_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_validation_steps_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           competitors: Json | null
@@ -150,6 +326,7 @@ export type Database = {
           idea: string | null
           market_analysis: Json | null
           selected_gap_index: number | null
+          status: string | null
           title: string
           updated_at: string
           user_id: string
@@ -164,6 +341,7 @@ export type Database = {
           idea?: string | null
           market_analysis?: Json | null
           selected_gap_index?: number | null
+          status?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -178,6 +356,7 @@ export type Database = {
           idea?: string | null
           market_analysis?: Json | null
           selected_gap_index?: number | null
+          status?: string | null
           title?: string
           updated_at?: string
           user_id?: string
