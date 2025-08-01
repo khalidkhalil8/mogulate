@@ -1,12 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/context/AuthContext';
+import { useProjectCredits } from '@/hooks/useProjectCredits';
+import { useProjectRerunAnalysis } from '@/hooks/useProjectRerunAnalysis';
 import PageLayout from '@/components/layout/PageLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import RerunConfirmationDialog from '@/components/project/RerunConfirmationDialog';
 import { 
   Target, 
   Users, 
@@ -17,7 +20,8 @@ import {
   Lightbulb,
   Settings,
   AlertCircle,
-  Home
+  Home,
+  RefreshCw
 } from 'lucide-react';
 
 const ProjectPage: React.FC = () => {
@@ -25,6 +29,23 @@ const ProjectPage: React.FC = () => {
   const navigate = useNavigate();
   const { projects, isLoading } = useProjects();
   const { user } = useAuth();
+  const { projectCredits } = useProjectCredits(id || '');
+  const { 
+    isLoading: isRerunning, 
+    rerunCompetitorDiscovery, 
+    rerunMarketAnalysis, 
+    rerunFeatureGeneration, 
+    rerunValidationPlan 
+  } = useProjectRerunAnalysis(id || '');
+
+  const [rerunDialog, setRerunDialog] = useState<{
+    isOpen: boolean;
+    type: 'competitors' | 'market' | 'features' | 'validation' | null;
+    currentInput?: string;
+  }>({
+    isOpen: false,
+    type: null,
+  });
 
   // Find the project by ID
   const project = projects.find(p => p.id === id);
@@ -87,6 +108,89 @@ const ProjectPage: React.FC = () => {
     navigate(`/project/${id}/edit`);
   };
 
+  const handleRerunClick = (type: 'competitors' | 'market' | 'features' | 'validation', currentInput?: string) => {
+    if (!projectCredits.canUseCredits) {
+      navigate('/settings');
+      return;
+    }
+    
+    setRerunDialog({
+      isOpen: true,
+      type,
+      currentInput
+    });
+  };
+
+  const handleRerunConfirm = async (editedInput?: string) => {
+    if (!project || !rerunDialog.type) return;
+
+    const inputToUse = editedInput || rerunDialog.currentInput || project.idea || '';
+    let success = false;
+
+    switch (rerunDialog.type) {
+      case 'competitors':
+        success = await rerunCompetitorDiscovery(inputToUse);
+        break;
+      case 'market':
+        success = await rerunMarketAnalysis(inputToUse, project.competitors || []);
+        break;
+      case 'features':
+        const selectedGap = project.market_analysis?.marketGaps?.[project.selected_gap_index || 0];
+        const positioning = selectedGap?.positioningSuggestion || '';
+        success = await rerunFeatureGeneration(inputToUse, project.competitors || [], positioning);
+        break;
+      case 'validation':
+        const selectedGapForValidation = project.market_analysis?.marketGaps?.[project.selected_gap_index || 0];
+        const positioningForValidation = selectedGapForValidation?.positioningSuggestion || '';
+        success = await rerunValidationPlan(inputToUse, positioningForValidation, project.competitors || [], project.features || []);
+        break;
+    }
+
+    if (success) {
+      setRerunDialog({ isOpen: false, type: null });
+    }
+  };
+
+  const getRerunDialogProps = () => {
+    switch (rerunDialog.type) {
+      case 'competitors':
+        return {
+          title: 'Rerun Competitor Discovery',
+          description: 'Re-discover competitors based on your project idea. This will find new competitors and replace your existing list.',
+          analysisType: 'competitor',
+          allowInputEdit: true
+        };
+      case 'market':
+        return {
+          title: 'Rerun Market Analysis',
+          description: 'Re-analyze market gaps and positioning opportunities. This will generate new market insights based on your current competitors.',
+          analysisType: 'market analysis',
+          allowInputEdit: true
+        };
+      case 'features':
+        return {
+          title: 'Rerun Feature Generation',
+          description: 'Generate new product features based on your current market positioning and competitors.',
+          analysisType: 'feature',
+          allowInputEdit: true
+        };
+      case 'validation':
+        return {
+          title: 'Rerun Validation Plan',
+          description: 'Generate a new validation plan based on your current features and market positioning.',
+          analysisType: 'validation plan',
+          allowInputEdit: true
+        };
+      default:
+        return {
+          title: '',
+          description: '',
+          analysisType: '',
+          allowInputEdit: false
+        };
+    }
+  };
+
   // Get project statistics
   const stats = {
     competitors: Array.isArray(project.competitors) ? project.competitors.length : 0,
@@ -143,10 +247,7 @@ const ProjectPage: React.FC = () => {
           {/* Widgets Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Market Analysis Widget */}
-            <Card 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => handleWidgetClick(`/project/${id}/market-analysis`)}
-            >
+            <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <TrendingUp className="h-5 w-5" />
@@ -154,7 +255,7 @@ const ProjectPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Status:</span>
                     <Badge variant={stats.hasMarketAnalysis ? "default" : "secondary"}>
@@ -177,15 +278,40 @@ const ProjectPage: React.FC = () => {
                       })()}
                     </p>
                   )}
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWidgetClick(`/project/${id}/market-analysis`);
+                      }}
+                      className="flex-1"
+                    >
+                      View
+                    </Button>
+                    {stats.hasMarketAnalysis && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRerunClick('market', project.idea);
+                        }}
+                        disabled={isRerunning}
+                        className="flex items-center gap-1"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Rerun
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Competitors Widget */}
-            <Card 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => handleWidgetClick(`/project/${id}/competitors`)}
-            >
+            <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Users className="h-5 w-5" />
@@ -193,7 +319,7 @@ const ProjectPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Found:</span>
                     <Badge variant="outline">{stats.competitors}</Badge>
@@ -203,15 +329,40 @@ const ProjectPage: React.FC = () => {
                       {stats.competitors} competitor{stats.competitors !== 1 ? 's' : ''} analyzed
                     </p>
                   )}
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWidgetClick(`/project/${id}/competitors`);
+                      }}
+                      className="flex-1"
+                    >
+                      View
+                    </Button>
+                    {project.idea && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRerunClick('competitors', project.idea);
+                        }}
+                        disabled={isRerunning}
+                        className="flex items-center gap-1"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Rerun
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Features Widget */}
-            <Card 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => handleWidgetClick(`/project/${id}/features`)}
-            >
+            <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <CheckSquare className="h-5 w-5" />
@@ -219,7 +370,7 @@ const ProjectPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Planned:</span>
                     <Badge variant="outline">{stats.features}</Badge>
@@ -229,15 +380,40 @@ const ProjectPage: React.FC = () => {
                       {stats.features} feature{stats.features !== 1 ? 's' : ''} defined
                     </p>
                   )}
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWidgetClick(`/project/${id}/features`);
+                      }}
+                      className="flex-1"
+                    >
+                      View
+                    </Button>
+                    {project.idea && stats.competitors > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRerunClick('features', project.idea);
+                        }}
+                        disabled={isRerunning}
+                        className="flex items-center gap-1"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Rerun
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Validation Plan Widget */}
-            <Card 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => handleWidgetClick(`/project/${id}/validation-plan`)}
-            >
+            <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Target className="h-5 w-5" />
@@ -245,7 +421,7 @@ const ProjectPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Steps:</span>
                     <Badge variant="outline">{stats.validationSteps}</Badge>
@@ -255,6 +431,34 @@ const ProjectPage: React.FC = () => {
                       {stats.validationSteps} validation step{stats.validationSteps !== 1 ? 's' : ''} planned
                     </p>
                   )}
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWidgetClick(`/project/${id}/validation-plan`);
+                      }}
+                      className="flex-1"
+                    >
+                      View
+                    </Button>
+                    {project.idea && stats.competitors > 0 && stats.features > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRerunClick('validation', project.idea);
+                        }}
+                        disabled={isRerunning}
+                        className="flex items-center gap-1"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Rerun
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -309,6 +513,16 @@ const ProjectPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Rerun Confirmation Dialog */}
+      <RerunConfirmationDialog
+        isOpen={rerunDialog.isOpen}
+        onOpenChange={(open) => setRerunDialog(prev => ({ ...prev, isOpen: open }))}
+        onConfirm={handleRerunConfirm}
+        isLoading={isRerunning}
+        currentInput={rerunDialog.currentInput}
+        {...getRerunDialogProps()}
+      />
     </PageLayout>
   );
 };
