@@ -10,6 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import RerunConfirmationDialog from '@/components/project/RerunConfirmationDialog';
+import EditableFeaturesWidget from '@/components/project/EditableFeaturesWidget';
+import EditableValidationPlanWidget from '@/components/project/EditableValidationPlanWidget';
+import EditableTodoWidget from '@/components/project/EditableTodoWidget';
+import EditableFeedbackWidget from '@/components/project/EditableFeedbackWidget';
 import { 
   Target, 
   Users, 
@@ -362,154 +366,24 @@ const ProjectPage: React.FC = () => {
             </Card>
 
             {/* Features Widget */}
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <CheckSquare className="h-5 w-5" />
-                  Features
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Planned:</span>
-                    <Badge variant="outline">{stats.features}</Badge>
-                  </div>
-                  {stats.features > 0 && (
-                    <p className="text-sm text-gray-600">
-                      {stats.features} feature{stats.features !== 1 ? 's' : ''} defined
-                    </p>
-                  )}
-                  <div className="flex gap-2 pt-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleWidgetClick(`/project/${id}/features`);
-                      }}
-                      className="flex-1"
-                    >
-                      View
-                    </Button>
-                    {project.idea && stats.competitors > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRerunClick('features', project.idea);
-                        }}
-                        disabled={isRerunning}
-                        className="flex items-center gap-1"
-                      >
-                        <RefreshCw className="h-3 w-3" />
-                        Rerun
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <EditableFeaturesWidget 
+              projectId={id!} 
+              onRerun={() => handleRerunClick('features', project.idea)}
+              isRerunning={isRerunning}
+            />
 
             {/* Validation Plan Widget */}
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Target className="h-5 w-5" />
-                  Validation Plan
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Steps:</span>
-                    <Badge variant="outline">{stats.validationSteps}</Badge>
-                  </div>
-                  {stats.validationSteps > 0 && (
-                    <p className="text-sm text-gray-600">
-                      {stats.validationSteps} validation step{stats.validationSteps !== 1 ? 's' : ''} planned
-                    </p>
-                  )}
-                  <div className="flex gap-2 pt-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleWidgetClick(`/project/${id}/validation-plan`);
-                      }}
-                      className="flex-1"
-                    >
-                      View
-                    </Button>
-                    {project.idea && stats.competitors > 0 && stats.features > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRerunClick('validation', project.idea);
-                        }}
-                        disabled={isRerunning}
-                        className="flex items-center gap-1"
-                      >
-                        <RefreshCw className="h-3 w-3" />
-                        Rerun
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <EditableValidationPlanWidget 
+              projectId={id!} 
+              onRerun={() => handleRerunClick('validation', project.idea)}
+              isRerunning={isRerunning}
+            />
 
             {/* Tasks Widget */}
-            <Card 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => handleWidgetClick(`/project/${id}/todos`)}
-            >
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <ListTodo className="h-5 w-5" />
-                  Tasks
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Manage:</span>
-                    <Badge variant="outline">To-Do List</Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    Track progress and milestones
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <EditableTodoWidget projectId={id!} />
 
             {/* Feedback Tracking Widget */}
-            <Card 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => handleWidgetClick(`/project/${id}/feedback`)}
-            >
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Settings className="h-5 w-5" />
-                  Feedback Tracking
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Track:</span>
-                    <Badge variant="outline">User Feedback</Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    Monitor user responses and insights
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <EditableFeedbackWidget projectId={id!} />
           </div>
         </div>
       </div>
