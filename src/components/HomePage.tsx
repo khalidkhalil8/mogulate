@@ -59,28 +59,20 @@ const HomePage: React.FC = () => {
           <div className="container-width">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-gray-900">
-                Turn Your Idea Into a<br />
+                Have an Idea?<br />
                 <span className="bg-gradient-to-r from-teal-600 to-teal-400 bg-clip-text text-transparent">
-                  Market-Ready Business
+                  Let us Help
                 </span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-                Stop guessing about your market. Mogulate uses AI to find your competitors, 
-                identify market gaps, and give you a clear path to validate your business idea.
+                Find your competitors, identify market gaps, and create a clear path for your ideas.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
                 <Button 
                   className="px-8 py-6 text-lg gradient-bg border-none hover:opacity-90 button-transition"
                   onClick={handleGetStarted}
                 >
-                  Analyze My Idea For Free
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="px-8 py-6 text-lg border-gray-300 hover:bg-gray-50"
-                  onClick={scrollToPricing}
-                >
-                  View Pricing
+                  Get Started for Free
                 </Button>
               </div>
               <p className="text-sm text-gray-500">
@@ -191,7 +183,7 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* Value Proposition Section */}
-        <section className="py-16 bg-gray-50 px-4">
+        <section id="why-entrepreneurs" className="py-16 bg-gray-50 px-4">
           <div className="container-width">
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-8 text-gray-900">
@@ -234,9 +226,6 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </section>
-        
-        {/* Features Coming Soon Section */}
-        <UpcomingFeaturesSection />
         
         {/* Pricing Section */}
         <div id="pricing">

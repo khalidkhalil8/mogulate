@@ -28,9 +28,20 @@ const Header: React.FC = () => {
         </Link>
         
         <div className="flex items-center gap-2 md:gap-4">
-          {/* Only show navigation for signed-out users */}
+          {/* Center navigation for non-authenticated users */}
           {!user && !isLoading && (
             <nav className="hidden md:flex items-center gap-4 lg:gap-6">
+              <button
+                onClick={() => {
+                  const element = document.getElementById('why-entrepreneurs');
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="text-charcoal hover:text-teal-600 font-medium transition-colors focus-ring rounded-lg px-2 py-1"
+              >
+                Features
+              </button>
               <button
                 onClick={scrollToPricing}
                 className="text-charcoal hover:text-teal-600 font-medium transition-colors focus-ring rounded-lg px-2 py-1"
@@ -40,30 +51,33 @@ const Header: React.FC = () => {
             </nav>
           )}
           
-          {/* Give Feedback button - always visible */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleFeedback}
-            className="flex items-center gap-2 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 text-xs md:text-sm px-2 md:px-3"
-          >
-            <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
-            <span className="hidden sm:inline">Give Feedback</span>
-            <span className="sm:hidden">Feedback</span>
-          </Button>
+          {/* Auth buttons for non-authenticated users */}
+          {!user && !isLoading && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/auth?mode=signin")}
+                className="text-sm font-medium"
+              >
+                Login
+              </Button>
+              <Button
+                onClick={() => navigate("/auth?mode=signup")}
+                className="text-sm font-medium gradient-bg border-none hover:opacity-90 button-transition"
+              >
+                Sign Up
+              </Button>
+            </div>
+          )}
           
-          {isLoading ? (
-            <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-gray-200 animate-pulse"></div>
-          ) : user ? (
+          {/* User dropdown for authenticated users */}
+          {user && !isLoading && (
             <UserProfileDropdown />
-          ) : (
-            <Button
-              variant="outline"
-              onClick={() => navigate('/auth')}
-              className="hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 text-xs md:text-sm px-3 md:px-4"
-            >
-              Log In
-            </Button>
+          )}
+          
+          {/* Loading state */}
+          {isLoading && (
+            <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-gray-200 animate-pulse"></div>
           )}
         </div>
       </div>

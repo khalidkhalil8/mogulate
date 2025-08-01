@@ -22,9 +22,10 @@ const PricingSection: React.FC<PricingSectionProps> = ({
       period: "",
       description: "Perfect for getting started",
       features: [
-        { text: "5 uses per month", highlight: false },
-        { text: "3 competitors (Name & URL only)", highlight: false },
-        { text: "1 market gap per idea", highlight: false },
+        { text: "1 project", highlight: false },
+        { text: "4 credits per project", highlight: false },
+        { text: "3 competitors discovery", highlight: false },
+        { text: "Market gap analysis", highlight: false },
         { text: "Basic support", highlight: false }
       ],
       popular: false,
@@ -36,10 +37,11 @@ const PricingSection: React.FC<PricingSectionProps> = ({
       period: "/month",
       description: "Great for entrepreneurs and small teams",
       features: [
-        { text: "20 uses per month", highlight: true },
-        { text: "3 competitors (Name, URL & descriptions)", highlight: true },
-        { text: "3 market gaps per idea", highlight: true },
-        { text: "1 positioning suggestion per idea", highlight: true },
+        { text: "5 projects", highlight: true },
+        { text: "10 credits per project", highlight: true },
+        { text: "Enhanced competitor analysis", highlight: true },
+        { text: "3 market gaps per analysis", highlight: true },
+        { text: "Positioning suggestions", highlight: true },
         { text: "Priority support", highlight: false }
       ],
       popular: false,
@@ -51,10 +53,11 @@ const PricingSection: React.FC<PricingSectionProps> = ({
       period: "/month",
       description: "For serious businesses and agencies",
       features: [
-        { text: "100 uses per month", highlight: true },
-        { text: "5 competitors (Name, URL & descriptions)", highlight: true },
-        { text: "3 market gaps per idea", highlight: true },
-        { text: "3 positioning suggestions per idea", highlight: true },
+        { text: "Unlimited projects", highlight: true },
+        { text: "Unlimited credits", highlight: true },
+        { text: "Advanced competitor insights", highlight: true },
+        { text: "Comprehensive market analysis", highlight: true },
+        { text: "Multiple positioning strategies", highlight: true },
         { text: "Advanced analytics", highlight: true },
         { text: "Priority support", highlight: false }
       ],
