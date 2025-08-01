@@ -171,13 +171,28 @@ Respond with this exact JSON structure:
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
       );
 
-      const { error: updateError } = await supabase
-        .from('projects')
-        .update({ features: formattedFeatures })
-        .eq('id', project_id);
+      // Clear existing features from normalized table
+      await supabase
+        .from('project_features')
+        .delete()
+        .eq('project_id', project_id);
 
-      if (updateError) {
-        console.error('Update error:', updateError);
+      // Insert new features into normalized table
+      const featuresToInsert = formattedFeatures.map(feature => ({
+        project_id: project_id,
+        title: feature.title,
+        description: feature.description,
+        status: feature.status.toLowerCase(),
+        priority: feature.priority.toLowerCase(),
+        is_ai_generated: true,
+      }));
+
+      const { error: insertError } = await supabase
+        .from('project_features')
+        .insert(featuresToInsert);
+
+      if (insertError) {
+        console.error('Insert error:', insertError);
         return new Response(JSON.stringify({ success: false, error: 'Failed to save features' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 500,

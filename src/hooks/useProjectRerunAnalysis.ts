@@ -25,9 +25,31 @@ export const useProjectRerunAnalysis = (projectId: string) => {
 
       const result = await fetchCompetitors(idea);
       if (result?.competitors) {
-        await updateProject(projectId, { 
-          competitors: result.competitors 
-        });
+        // Clear existing competitors from normalized table
+        await supabase
+          .from('project_competitors')
+          .delete()
+          .eq('project_id', projectId);
+
+        // Insert new competitors into normalized table
+        const competitorsToInsert = result.competitors.map(comp => ({
+          project_id: projectId,
+          name: comp.name,
+          website: comp.website || '',
+          description: comp.description || '',
+          is_ai_generated: comp.isAiGenerated || true,
+        }));
+
+        const { error } = await supabase
+          .from('project_competitors')
+          .insert(competitorsToInsert);
+
+        if (error) {
+          console.error('Error inserting new competitors:', error);
+          toast.error('Failed to save new competitors');
+          return false;
+        }
+
         toast.success('Competitor discovery completed!');
         return true;
       } else {
@@ -55,10 +77,39 @@ export const useProjectRerunAnalysis = (projectId: string) => {
 
       const result = await analyzeMarketGapsWithScoring(idea, competitors);
       if (result?.success && result.analysis) {
+        // Clear existing market gaps from normalized table
+        await supabase
+          .from('project_market_gaps')
+          .delete()
+          .eq('project_id', projectId);
+
+        // Insert new market gaps into normalized table
+        if (result.analysis.marketGaps && Array.isArray(result.analysis.marketGaps)) {
+          const marketGapsToInsert = result.analysis.marketGaps.map(gap => ({
+            project_id: projectId,
+            gap_text: gap.gap,
+            positioning_suggestion: gap.positioningSuggestion || '',
+            score: Number(gap.score) || 0,
+            rationale: gap.rationale || '',
+            is_selected: false,
+          }));
+
+          const { error } = await supabase
+            .from('project_market_gaps')
+            .insert(marketGapsToInsert);
+
+          if (error) {
+            console.error('Error inserting new market gaps:', error);
+            toast.error('Failed to save new market analysis');
+            return false;
+          }
+        }
+
+        // Reset selected gap in projects table
         await updateProject(projectId, { 
-          market_analysis: result.analysis,
-          selected_gap_index: null // Reset selected gap
+          selected_gap_index: null
         });
+
         toast.success('Market analysis completed!');
         return true;
       } else {
@@ -101,9 +152,32 @@ export const useProjectRerunAnalysis = (projectId: string) => {
       }
 
       if (data?.features) {
-        await updateProject(projectId, { 
-          features: data.features 
-        });
+        // Clear existing features from normalized table
+        await supabase
+          .from('project_features')
+          .delete()
+          .eq('project_id', projectId);
+
+        // Insert new features into normalized table
+        const featuresToInsert = data.features.map(feature => ({
+          project_id: projectId,
+          title: feature.title,
+          description: feature.description || '',
+          status: feature.status || 'planned',
+          priority: feature.priority || 'medium',
+          is_ai_generated: true,
+        }));
+
+        const { error: insertError } = await supabase
+          .from('project_features')
+          .insert(featuresToInsert);
+
+        if (insertError) {
+          console.error('Error inserting new features:', insertError);
+          toast.error('Failed to save new features');
+          return false;
+        }
+
         toast.success('Features generated successfully!');
         return true;
       } else {
@@ -136,9 +210,33 @@ export const useProjectRerunAnalysis = (projectId: string) => {
 
       const result = await generateValidationPlan(idea, positioningSuggestion, competitors, features);
       if (result?.success && result.validationPlan) {
-        await updateProject(projectId, { 
-          validation_plan: result.validationPlan 
-        });
+        // Clear existing validation steps from normalized table
+        await supabase
+          .from('project_validation_steps')
+          .delete()
+          .eq('project_id', projectId);
+
+        // Insert new validation steps into normalized table
+        const validationStepsToInsert = result.validationPlan.map(step => ({
+          project_id: projectId,
+          title: step.title,
+          goal: step.goal || '',
+          method: step.method || '',
+          priority: step.priority || 'medium',
+          is_done: step.isDone || false,
+          is_ai_generated: true,
+        }));
+
+        const { error: insertError } = await supabase
+          .from('project_validation_steps')
+          .insert(validationStepsToInsert);
+
+        if (insertError) {
+          console.error('Error inserting new validation steps:', insertError);
+          toast.error('Failed to save new validation plan');
+          return false;
+        }
+
         toast.success('Validation plan generated successfully!');
         return true;
       } else {

@@ -19,23 +19,55 @@ export const useProjectMarketAnalysis = (projectId: string) => {
     }
 
     try {
-      const { data, error } = await supabase
+      // First try to get from normalized table
+      const { data: normalizedData, error: normalizedError } = await supabase
+        .from('project_market_gaps')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('score', { ascending: false });
+
+      if (normalizedError) {
+        console.error('Error fetching market gaps from normalized table:', normalizedError);
+        toast.error('Failed to load market analysis');
+        return;
+      }
+
+      // Convert normalized data to MarketGapScoringAnalysis format
+      if (normalizedData && normalizedData.length > 0) {
+        const marketGaps = normalizedData.map(gap => ({
+          gap: gap.gap_text,
+          positioningSuggestion: gap.positioning_suggestion || '',
+          score: Number(gap.score) || 0,
+          rationale: gap.rationale || '',
+        }));
+
+        const analysisData: MarketGapScoringAnalysis = {
+          marketGaps
+        };
+        
+        setMarketAnalysis(analysisData);
+        setMarketGaps(''); // No longer stored separately
+        return;
+      }
+
+      // Fallback: Check if data exists in JSONB format (legacy)
+      const { data: legacyData, error: legacyError } = await supabase
         .from('projects')
         .select('market_analysis')
         .eq('id', projectId)
         .eq('user_id', user.id)
         .single();
 
-      if (error) {
-        console.error('Error fetching market analysis:', error);
-        toast.error('Failed to load market analysis');
+      if (legacyError) {
+        console.error('Error fetching legacy market analysis:', legacyError);
+        setMarketAnalysis(null);
         return;
       }
 
       // Handle both new and legacy market analysis formats
       let analysisData: MarketGapAnalysis | MarketGapScoringAnalysis | null = null;
-      if (data?.market_analysis && typeof data.market_analysis === 'object' && !Array.isArray(data.market_analysis)) {
-        const rawAnalysis = data.market_analysis as Record<string, any>;
+      if (legacyData?.market_analysis && typeof legacyData.market_analysis === 'object' && !Array.isArray(legacyData.market_analysis)) {
+        const rawAnalysis = legacyData.market_analysis as Record<string, any>;
         
         // Check if it's the new scoring format
         if (rawAnalysis.marketGaps && Array.isArray(rawAnalysis.marketGaps) && 
@@ -70,21 +102,48 @@ export const useProjectMarketAnalysis = (projectId: string) => {
     }
 
     try {
-      const updateData: any = {
-        market_analysis: analysis as any,
-        updated_at: new Date().toISOString(),
-      };
+      // Clear existing market gaps first
+      await supabase
+        .from('project_market_gaps')
+        .delete()
+        .eq('project_id', projectId);
 
-      const { error } = await supabase
-        .from('projects')
-        .update(updateData)
-        .eq('id', projectId)
-        .eq('user_id', user.id);
+      // Insert new market gaps if analysis exists
+      if (analysis && 'marketGaps' in analysis && Array.isArray(analysis.marketGaps)) {
+        const marketGapsToInsert = analysis.marketGaps.map(gap => {
+          // Handle both legacy and scoring formats
+          if (typeof gap === 'string') {
+            // Legacy format - just the gap text
+            return {
+              project_id: projectId,
+              gap_text: gap,
+              positioning_suggestion: '',
+              score: 0,
+              rationale: '',
+              is_selected: false,
+            };
+          } else {
+            // Scoring format - with score, rationale, etc.
+            return {
+              project_id: projectId,
+              gap_text: gap.gap || '',
+              positioning_suggestion: gap.positioningSuggestion || '',
+              score: Number(gap.score) || 0,
+              rationale: gap.rationale || '',
+              is_selected: false,
+            };
+          }
+        });
 
-      if (error) {
-        console.error('Error updating market analysis:', error);
-        toast.error('Failed to update market analysis');
-        return false;
+        const { error: insertError } = await supabase
+          .from('project_market_gaps')
+          .insert(marketGapsToInsert);
+
+        if (insertError) {
+          console.error('Error inserting market gaps:', insertError);
+          toast.error('Failed to update market analysis');
+          return false;
+        }
       }
 
       setMarketAnalysis(analysis);

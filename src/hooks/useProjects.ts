@@ -109,6 +109,7 @@ export const useProjects = () => {
 
       const transformedData: Project[] = (data || []).map(item => ({
         ...item,
+        // Keep JSONB fields for backward compatibility but mark as potentially empty
         competitors: Array.isArray(item.competitors) ? item.competitors : [],
         features: Array.isArray(item.features) ? item.features : [],
         validation_plan: Array.isArray(item.validation_plan) ? item.validation_plan as ValidationStep[] : [],

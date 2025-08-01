@@ -17,21 +17,48 @@ export const useProjectCompetitors = (projectId: string) => {
     }
 
     try {
-      const { data, error } = await supabase
+      // First try to get from normalized table
+      const { data: normalizedData, error: normalizedError } = await supabase
+        .from('project_competitors')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true });
+
+      if (normalizedError) {
+        console.error('Error fetching competitors from normalized table:', normalizedError);
+        toast.error('Failed to load competitors');
+        return;
+      }
+
+      // Convert normalized data to Competitor format
+      if (normalizedData && normalizedData.length > 0) {
+        const competitorsData: Competitor[] = normalizedData.map(comp => ({
+          id: comp.id,
+          name: comp.name,
+          website: comp.website || '',
+          description: comp.description || '',
+          isAiGenerated: comp.is_ai_generated || false,
+        }));
+        setCompetitors(competitorsData);
+        return;
+      }
+
+      // Fallback: Check if data exists in JSONB format (legacy)
+      const { data: legacyData, error: legacyError } = await supabase
         .from('projects')
         .select('competitors')
         .eq('id', projectId)
         .eq('user_id', user.id)
         .single();
 
-      if (error) {
-        console.error('Error fetching competitors:', error);
-        toast.error('Failed to load competitors');
+      if (legacyError) {
+        console.error('Error fetching legacy competitors:', legacyError);
+        setCompetitors([]);
         return;
       }
 
-      // Safely parse the Json data as Competitor[]
-      const competitorsData = Array.isArray(data?.competitors) ? data.competitors as Competitor[] : [];
+      // Parse legacy JSONB data
+      const competitorsData = Array.isArray(legacyData?.competitors) ? legacyData.competitors as Competitor[] : [];
       setCompetitors(competitorsData);
     } catch (error) {
       console.error('Error fetching competitors:', error);
@@ -41,7 +68,50 @@ export const useProjectCompetitors = (projectId: string) => {
     }
   };
 
-  const updateCompetitors = async (updatedCompetitors: Competitor[]) => {
+  const addCompetitor = async (competitor: Competitor) => {
+    if (!user?.id) {
+      toast.error('You must be logged in to add competitors');
+      return false;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('project_competitors')
+        .insert({
+          project_id: projectId,
+          name: competitor.name,
+          website: competitor.website || '',
+          description: competitor.description || '',
+          is_ai_generated: competitor.isAiGenerated || false,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding competitor:', error);
+        toast.error('Failed to add competitor');
+        return false;
+      }
+
+      const newCompetitor: Competitor = {
+        id: data.id,
+        name: data.name,
+        website: data.website || '',
+        description: data.description || '',
+        isAiGenerated: data.is_ai_generated || false,
+      };
+
+      setCompetitors(prev => [...prev, newCompetitor]);
+      toast.success('Competitor added successfully');
+      return true;
+    } catch (error) {
+      console.error('Error adding competitor:', error);
+      toast.error('Failed to add competitor');
+      return false;
+    }
+  };
+
+  const updateCompetitor = async (competitorId: string, updates: Partial<Competitor>) => {
     if (!user?.id) {
       toast.error('You must be logged in to update competitors');
       return false;
@@ -49,45 +119,61 @@ export const useProjectCompetitors = (projectId: string) => {
 
     try {
       const { error } = await supabase
-        .from('projects')
+        .from('project_competitors')
         .update({
-          competitors: updatedCompetitors as any, // Cast to any to satisfy Json type
-          updated_at: new Date().toISOString(),
+          name: updates.name,
+          website: updates.website,
+          description: updates.description,
+          is_ai_generated: updates.isAiGenerated,
         })
-        .eq('id', projectId)
-        .eq('user_id', user.id);
+        .eq('id', competitorId)
+        .eq('project_id', projectId);
 
       if (error) {
-        console.error('Error updating competitors:', error);
-        toast.error('Failed to update competitors');
+        console.error('Error updating competitor:', error);
+        toast.error('Failed to update competitor');
         return false;
       }
 
-      setCompetitors(updatedCompetitors);
-      toast.success('Competitors updated successfully');
+      setCompetitors(prev => prev.map(comp =>
+        comp.id === competitorId ? { ...comp, ...updates } : comp
+      ));
+      toast.success('Competitor updated successfully');
       return true;
     } catch (error) {
-      console.error('Error updating competitors:', error);
-      toast.error('Failed to update competitors');
+      console.error('Error updating competitor:', error);
+      toast.error('Failed to update competitor');
       return false;
     }
   };
 
-  const addCompetitor = (competitor: Competitor) => {
-    const updatedCompetitors = [...competitors, competitor];
-    return updateCompetitors(updatedCompetitors);
-  };
+  const removeCompetitor = async (competitorId: string) => {
+    if (!user?.id) {
+      toast.error('You must be logged in to remove competitors');
+      return false;
+    }
 
-  const updateCompetitor = (competitorId: string, updates: Partial<Competitor>) => {
-    const updatedCompetitors = competitors.map(comp =>
-      comp.id === competitorId ? { ...comp, ...updates } : comp
-    );
-    return updateCompetitors(updatedCompetitors);
-  };
+    try {
+      const { error } = await supabase
+        .from('project_competitors')
+        .delete()
+        .eq('id', competitorId)
+        .eq('project_id', projectId);
 
-  const removeCompetitor = (competitorId: string) => {
-    const updatedCompetitors = competitors.filter(comp => comp.id !== competitorId);
-    return updateCompetitors(updatedCompetitors);
+      if (error) {
+        console.error('Error removing competitor:', error);
+        toast.error('Failed to remove competitor');
+        return false;
+      }
+
+      setCompetitors(prev => prev.filter(comp => comp.id !== competitorId));
+      toast.success('Competitor removed successfully');
+      return true;
+    } catch (error) {
+      console.error('Error removing competitor:', error);
+      toast.error('Failed to remove competitor');
+      return false;
+    }
   };
 
   useEffect(() => {
