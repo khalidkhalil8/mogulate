@@ -73,22 +73,38 @@ const ProjectSetupPage: React.FC = () => {
     }
   }, [projectId, projects]);
 
-  // Load data from localStorage on mount
+  // Load data from localStorage only if editing an existing project
   useEffect(() => {
-    const savedData = localStorage.getItem(`project-setup-${projectId || 'new'}`);
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        setSetupData(prev => ({ ...prev, ...parsedData }));
-      } catch (error) {
-        console.error('Error loading setup data:', error);
+    // Only load localStorage data if we have a projectId (editing existing project)
+    if (projectId) {
+      const savedData = localStorage.getItem(`project-setup-${projectId}`);
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          setSetupData(prev => ({ ...prev, ...parsedData }));
+        } catch (error) {
+          console.error('Error loading setup data:', error);
+        }
       }
+    } else {
+      // For new projects, clear any existing localStorage data and start fresh
+      localStorage.removeItem('project-setup-new');
+      setSetupData({
+        title: '',
+        description: '',
+        competitors: [],
+        features: [],
+        validationPlan: [],
+      });
     }
   }, [projectId]);
 
-  // Save data to localStorage whenever it changes
+  // Save data to localStorage only when editing existing projects
   useEffect(() => {
-    localStorage.setItem(`project-setup-${projectId || 'new'}`, JSON.stringify(setupData));
+    // Only save to localStorage if we have a projectId (editing mode)
+    if (projectId) {
+      localStorage.setItem(`project-setup-${projectId}`, JSON.stringify(setupData));
+    }
   }, [setupData, projectId]);
 
   const updateSetupData = (updates: Partial<ProjectSetupData>) => {
@@ -205,8 +221,10 @@ const ProjectSetupPage: React.FC = () => {
 
       await updateProject(currentProjectId, updateData);
 
-      // Clear localStorage after successful save
-      localStorage.removeItem(`project-setup-${projectId || 'new'}`);
+      // Clear localStorage after successful save (for both new and existing projects)
+      if (projectId) {
+        localStorage.removeItem(`project-setup-${projectId}`);
+      }
 
       toast.success('Project saved successfully! 🎉');
       navigate('/dashboard');
