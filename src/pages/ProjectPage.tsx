@@ -217,19 +217,6 @@ const ProjectPage: React.FC = () => {
                   Created {new Date(project.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="text-sm">
-                  {stats.creditsUsed} credits used
-                </Badge>
-                <Button
-                  variant="outline"
-                  onClick={handleEditProject}
-                  className="flex items-center gap-2"
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit Project
-                </Button>
-              </div>
             </div>
           </div>
 

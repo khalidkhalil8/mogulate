@@ -34,13 +34,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ onNewProject }) => 
       onClick: () => navigate("/dashboard"),
     },
     {
-      icon: History,
-      label: "History",
-      path: "/history",
-      onClick: () => {}, // Placeholder for future implementation
-      disabled: true,
-    },
-    {
       icon: Settings,
       label: "Settings",
       path: "/settings",
@@ -101,11 +94,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ onNewProject }) => 
               variant="ghost"
               className={cn(
                 "w-full justify-start gap-2",
-                location.pathname === item.path && "bg-gray-100",
-                item.disabled && "opacity-50 cursor-not-allowed"
+                location.pathname === item.path && "bg-gray-100"
               )}
-              onClick={item.disabled ? undefined : item.onClick}
-              disabled={item.disabled}
+              onClick={item.onClick}
             >
               <item.icon className="h-4 w-4" />
               {item.label}
