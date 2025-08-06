@@ -53,12 +53,62 @@ const HomePage: React.FC = () => {
   
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      {/* Header */}
+      <header className="border-b bg-white sticky top-0 z-50">
+        <div className="container-width">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-teal-400 bg-clip-text text-transparent">
+              Mogulate
+            </div>
+            
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <a 
+                href="#how-it-works" 
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Features
+              </a>
+              <a 
+                href="#pricing" 
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+                onClick={scrollToPricing}
+              >
+                Pricing
+              </a>
+            </nav>
+            
+            {/* Auth Buttons */}
+            <div className="flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/auth')}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                Login
+              </Button>
+              <Button 
+                onClick={() => navigate('/auth')}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Sign Up
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-16 md:py-24 px-4">
+        <section className="section-spacing mobile-padding">
           <div className="container-width">
             <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-gray-900">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-gray-900">
                 Have an Idea?<br />
                 <span className="bg-gradient-to-r from-teal-600 to-teal-400 bg-clip-text text-transparent">
                   Let us Help
@@ -69,7 +119,7 @@ const HomePage: React.FC = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
                 <Button 
-                  className="px-8 py-6 text-lg gradient-bg border-none hover:opacity-90 button-transition"
+                  className="standard-button bg-primary text-primary-foreground hover:bg-primary/90"
                   onClick={handleGetStarted}
                 >
                   Get Started for Free
@@ -83,15 +133,17 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* Product Demo Section */}
-        <section className="py-16 bg-gray-50 px-4">
+        <section className="section-spacing bg-gray-50 mobile-padding">
           <div className="container-width">
             <div className="max-w-6xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-900">
-                See Mogulate in Action
-              </h2>
-              <p className="text-xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">
-                From idea to market analysis in minutes. Here's how Mogulate helps you make informed business decisions.
-              </p>
+              <div className="text-center mb-16">
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+                  See Mogulate in Action
+                </h2>
+                <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                  From idea to market analysis in minutes. Here's how Mogulate helps you make informed business decisions.
+                </p>
+              </div>
               
               <div className="relative max-w-5xl mx-auto">
                 <Carousel 
@@ -117,7 +169,7 @@ const HomePage: React.FC = () => {
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
                             </div>
-                            <div className="p-8 text-center">
+                            <div className="card-spacing text-center">
                               <h3 className="text-2xl font-bold mb-4 text-gray-900">
                                 {screenshot.title}
                               </h3>
@@ -139,42 +191,44 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* How It Works Section */}
-        <section className="py-16 px-4">
+        <section id="how-it-works" className="section-spacing mobile-padding">
           <div className="container-width">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-gray-900">
-              How It Works
-            </h2>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+                How It Works
+              </h2>
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
               {/* Step 1 */}
               <div className="text-center">
-                <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-6 mx-auto">
-                  <span className="text-2xl font-bold text-teal-600">1</span>
+                <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mb-8 mx-auto">
+                  <span className="text-3xl font-bold text-teal-600">1</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-900">Describe Your Idea</h3>
-                <p className="text-gray-600">
+                <h3 className="text-2xl font-semibold mb-6 text-gray-900">Describe Your Idea</h3>
+                <p className="text-lg text-gray-600 leading-relaxed">
                   Tell us about your business concept in your own words. Our AI will understand your vision and market focus.
                 </p>
               </div>
               
               {/* Step 2 */}
               <div className="text-center">
-                <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-6 mx-auto">
-                  <span className="text-2xl font-bold text-teal-600">2</span>
+                <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mb-8 mx-auto">
+                  <span className="text-3xl font-bold text-teal-600">2</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-900">Discover Your Market</h3>
-                <p className="text-gray-600">
+                <h3 className="text-2xl font-semibold mb-6 text-gray-900">Discover Your Market</h3>
+                <p className="text-lg text-gray-600 leading-relaxed">
                   Get instant insights on competitors, market size, and opportunities you might have missed.
                 </p>
               </div>
               
               {/* Step 3 */}
               <div className="text-center">
-                <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-6 mx-auto">
-                  <span className="text-2xl font-bold text-teal-600">3</span>
+                <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mb-8 mx-auto">
+                  <span className="text-3xl font-bold text-teal-600">3</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-900">Get Your Action Plan</h3>
-                <p className="text-gray-600">
+                <h3 className="text-2xl font-semibold mb-6 text-gray-900">Get Your Action Plan</h3>
+                <p className="text-lg text-gray-600 leading-relaxed">
                   Receive a clear roadmap with specific steps to validate and launch your business idea.
                 </p>
               </div>
@@ -183,41 +237,41 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* Value Proposition Section */}
-        <section id="why-entrepreneurs" className="py-16 bg-gray-50 px-4">
+        <section id="why-entrepreneurs" className="section-spacing bg-gray-50 mobile-padding">
           <div className="container-width">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-gray-900">
+              <h2 className="text-4xl md:text-5xl font-bold mb-12 text-gray-900">
                 Why Entrepreneurs Choose Mogulate
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white p-8 rounded-lg shadow-md">
-                  <h3 className="text-xl font-semibold mb-4 text-gray-900">Save Weeks of Research</h3>
-                  <p className="text-gray-600">
+                <div className="bg-white card-spacing rounded-lg shadow-md">
+                  <h3 className="text-2xl font-semibold mb-6 text-gray-900">Save Weeks of Research</h3>
+                  <p className="text-lg text-gray-600 leading-relaxed">
                     What used to take weeks of manual research now happens in minutes. 
                     Get comprehensive market analysis instantly.
                   </p>
                 </div>
                 
-                <div className="bg-white p-8 rounded-lg shadow-md">
-                  <h3 className="text-xl font-semibold mb-4 text-gray-900">Make Data-Driven Decisions</h3>
-                  <p className="text-gray-600">
+                <div className="bg-white card-spacing rounded-lg shadow-md">
+                  <h3 className="text-2xl font-semibold mb-6 text-gray-900">Make Data-Driven Decisions</h3>
+                  <p className="text-lg text-gray-600 leading-relaxed">
                     Stop relying on gut feelings. Get concrete data about your market, 
                     competitors, and opportunities.
                   </p>
                 </div>
                 
-                <div className="bg-white p-8 rounded-lg shadow-md">
-                  <h3 className="text-xl font-semibold mb-4 text-gray-900">Find Your Competitive Edge</h3>
-                  <p className="text-gray-600">
+                <div className="bg-white card-spacing rounded-lg shadow-md">
+                  <h3 className="text-2xl font-semibold mb-6 text-gray-900">Find Your Competitive Edge</h3>
+                  <p className="text-lg text-gray-600 leading-relaxed">
                     Identify gaps in the market that your competitors are missing. 
                     Position your business for success.
                   </p>
                 </div>
                 
-                <div className="bg-white p-8 rounded-lg shadow-md">
-                  <h3 className="text-xl font-semibold mb-4 text-gray-900">Validate Before You Build</h3>
-                  <p className="text-gray-600">
+                <div className="bg-white card-spacing rounded-lg shadow-md">
+                  <h3 className="text-2xl font-semibold mb-6 text-gray-900">Validate Before You Build</h3>
+                  <p className="text-lg text-gray-600 leading-relaxed">
                     Get a clear validation roadmap before investing time and money. 
                     Reduce risk and increase your chances of success.
                   </p>
@@ -233,7 +287,7 @@ const HomePage: React.FC = () => {
         </div>
       </main>
       
-      <footer className="py-8 px-4 border-t bg-white">
+      <footer className="section-spacing border-t bg-white mobile-padding">
         <div className="container-width text-center text-gray-500">
           <p>© 2025 Mogulate. All rights reserved.</p>
         </div>
