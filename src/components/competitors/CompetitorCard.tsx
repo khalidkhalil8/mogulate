@@ -10,13 +10,17 @@ interface CompetitorCardProps {
   index: number;
   onUpdate: (id: string, field: keyof Competitor, value: string) => void;
   onRemove: (id: string) => void;
+  allowEdit?: boolean;
+  allowDelete?: boolean;
 }
 
 const CompetitorCard: React.FC<CompetitorCardProps> = ({
   competitor,
   index,
   onUpdate,
-  onRemove
+  onRemove,
+  allowEdit = true,
+  allowDelete = true
 }) => {
   return (
     <div 
@@ -26,7 +30,7 @@ const CompetitorCard: React.FC<CompetitorCardProps> = ({
         <h3 className="font-medium">
           {competitor.isAiGenerated ? 'AI-Found Competitor' : `Competitor ${index + 1}`}
         </h3>
-        {!competitor.isAiGenerated && (
+        {allowDelete && !competitor.isAiGenerated && (
           <Button 
             type="button" 
             variant="ghost" 
@@ -49,8 +53,8 @@ const CompetitorCard: React.FC<CompetitorCardProps> = ({
             value={competitor.name}
             onChange={(e) => onUpdate(competitor.id, 'name', e.target.value)}
             placeholder="Competitor Name"
-            readOnly={competitor.isAiGenerated}
-            className={competitor.isAiGenerated ? "bg-gray-50" : ""}
+            readOnly={competitor.isAiGenerated || !allowEdit}
+            className={competitor.isAiGenerated || !allowEdit ? "bg-gray-50" : ""}
           />
         </div>
         
@@ -63,8 +67,8 @@ const CompetitorCard: React.FC<CompetitorCardProps> = ({
             value={competitor.website}
             onChange={(e) => onUpdate(competitor.id, 'website', e.target.value)}
             placeholder="example.com"
-            readOnly={competitor.isAiGenerated}
-            className={competitor.isAiGenerated ? "bg-gray-50" : ""}
+            readOnly={competitor.isAiGenerated || !allowEdit}
+            className={competitor.isAiGenerated || !allowEdit ? "bg-gray-50" : ""}
           />
         </div>
         
@@ -77,8 +81,8 @@ const CompetitorCard: React.FC<CompetitorCardProps> = ({
             value={competitor.description}
             onChange={(e) => onUpdate(competitor.id, 'description', e.target.value)}
             placeholder="Brief description of the product or service"
-            readOnly={competitor.isAiGenerated}
-            className={competitor.isAiGenerated ? "bg-gray-50 min-h-[80px]" : "min-h-[80px]"}
+            readOnly={competitor.isAiGenerated || !allowEdit}
+            className={competitor.isAiGenerated || !allowEdit ? "bg-gray-50 min-h-[80px]" : "min-h-[80px]"}
           />
         </div>
       </div>

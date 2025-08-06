@@ -30,9 +30,11 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
   const [competitors, setCompetitors] = useState<Competitor[]>(setupData.competitors);
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [hasGeneratedOnce, setHasGeneratedOnce] = useState(setupData.competitors.length > 0);
 
   useEffect(() => {
     setCompetitors(setupData.competitors);
+    setHasGeneratedOnce(setupData.competitors.length > 0);
   }, [setupData.competitors]);
 
   const handleNext = () => {
@@ -53,8 +55,10 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
       if (discoveredCompetitors.length > 0) {
         const newCompetitors = [...competitors, ...discoveredCompetitors];
         setCompetitors(newCompetitors);
+        setHasGeneratedOnce(true);
         toast.success(`Found ${discoveredCompetitors.length} competitors`);
       } else {
+        setHasGeneratedOnce(true);
         toast.info('No competitors found. You can add them manually.');
       }
     } catch (error) {
@@ -108,18 +112,20 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
             {isDiscovering ? 'Discovering...' : 'Discover Competitors'}
           </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => setShowAddForm(true)}
-            className="standard-button border-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Manually
-          </Button>
+          {hasGeneratedOnce && (
+            <Button
+              variant="outline"
+              onClick={() => setShowAddForm(true)}
+              className="standard-button border-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Manually
+            </Button>
+          )}
         </div>
 
-        {showAddForm && (
-          <div className="bg-gray-50 p-6 rounded-lg">
+        {hasGeneratedOnce && showAddForm && (
+          <div className="bg-gray-50 p-6 rounded-lg mb-8">
             <h3 className="font-medium text-gray-900 mb-4">Add Competitor</h3>
             <AddCompetitorForm
               onSave={handleAddCompetitor}
@@ -141,6 +147,8 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
                     index={index}
                     onUpdate={(field, value) => handleUpdateCompetitor(competitor.id, { [field]: value })}
                     onRemove={() => handleRemoveCompetitor(competitor.id)}
+                    allowEdit={hasGeneratedOnce}
+                    allowDelete={hasGeneratedOnce && !competitor.isAiGenerated}
                   />
                 </div>
               ))}
@@ -153,7 +161,7 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
             <div className="text-gray-500 mb-4">
               <Search className="w-12 h-12 mx-auto mb-2" />
               <p>No competitors added yet</p>
-              <p className="text-sm">Use the buttons above to discover or add competitors</p>
+              <p className="text-sm">Click "Discover Competitors" to find your competition with AI</p>
             </div>
           </div>
         )}
