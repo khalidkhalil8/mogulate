@@ -110,9 +110,9 @@ const CompetitorDiscoveryPage: React.FC = () => {
   const handleBack = async () => {
     try {
       await handleCompetitorsSubmit(competitors);
-      navigate(`/idea?projectId=${projectId}`);
+      navigate(`/project-setup?step=start&projectId=${projectId}`);
     } catch (error) {
-      navigate(`/idea?projectId=${projectId}`);
+      navigate(`/project-setup?step=start&projectId=${projectId}`);
     }
   };
 

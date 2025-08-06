@@ -53,7 +53,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ onNewProject }) => 
   };
 
   const handleNewProject = () => {
-    navigate("/idea");
+    navigate("/project-setup?step=start");
   };
 
   return (

@@ -26,20 +26,25 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
   const [title, setTitle] = useState(setupData.title);
   const [description, setDescription] = useState(setupData.description);
 
+  // Update local state and parent state immediately on change
   useEffect(() => {
     setTitle(setupData.title);
     setDescription(setupData.description);
   }, [setupData.title, setupData.description]);
+
+  // Update parent state whenever local state changes
+  useEffect(() => {
+    updateSetupData({ 
+      title: title,
+      description: description
+    });
+  }, [title, description, updateSetupData]);
 
   const handleNext = () => {
     const trimmedTitle = title.trim();
     const trimmedDescription = description.trim();
     
     if (trimmedTitle && trimmedDescription) {
-      updateSetupData({ 
-        title: trimmedTitle,
-        description: trimmedDescription
-      });
       onNext();
     }
   };

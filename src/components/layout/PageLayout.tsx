@@ -14,7 +14,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children, showSidebar = true })
   const location = useLocation();
   
   // Don't show sidebar during setup flow or on specific pages
-  const setupFlowPaths = ['/idea', '/competitors', '/market-gaps', '/features', '/validation-plan', '/summary'];
+  const setupFlowPaths = ['/competitors', '/market-gaps', '/features', '/validation-plan', '/summary'];
   const noSidebarPaths = ['/auth', '/'];
   
   const shouldShowSidebar = user && showSidebar && 

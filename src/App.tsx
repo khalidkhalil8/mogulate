@@ -19,7 +19,6 @@ import ProjectTodoPage from "./pages/ProjectTodoPage";
 import FeaturesPage from "./pages/FeaturesPage";
 import PricingPage from "./pages/PricingPage";
 import NotFound from "./pages/NotFound";
-import IdeaEntryPage from "./components/IdeaEntryPage";
 import CompetitorDiscoveryPage from "./components/CompetitorDiscoveryPage";
 import MarketGapPage from "./components/MarketGapPage";
 import FeatureEntryPage from "./components/FeatureEntryPage";
@@ -52,7 +51,6 @@ function App() {
                 <Route path="/project/:id/features" element={<FeaturesPage />} />
                 <Route path="/project-setup" element={<ProjectSetupPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
-                <Route path="/idea" element={<IdeaEntryPage />} />
                 <Route path="/competitors" element={<CompetitorDiscoveryPage />} />
                 <Route path="/market-gaps" element={<MarketGapPage />} />
                 <Route path="/features" element={<FeatureEntryPage />} />
