@@ -36,52 +36,53 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   onDelete
 }) => {
   return (
-    <div className="border rounded-lg p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-medium">Feature {index + 1}</h3>
+    <div className="border border-gray-200 rounded-lg card-spacing transition-all duration-200 hover:border-gray-300 hover:shadow-sm">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-gray-900">Feature {index + 1}</h3>
         {canDelete && (
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => onDelete(feature.id)}
-            className="text-red-500 hover:text-red-700"
+            className="text-red-500 hover:text-red-700 hover:bg-red-50"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         )}
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor={`title-${feature.id}`}>Feature Title</Label>
+      <div className="form-field-spacing">
+        <Label htmlFor={`title-${feature.id}`} className="form-label">Feature Title</Label>
         <Input
           id={`title-${feature.id}`}
           value={feature.title}
           onChange={(e) => onUpdate(feature.id, 'title', e.target.value)}
           placeholder="e.g., User Authentication"
+          className="form-input"
           required
         />
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor={`description-${feature.id}`}>Description</Label>
+      <div className="form-field-spacing">
+        <Label htmlFor={`description-${feature.id}`} className="form-label">Description</Label>
         <Textarea
           id={`description-${feature.id}`}
           value={feature.description}
           onChange={(e) => onUpdate(feature.id, 'description', e.target.value)}
           placeholder="Describe the feature..."
-          className="min-h-[80px]"
+          className="form-textarea min-h-[100px]"
           required
         />
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor={`priority-${feature.id}`}>Priority</Label>
+      <div className="form-field-spacing">
+        <Label htmlFor={`priority-${feature.id}`} className="form-label">Priority</Label>
         <Select
           value={feature.priority}
           onValueChange={(value) => onUpdate(feature.id, 'priority', value)}
         >
-          <SelectTrigger>
+          <SelectTrigger className="form-input">
             <SelectValue placeholder="Select priority" />
           </SelectTrigger>
           <SelectContent>

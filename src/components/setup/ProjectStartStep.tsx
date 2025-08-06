@@ -50,9 +50,9 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
     <div className="min-h-screen bg-white">
       <SetupNavigation />
       
-      <div className="max-w-2xl mx-auto px-6 py-16">
+      <div className="max-w-2xl mx-auto mobile-padding section-spacing">
         {/* Header section with consistent alignment */}
-        <div className="mb-12">
+        <div className="setup-header">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Start Your Project
           </h1>
@@ -61,10 +61,10 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
           </p>
         </div>
 
-        {/* Form section with consistent left alignment */}
-        <div className="space-y-8">
-          <div className="space-y-3">
-            <Label htmlFor="title" className="text-lg font-medium text-gray-900">
+        {/* Form section with consistent styling */}
+        <div className="form-spacing">
+          <div className="form-field-spacing">
+            <Label htmlFor="title" className="form-label">
               Project Title
             </Label>
             <Input
@@ -73,14 +73,14 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter your project title"
-              className="w-full h-14 px-4 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="form-input h-14 text-lg"
               disabled={isLoading}
               maxLength={100}
             />
           </div>
 
-          <div className="space-y-3">
-            <Label htmlFor="description" className="text-lg font-medium text-gray-900">
+          <div className="form-field-spacing">
+            <Label htmlFor="description" className="form-label">
               Description
             </Label>
             <Textarea
@@ -88,19 +88,19 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Briefly describe your idea or product"
-              className="w-full h-32 px-4 py-4 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              className="form-textarea h-32 text-lg"
               disabled={isLoading}
               maxLength={500}
             />
           </div>
 
-          <div className="flex justify-end pt-8">
+          <div className="flex justify-end button-spacing">
             <Button
               onClick={handleNext}
               disabled={!canProceedLocal}
-              className="px-8 py-3 text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
+              className="nav-button bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {isLoading ? 'Loading...' : 'Next'}
+              <span>{isLoading ? 'Loading...' : 'Next'}</span>
               {!isLoading && <ArrowRight size={20} />}
             </Button>
           </div>

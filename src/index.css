@@ -92,21 +92,41 @@
     @apply text-base leading-relaxed;
   }
 
-  /* Consistent spacing utilities */
+  /* Enhanced consistent spacing utilities */
   .section-spacing {
-    @apply py-8 md:py-12;
+    @apply py-12 md:py-16;
   }
 
   .content-spacing {
-    @apply space-y-6 md:space-y-8;
+    @apply space-y-8 md:space-y-12;
   }
 
   .form-spacing {
-    @apply space-y-4 md:space-y-6;
+    @apply space-y-6 md:space-y-8;
   }
 
   .card-spacing {
-    @apply p-4 md:p-6;
+    @apply p-6 md:p-8;
+  }
+
+  .setup-header {
+    @apply mb-8 md:mb-12;
+  }
+
+  .setup-content {
+    @apply max-w-4xl mx-auto;
+  }
+
+  .form-field-spacing {
+    @apply space-y-3;
+  }
+
+  .button-spacing {
+    @apply pt-8 md:pt-12;
+  }
+
+  .navigation-spacing {
+    @apply flex flex-col sm:flex-row justify-between gap-4;
   }
 
   /* Exception for landing page - preserve center alignment */
@@ -186,7 +206,7 @@
   @apply transition-all duration-200 ease-in-out;
 }
 
-/* Mobile-first responsive utilities */
+/* Enhanced mobile-first responsive utilities */
 .mobile-padding {
   @apply px-4 sm:px-6 md:px-8;
 }
@@ -196,7 +216,27 @@
 }
 
 .mobile-button {
-  @apply px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base;
+  @apply px-6 py-3 text-base font-medium rounded-lg transition-all duration-200;
+}
+
+.standard-button {
+  @apply px-8 py-3 text-lg font-medium rounded-lg transition-all duration-200;
+}
+
+.nav-button {
+  @apply flex items-center justify-center gap-2 px-8 py-3 text-lg font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.form-input {
+  @apply w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200;
+}
+
+.form-textarea {
+  @apply w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none transition-colors duration-200;
+}
+
+.form-label {
+  @apply text-base font-medium text-gray-900 block mb-2;
 }
 
 /* Focus states for accessibility */

@@ -55,13 +55,13 @@ const DashboardPage: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="p-6">
+      <div className="mobile-padding section-spacing">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">My Projects</h1>
-              <p className="text-gray-600">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">My Projects</h1>
+              <p className="text-lg text-gray-600">
                 {projects.length === 0 
                   ? 'Create your first project to get started' 
                   : `${projects.length} project${projects.length !== 1 ? 's' : ''}`
@@ -71,7 +71,7 @@ const DashboardPage: React.FC = () => {
             <Button
               onClick={handleCreateProject}
               disabled={isCreating}
-              className="gradient-bg border-none hover:opacity-90 button-transition flex items-center gap-2"
+              className="standard-button bg-primary text-primary-foreground hover:bg-primary/90 whitespace-nowrap"
             >
               <Plus className="h-4 w-4" />
               {isCreating ? 'Creating...' : 'New Project'}
@@ -80,40 +80,40 @@ const DashboardPage: React.FC = () => {
 
           {/* Projects Grid */}
           {projects.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="h-8 w-8 text-gray-400" />
+            <div className="text-center py-16">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Target className="h-10 w-10 text-gray-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No projects yet</h3>
-              <p className="text-gray-600 mb-6">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">No projects yet</h3>
+              <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
                 Create your first project to start building and validating your ideas.
               </p>
               <Button
                 onClick={handleCreateProject}
                 disabled={isCreating}
-                className="gradient-bg border-none hover:opacity-90 button-transition"
+                className="standard-button bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4" />
                 Create Your First Project
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {projects.map((project) => {
                 const stats = getProjectStats(project);
                 return (
                   <Card 
                     key={project.id} 
-                    className="hover:shadow-lg transition-shadow cursor-pointer group"
+                    className="hover:shadow-lg hover:border-gray-300 transition-all duration-200 cursor-pointer group border-gray-200"
                     onClick={() => handleProjectClick(project.id)}
                   >
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg truncate pr-2">
+                          <CardTitle className="text-xl font-semibold truncate pr-2 text-gray-900">
                             {project.title}
                           </CardTitle>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-2 mt-2">
                             <Calendar className="h-4 w-4 text-gray-400" />
                             <span className="text-sm text-gray-500">
                               {new Date(project.created_at).toLocaleDateString()}
@@ -155,40 +155,43 @@ const DashboardPage: React.FC = () => {
                         </DropdownMenu>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
+                    <CardContent className="pt-0">
+                      <div className="space-y-4">
                         {/* Project idea preview */}
                         {project.idea && (
-                          <p className="text-sm text-gray-600 line-clamp-2">
+                          <p className="text-base text-gray-600 line-clamp-3 leading-relaxed">
                             {project.idea}
                           </p>
                         )}
                         
                         {/* Project stats */}
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3 text-gray-400" />
-                            <span>{stats.competitors} competitors</span>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-700">{stats.competitors} competitors</span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <CheckSquare className="h-3 w-3 text-gray-400" />
-                            <span>{stats.features} features</span>
+                          <div className="flex items-center gap-2">
+                            <CheckSquare className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-700">{stats.features} features</span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Target className="h-3 w-3 text-gray-400" />
-                            <span>{stats.validationSteps} validation steps</span>
+                          <div className="flex items-center gap-2">
+                            <Target className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-700">{stats.validationSteps} validation steps</span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Badge variant={stats.hasMarketAnalysis ? "default" : "secondary"} className="text-xs">
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant={stats.hasMarketAnalysis ? "default" : "secondary"} 
+                              className="text-xs px-2 py-1"
+                            >
                               {stats.hasMarketAnalysis ? "Analyzed" : "No Analysis"}
                             </Badge>
                           </div>
                         </div>
                         
                         {/* Credits used */}
-                        <div className="flex items-center justify-between pt-2 border-t">
-                          <span className="text-xs text-gray-500">Credits used:</span>
-                          <Badge variant="outline" className="text-xs">
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                          <span className="text-sm text-gray-500">Credits used:</span>
+                          <Badge variant="outline" className="text-sm px-2 py-1">
                             {project.credits_used || 0}
                           </Badge>
                         </div>

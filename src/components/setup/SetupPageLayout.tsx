@@ -33,12 +33,12 @@ const SetupPageLayout: React.FC<SetupPageLayoutProps> = ({
     <div className="min-h-screen bg-white">
       <SetupNavigation />
       
-      <div className="max-w-4xl mx-auto px-6 py-16">
+      <div className="setup-content mobile-padding section-spacing">
         <div className="content-spacing">
           {/* Consistent Header Layout */}
-          <div className="mb-12">
+          <div className="setup-header">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">{title}</h1>
-            <p className="text-xl text-gray-600 leading-relaxed">
+            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl">
               {description}
             </p>
           </div>
@@ -50,13 +50,13 @@ const SetupPageLayout: React.FC<SetupPageLayoutProps> = ({
           
           {/* Standardized Navigation */}
           {showNavigation && (onBack || onNext) && (
-            <div className="flex flex-col sm:flex-row justify-between gap-4 pt-12">
+            <div className="navigation-spacing button-spacing">
               {onBack ? (
                 <Button
                   type="button"
                   variant="outline"
                   onClick={onBack}
-                  className="flex items-center justify-center gap-2 px-8 py-3 text-lg"
+                  className="nav-button"
                   disabled={isLoading}
                 >
                   <ArrowLeft size={20} />
@@ -70,7 +70,7 @@ const SetupPageLayout: React.FC<SetupPageLayoutProps> = ({
                 <Button
                   onClick={onNext}
                   disabled={!canProceed || isLoading}
-                  className="px-8 py-3 text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                  className="nav-button bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <span>{isLoading ? 'Loading...' : nextLabel}</span>
                   {!isLoading && <ArrowRight size={20} />}

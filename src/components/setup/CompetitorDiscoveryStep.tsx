@@ -93,12 +93,12 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
       canProceed={!isLoading}
       isLoading={isLoading}
     >
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex gap-4 justify-center">
+      <div className="setup-content">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <Button
             onClick={handleDiscoverCompetitors}
             disabled={isDiscovering || !setupData.description.trim()}
-            className="flex items-center gap-2"
+            className="standard-button bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {isDiscovering ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -111,7 +111,7 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
           <Button
             variant="outline"
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2"
+            className="standard-button border-2"
           >
             <Plus className="w-4 h-4" />
             Add Manually
