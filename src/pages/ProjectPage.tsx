@@ -19,13 +19,10 @@ import {
   Users, 
   CheckSquare, 
   ListTodo, 
-  Edit,
   TrendingUp,
   Lightbulb,
-  Settings,
   AlertCircle,
-  Home,
-  RefreshCw
+  Home
 } from 'lucide-react';
 
 const ProjectPage: React.FC = () => {
@@ -258,7 +255,7 @@ const ProjectPage: React.FC = () => {
                       Selected market gap and positioning identified
                     </p>
                   )}
-                  <div className="flex gap-2 pt-1">
+                   <div className="flex gap-2 pt-1">
                     <Button
                       variant="outline"
                       size="sm"
@@ -270,21 +267,6 @@ const ProjectPage: React.FC = () => {
                     >
                       View
                     </Button>
-                    {stats.hasMarketAnalysis && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRerunClick('market', project.idea);
-                        }}
-                        disabled={isRerunning}
-                        className="flex items-center gap-1"
-                      >
-                        <RefreshCw className="h-3 w-3" />
-                        Rerun
-                      </Button>
-                    )}
                   </div>
                 </div>
               </CardContent>
@@ -309,7 +291,7 @@ const ProjectPage: React.FC = () => {
                       {stats.competitors} competitor{stats.competitors !== 1 ? 's' : ''} analyzed
                     </p>
                   )}
-                  <div className="flex gap-2 pt-1">
+                   <div className="flex gap-2 pt-1">
                     <Button
                       variant="outline"
                       size="sm"
@@ -321,21 +303,6 @@ const ProjectPage: React.FC = () => {
                     >
                       View
                     </Button>
-                    {project.idea && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRerunClick('competitors', project.idea);
-                        }}
-                        disabled={isRerunning}
-                        className="flex items-center gap-1"
-                      >
-                        <RefreshCw className="h-3 w-3" />
-                        Rerun
-                      </Button>
-                    )}
                   </div>
                 </div>
               </CardContent>
@@ -344,15 +311,11 @@ const ProjectPage: React.FC = () => {
             {/* Features Widget */}
             <EditableFeaturesWidget 
               projectId={id!} 
-              onRerun={() => handleRerunClick('features', project.idea)}
-              isRerunning={isRerunning}
             />
 
             {/* Validation Plan Widget */}
             <EditableValidationPlanWidget 
               projectId={id!} 
-              onRerun={() => handleRerunClick('validation', project.idea)}
-              isRerunning={isRerunning}
             />
 
             {/* Tasks Widget */}

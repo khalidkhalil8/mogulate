@@ -97,29 +97,15 @@ const EditableValidationPlanWidget: React.FC<EditableValidationPlanWidgetProps> 
               <Target className="h-5 w-5" />
               Validation Plan ({validationPlan.length} steps)
             </CardTitle>
-            <div className="flex gap-2">
-              {onRerun && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onRerun}
-                  disabled={isRerunning}
-                  className="flex items-center gap-1"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                  Rerun
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditDialog({ isOpen: true })}
-                className="flex items-center gap-1"
-              >
-                <Plus className="h-3 w-3" />
-                Add Step
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditDialog({ isOpen: true })}
+              className="flex items-center gap-1"
+            >
+              <Plus className="h-3 w-3" />
+              Add Step
+            </Button>
           </div>
         </CardHeader>
         <CardContent>

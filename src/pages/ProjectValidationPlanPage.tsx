@@ -4,10 +4,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectValidationPlan, ValidationStep } from '@/hooks/useProjectValidationPlan';
+import { useProjectRerunAnalysis } from '@/hooks/useProjectRerunAnalysis';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Plus, CheckSquare, AlertCircle, Home } from 'lucide-react';
+import { ArrowLeft, Plus, CheckSquare, AlertCircle, Home, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import LoadingState from '@/components/ui/LoadingState';
 import ValidationPlanDrawer from '@/components/validation-plan/ValidationPlanDrawer';
@@ -19,6 +20,7 @@ const ProjectValidationPlanPage = () => {
   const navigate = useNavigate();
   const { projects, isLoading: projectsLoading } = useProjects();
   const { validationPlan, isLoading: planLoading, updateValidationPlan } = useProjectValidationPlan(id!);
+  const { rerunValidationPlan, isLoading: isRerunning } = useProjectRerunAnalysis(id || '');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingStep, setEditingStep] = useState<(ValidationStep & { id?: string }) | null>(null);
 
@@ -109,6 +111,16 @@ const ProjectValidationPlanPage = () => {
     updateValidationPlan(updatedSteps);
   };
 
+  const handleRerunValidation = async () => {
+    if (!project.idea || !project.competitors) {
+      return;
+    }
+    
+    const selectedGap = project.market_analysis?.marketGaps?.[project.selected_gap_index || 0];
+    const positioning = selectedGap?.positioningSuggestion || '';
+    await rerunValidationPlan(project.idea, positioning, project.competitors, project.features || []);
+  };
+
   return (
     <PageLayout>
       <div className="min-h-screen">
@@ -131,10 +143,21 @@ const ProjectValidationPlanPage = () => {
                   Back to Project
                 </Button>
                 
-                <Button onClick={handleAddStep} className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Step
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleRerunValidation} 
+                    disabled={isRerunning}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isRerunning ? 'animate-spin' : ''}`} />
+                    {isRerunning ? 'Generating...' : 'Rerun Generation'}
+                  </Button>
+                  <Button onClick={handleAddStep} className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Step
+                  </Button>
+                </div>
               </div>
               
               <div className="mb-6">

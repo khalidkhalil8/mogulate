@@ -3,19 +3,21 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useProjects } from '@/hooks/useProjects';
+import { useProjectRerunAnalysis } from '@/hooks/useProjectRerunAnalysis';
 import LoadingState from '@/components/ui/LoadingState';
 import FeatureDrawer from '@/components/features/FeatureDrawer';
 import FeaturesPageHeader from '@/components/features/FeaturesPageHeader';
 import FeaturesGrid from '@/components/features/FeaturesGrid';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { Feature } from '@/lib/types';
 
 const FeaturesPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { projects, isLoading, updateProject } = useProjects();
+  const { rerunFeatureGeneration, isLoading: isRerunning } = useProjectRerunAnalysis(id || '');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingFeature, setEditingFeature] = useState<Feature | undefined>();
   
@@ -84,6 +86,16 @@ const FeaturesPage = () => {
     }
   };
 
+  const handleRerunFeatures = async () => {
+    if (!project.idea || !project.competitors) {
+      return;
+    }
+    
+    const selectedGap = project.market_analysis?.marketGaps?.[project.selected_gap_index || 0];
+    const positioning = selectedGap?.positioningSuggestion || '';
+    await rerunFeatureGeneration(project.idea, project.competitors, positioning);
+  };
+
   return (
     <PageLayout>
       <div className="min-h-screen">
@@ -96,6 +108,8 @@ const FeaturesPage = () => {
             <FeaturesPageHeader
               project={project}
               onAddFeature={handleAddFeature}
+              onRerun={handleRerunFeatures}
+              isRerunning={isRerunning}
             />
 
             {/* Content */}

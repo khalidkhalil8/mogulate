@@ -12,6 +12,7 @@ import { Button } from './ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useSetupHandlers } from '@/hooks/useSetupHandlers';
+import { supabase } from '@/integrations/supabase/client';
 
 const SummaryPage: React.FC = () => {
   const navigate = useNavigate();
@@ -76,41 +77,113 @@ const SummaryPage: React.FC = () => {
     );
   };
 
-  // Custom save handler that only saves selected items
+  // Custom save handler that saves selected items to normalized tables
   const handleSaveProject = async () => {
-    // Filter to only selected features
-    const selectedFeaturesData = ideaData.features.filter(feature => 
-      selectedFeatures.includes(feature.id)
-    );
-    
-    // Filter to only selected validation steps
-    const selectedValidationData = ideaData.validationPlan.filter((_, index) => 
-      selectedValidationSteps.includes(index.toString())
-    );
+    if (!projectId) return;
 
-    // Create filtered market analysis with only selected gap
-    let filteredMarketAnalysis = ideaData.marketGapScoringAnalysis;
-    if (selectedGapIndex !== undefined && ideaData.marketGapScoringAnalysis?.marketGaps) {
-      const selectedGap = ideaData.marketGapScoringAnalysis.marketGaps[selectedGapIndex];
-      filteredMarketAnalysis = {
-        ...ideaData.marketGapScoringAnalysis,
-        marketGaps: [selectedGap]
+    try {
+      // Save features to normalized table
+      const selectedFeaturesData = ideaData.features.filter(feature => 
+        selectedFeatures.includes(feature.id)
+      );
+
+      // Clear existing features and add selected ones
+      const { error: deleteError } = await supabase
+        .from('project_features')
+        .delete()
+        .eq('project_id', projectId);
+
+      if (deleteError) {
+        console.error('Error clearing features:', deleteError);
+        throw deleteError;
+      }
+
+      // Insert selected features
+      if (selectedFeaturesData.length > 0) {
+        const { error: insertFeaturesError } = await supabase
+          .from('project_features')
+          .insert(
+            selectedFeaturesData.map(feature => ({
+              project_id: projectId,
+              title: feature.title,
+              description: feature.description,
+              status: feature.status,
+              priority: feature.priority,
+              is_ai_generated: true
+            }))
+          );
+
+        if (insertFeaturesError) {
+          console.error('Error inserting features:', insertFeaturesError);
+          throw insertFeaturesError;
+        }
+      }
+
+      // Save validation steps to normalized table
+      const selectedValidationData = ideaData.validationPlan.filter((_, index) => 
+        selectedValidationSteps.includes(index.toString())
+      );
+
+      // Clear existing validation steps and add selected ones
+      const { error: deleteValidationError } = await supabase
+        .from('project_validation_steps')
+        .delete()
+        .eq('project_id', projectId);
+
+      if (deleteValidationError) {
+        console.error('Error clearing validation steps:', deleteValidationError);
+        throw deleteValidationError;
+      }
+
+      // Insert selected validation steps
+      if (selectedValidationData.length > 0) {
+        const { error: insertValidationError } = await supabase
+          .from('project_validation_steps')
+          .insert(
+            selectedValidationData.map(step => ({
+              project_id: projectId,
+              title: step.title,
+              goal: step.goal,
+              method: step.method,
+              priority: step.priority,
+              is_done: false,
+              is_ai_generated: true
+            }))
+          );
+
+        if (insertValidationError) {
+          console.error('Error inserting validation steps:', insertValidationError);
+          throw insertValidationError;
+        }
+      }
+
+      // Create filtered market analysis with only selected gap
+      let filteredMarketAnalysis = ideaData.marketGapScoringAnalysis;
+      if (selectedGapIndex !== undefined && ideaData.marketGapScoringAnalysis?.marketGaps) {
+        const selectedGap = ideaData.marketGapScoringAnalysis.marketGaps[selectedGapIndex];
+        filteredMarketAnalysis = {
+          ...ideaData.marketGapScoringAnalysis,
+          marketGaps: [selectedGap]
+        };
+      }
+
+      // Create filtered idea data with only selected items for JSON storage
+      const filteredIdeaData = {
+        ...ideaData,
+        features: selectedFeaturesData,
+        validationPlan: selectedValidationData,
+        marketGapScoringAnalysis: filteredMarketAnalysis,
       };
+
+      // Update ideaData with filtered data permanently for saving
+      setIdeaData(filteredIdeaData);
+      
+      // Call the original save handler which will use the updated ideaData
+      await originalHandleSaveProject();
+    } catch (error) {
+      console.error('Error in handleSaveProject:', error);
+      throw error;
     }
-
-    // Create filtered idea data with only selected items
-    const filteredIdeaData = {
-      ...ideaData,
-      features: selectedFeaturesData,
-      validationPlan: selectedValidationData,
-      marketGapScoringAnalysis: filteredMarketAnalysis,
-    };
-
-    // Update ideaData with filtered data permanently for saving
-    setIdeaData(filteredIdeaData);
-    
-    // Call the original save handler which will use the updated ideaData
-    await originalHandleSaveProject();
   };
 
   return (
