@@ -187,6 +187,8 @@ export type Database = {
           description: string | null
           id: string
           is_ai_generated: boolean | null
+          is_final: boolean | null
+          is_selected: boolean | null
           priority: string | null
           project_id: string
           status: string | null
@@ -198,6 +200,8 @@ export type Database = {
           description?: string | null
           id?: string
           is_ai_generated?: boolean | null
+          is_final?: boolean | null
+          is_selected?: boolean | null
           priority?: string | null
           project_id: string
           status?: string | null
@@ -209,6 +213,8 @@ export type Database = {
           description?: string | null
           id?: string
           is_ai_generated?: boolean | null
+          is_final?: boolean | null
+          is_selected?: boolean | null
           priority?: string | null
           project_id?: string
           status?: string | null
@@ -235,6 +241,7 @@ export type Database = {
           project_id: string
           rationale: string | null
           score: number | null
+          selected_positioning: string | null
           updated_at: string
         }
         Insert: {
@@ -246,6 +253,7 @@ export type Database = {
           project_id: string
           rationale?: string | null
           score?: number | null
+          selected_positioning?: string | null
           updated_at?: string
         }
         Update: {
@@ -257,6 +265,7 @@ export type Database = {
           project_id?: string
           rationale?: string | null
           score?: number | null
+          selected_positioning?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -276,6 +285,8 @@ export type Database = {
           id: string
           is_ai_generated: boolean | null
           is_done: boolean | null
+          is_final: boolean | null
+          is_selected: boolean | null
           method: string | null
           priority: string | null
           project_id: string
@@ -288,6 +299,8 @@ export type Database = {
           id?: string
           is_ai_generated?: boolean | null
           is_done?: boolean | null
+          is_final?: boolean | null
+          is_selected?: boolean | null
           method?: string | null
           priority?: string | null
           project_id: string
@@ -300,6 +313,8 @@ export type Database = {
           id?: string
           is_ai_generated?: boolean | null
           is_done?: boolean | null
+          is_final?: boolean | null
+          is_selected?: boolean | null
           method?: string | null
           priority?: string | null
           project_id?: string
