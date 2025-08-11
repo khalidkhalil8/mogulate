@@ -99,22 +99,27 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
         onBack={onBack}
         showNavigation={false}
       >
-        <div className="flex flex-col items-center justify-center space-y-6 py-12">
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <div className="text-gray-500 mb-6">
+            <Brain className="w-12 h-12 mx-auto mb-2" />
+            <p className="mb-2">No market analysis generated yet</p>
+            <p className="text-sm">Generate a market analysis to discover opportunities</p>
+          </div>
           <Button
             onClick={handleAnalyzeMarket}
             disabled={isAnalyzing || !setupData.description.trim() || setupData.competitors.length === 0}
-            className="px-8 py-3 text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
+            className="flex items-center gap-2"
           >
             {isAnalyzing ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Brain className="w-5 h-5" />
+              <Brain className="w-4 h-4" />
             )}
-            {isAnalyzing ? 'Analyzing Market...' : 'Run Market Analysis'}
+            {isAnalyzing ? 'Analyzing Market...' : 'Generate Market Analysis'}
           </Button>
           
           {setupData.competitors.length === 0 && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 mt-4">
               Add competitors first to enable market analysis
             </p>
           )}
@@ -134,22 +139,6 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
       isLoading={isLoading}
     >
       <div className="space-y-6">
-        <div className="flex justify-center">
-          <Button
-            onClick={handleAnalyzeMarket}
-            disabled={isAnalyzing}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            {isAnalyzing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Brain className="w-4 h-4" />
-            )}
-            {isAnalyzing ? 'Running Analysis...' : 'Run New Analysis'}
-          </Button>
-        </div>
-
         <MarketGapsScoringDisplay
           analysis={marketAnalysis}
           selectedGapIndex={selectedGapIndex}
