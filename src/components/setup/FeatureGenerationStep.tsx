@@ -8,6 +8,7 @@ import { toast } from '@/components/ui/sonner';
 import { Feature } from '@/lib/types';
 import FeatureCard from '@/components/features/FeatureCard';
 import AddFeatureForm from '@/components/features/AddFeatureForm';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FeatureGenerationStepProps {
   setupData: ProjectSetupData;
@@ -45,36 +46,39 @@ const FeatureGenerationStep: React.FC<FeatureGenerationStepProps> = ({
       return;
     }
 
+    if (!setupData.marketAnalysis?.marketGaps?.length) {
+      toast.error('Please complete market analysis first to generate relevant features');
+      return;
+    }
+
     setIsGenerating(true);
     try {
-      // Generate some sample features based on the description
-      const sampleFeatures: Feature[] = [
-        {
-          id: `feature-${Date.now()}-1`,
-          title: 'User Authentication',
-          description: 'Secure user registration and login system',
-          status: 'Planned',
-          priority: 'High',
-        },
-        {
-          id: `feature-${Date.now()}-2`,
-          title: 'Core Functionality',
-          description: 'Main features based on your project description',
-          status: 'Planned',
-          priority: 'High',
-        },
-        {
-          id: `feature-${Date.now()}-3`,
-          title: 'User Dashboard',
-          description: 'Personalized dashboard for users',
-          status: 'Planned',
-          priority: 'Medium',
-        },
-      ];
+      // Get the selected market gap or use the highest scored one
+      const marketGaps = setupData.marketAnalysis.marketGaps;
+      const selectedGap = setupData.selectedGapIndex !== undefined 
+        ? marketGaps[setupData.selectedGapIndex]
+        : marketGaps.reduce((best, current) => current.score > best.score ? current : best);
 
-      const newFeatures = [...features, ...sampleFeatures];
-      setFeatures(newFeatures);
-      toast.success(`Generated ${sampleFeatures.length} features`);
+      const { data, error } = await supabase.functions.invoke('generate-features', {
+        body: {
+          idea: `${setupData.title}: ${setupData.description}`,
+          positioningSuggestion: selectedGap.positioningSuggestion
+        }
+      });
+
+      if (error) {
+        console.error('Error generating features:', error);
+        toast.error('Failed to generate features');
+        return;
+      }
+
+      if (data.features && Array.isArray(data.features)) {
+        const newFeatures = [...features, ...data.features];
+        setFeatures(newFeatures);
+        toast.success(`Generated ${data.features.length} features`);
+      } else {
+        throw new Error('Invalid response format');
+      }
     } catch (error) {
       console.error('Error generating features:', error);
       toast.error('Failed to generate features');
@@ -101,6 +105,47 @@ const FeatureGenerationStep: React.FC<FeatureGenerationStepProps> = ({
     setFeatures(updatedFeatures);
   };
 
+  if (features.length === 0) {
+    return (
+      <SetupPageLayout
+        title="Generate Features"
+        description="Define the key features and functionality of your project"
+        onNext={handleNext}
+        onBack={onBack}
+        nextLabel="Continue"
+        canProceed={!isLoading}
+        isLoading={isLoading}
+        showNavigation={false}
+      >
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <div className="text-gray-500 mb-6">
+            <Lightbulb className="w-12 h-12 mx-auto mb-2" />
+            <p className="mb-2">No features generated yet</p>
+            <p className="text-sm">Generate features based on your project and market analysis</p>
+          </div>
+          <Button
+            onClick={handleGenerateFeatures}
+            disabled={isGenerating || !setupData.description.trim() || !setupData.marketAnalysis?.marketGaps?.length}
+            className="flex items-center gap-2"
+          >
+            {isGenerating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Lightbulb className="w-4 h-4" />
+            )}
+            {isGenerating ? 'Generating Features...' : 'Generate Features with AI'}
+          </Button>
+          
+          {(!setupData.marketAnalysis?.marketGaps?.length) && (
+            <p className="text-sm text-gray-500 mt-4">
+              Complete market analysis first to generate relevant features
+            </p>
+          )}
+        </div>
+      </SetupPageLayout>
+    );
+  }
+
   return (
     <SetupPageLayout
       title="Generate Features"
@@ -111,21 +156,8 @@ const FeatureGenerationStep: React.FC<FeatureGenerationStepProps> = ({
       canProceed={!isLoading}
       isLoading={isLoading}
     >
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="space-y-6">
         <div className="flex gap-4 justify-center">
-          <Button
-            onClick={handleGenerateFeatures}
-            disabled={isGenerating || !setupData.description.trim()}
-            className="flex items-center gap-2"
-          >
-            {isGenerating ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Lightbulb className="w-4 h-4" />
-            )}
-            {isGenerating ? 'Generating...' : 'Generate Features'}
-          </Button>
-
           <Button
             variant="outline"
             onClick={() => setShowAddForm(true)}
@@ -146,35 +178,23 @@ const FeatureGenerationStep: React.FC<FeatureGenerationStepProps> = ({
           </div>
         )}
 
-        {features.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="font-medium text-gray-900">
-              Features ({features.length})
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {features.map((feature, index) => (
-                <FeatureCard
-                  key={feature.id}
-                  feature={feature}
-                  index={index}
-                  canDelete={true}
-                  onUpdate={handleUpdateFeature}
-                  onDelete={handleRemoveFeature}
-                />
-              ))}
-            </div>
+        <div className="space-y-4">
+          <h3 className="font-medium text-gray-900">
+            Features ({features.length})
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {features.map((feature, index) => (
+              <FeatureCard
+                key={feature.id}
+                feature={feature}
+                index={index}
+                canDelete={true}
+                onUpdate={handleUpdateFeature}
+                onDelete={handleRemoveFeature}
+              />
+            ))}
           </div>
-        )}
-
-        {features.length === 0 && (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <div className="text-gray-500 mb-4">
-              <Lightbulb className="w-12 h-12 mx-auto mb-2" />
-              <p>No features added yet</p>
-              <p className="text-sm">Use the buttons above to generate or add features</p>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </SetupPageLayout>
   );
