@@ -69,29 +69,48 @@ const ValidationPlanStep: React.FC<ValidationPlanStepProps> = ({
     }
   };
 
-  const handleAddManualStep = () => {
-    const newStep: ValidationStep = {
-      title: 'Custom Validation Step',
-      goal: 'Define your validation goal',
-      method: 'Choose your validation method',
-      priority: 'Medium',
-      isDone: false,
-    };
+  // Remove manual add/edit functionality during setup
 
-    setValidationPlan([...validationPlan, newStep]);
-  };
-
-  const handleUpdateStep = (stepIndex: number, updates: Partial<ValidationStep>) => {
-    const updatedPlan = validationPlan.map((step, index) =>
-      index === stepIndex ? { ...step, ...updates } : step
+  if (validationPlan.length === 0) {
+    return (
+      <SetupPageLayout
+        title="Validation Plan"
+        description="Create a plan to validate your project idea with real users"
+        onNext={handleNext}
+        onBack={onBack}
+        nextLabel="Continue"
+        canProceed={!isLoading}
+        isLoading={isLoading}
+        showNavigation={false}
+      >
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <div className="text-gray-500 mb-6">
+            <CheckCircle className="w-12 h-12 mx-auto mb-2" />
+            <p className="mb-2">No validation plan generated yet</p>
+            <p className="text-sm">Generate a plan to validate your project with real users</p>
+          </div>
+          <Button
+            onClick={handleGenerateValidationPlan}
+            disabled={isGenerating || !setupData.description.trim() || setupData.features.length === 0}
+            className="flex items-center gap-2"
+          >
+            {isGenerating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <CheckCircle className="w-4 h-4" />
+            )}
+            {isGenerating ? 'Generating Plan...' : 'Generate Validation Plan'}
+          </Button>
+          
+          {setupData.features.length === 0 && (
+            <p className="text-sm text-gray-500 mt-4">
+              Add features first to generate a relevant validation plan
+            </p>
+          )}
+        </div>
+      </SetupPageLayout>
     );
-    setValidationPlan(updatedPlan);
-  };
-
-  const handleRemoveStep = (stepIndex: number) => {
-    const updatedPlan = validationPlan.filter((_, index) => index !== stepIndex);
-    setValidationPlan(updatedPlan);
-  };
+  }
 
   return (
     <SetupPageLayout
@@ -103,61 +122,83 @@ const ValidationPlanStep: React.FC<ValidationPlanStepProps> = ({
       canProceed={!isLoading}
       isLoading={isLoading}
     >
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex gap-4 justify-center">
-          <Button
-            onClick={handleGenerateValidationPlan}
-            disabled={isGenerating || !setupData.description.trim()}
-            className="flex items-center gap-2"
-          >
-            {isGenerating ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <CheckCircle className="w-4 h-4" />
-            )}
-            {isGenerating ? 'Generating...' : 'Generate Validation Plan'}
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={handleAddManualStep}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Custom Step
-          </Button>
-        </div>
-
-        {validationPlan.length > 0 && (
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <h3 className="font-medium text-gray-900">
+            Validation Steps ({validationPlan.length})
+          </h3>
           <div className="space-y-4">
-            <h3 className="font-medium text-gray-900">
-              Validation Steps ({validationPlan.length})
-            </h3>
-            <div className="space-y-4">
-              {validationPlan.map((step, index) => (
-                <ValidationStepCard
-                  key={index}
-                  step={step}
-                  onToggleCompletion={(isDone) => handleUpdateStep(index, { isDone })}
-                  onEdit={(updates) => handleUpdateStep(index, updates)}
-                  showActions={true}
-                />
-              ))}
+            {validationPlan.map((step, index) => (
+              <SetupValidationStepCard
+                key={index}
+                step={step}
+                stepNumber={index + 1}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </SetupPageLayout>
+  );
+};
+
+// Setup-specific card without checkboxes
+const SetupValidationStepCard: React.FC<{ step: ValidationStep; stepNumber: number }> = ({
+  step,
+  stepNumber
+}) => {
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'High':
+        return 'bg-red-100 text-red-800';
+      case 'Medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Low':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <div className="bg-white border rounded-lg p-6 space-y-4">
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-3 flex-1">
+          <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0">
+            {stepNumber}
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-lg font-bold">
+                {step.title}
+              </h3>
+              <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(step.priority)}`}>
+                {step.priority}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="space-y-3">
+        {step.goal && (
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1">Goal/Description:</p>
+            <div className="text-gray-700 min-h-[3rem] p-3 bg-gray-50 rounded border">
+              {step.goal}
             </div>
           </div>
         )}
-
-        {validationPlan.length === 0 && (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <div className="text-gray-500 mb-4">
-              <CheckCircle className="w-12 h-12 mx-auto mb-2" />
-              <p>No validation steps yet</p>
-              <p className="text-sm">Use the buttons above to generate or add validation steps</p>
+        {step.method && (
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1">Tool/Method:</p>
+            <div className="text-gray-700 min-h-[3rem] p-3 bg-gray-50 rounded border">
+              {step.method}
             </div>
           </div>
         )}
       </div>
-    </SetupPageLayout>
+    </div>
   );
 };
 
