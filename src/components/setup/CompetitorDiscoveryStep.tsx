@@ -98,21 +98,36 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
       isLoading={isLoading}
     >
       <div className="setup-content">
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-          <Button
-            onClick={handleDiscoverCompetitors}
-            disabled={isDiscovering || !setupData.description.trim()}
-            className="standard-button bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            {isDiscovering ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Search className="w-4 h-4" />
-            )}
-            {isDiscovering ? 'Discovering...' : 'Discover Competitors'}
-          </Button>
+        {!hasGeneratedOnce ? (
+          <div className="flex justify-center mb-8">
+            <Button
+              onClick={handleDiscoverCompetitors}
+              disabled={isDiscovering || !setupData.description.trim()}
+              className="standard-button bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isDiscovering ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
+              {isDiscovering ? 'Discovering...' : 'Discover Competitors'}
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Button
+              onClick={handleDiscoverCompetitors}
+              disabled={isDiscovering || !setupData.description.trim()}
+              className="standard-button bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isDiscovering ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
+              {isDiscovering ? 'Re-discover Competitors' : 'Find More Competitors'}
+            </Button>
 
-          {hasGeneratedOnce && (
             <Button
               variant="outline"
               onClick={() => setShowAddForm(true)}
@@ -121,8 +136,8 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
               <Plus className="w-4 h-4" />
               Add Manually
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         {hasGeneratedOnce && showAddForm && (
           <div className="bg-gray-50 p-6 rounded-lg mb-8">

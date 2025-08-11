@@ -138,21 +138,23 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
       canProceed={!isLoading && !!marketAnalysis && selectedGapIndex !== undefined}
       isLoading={isLoading}
     >
-      <div className="space-y-6">
-        <MarketGapsScoringDisplay
-          analysis={marketAnalysis}
-          selectedGapIndex={selectedGapIndex}
-          onSelectGap={handleSelectGap}
-        />
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg border p-6">
+              <MarketGapsScoringDisplay
+                analysis={marketAnalysis}
+                selectedGapIndex={selectedGapIndex}
+                onSelectGap={handleSelectGap}
+              />
+            </div>
 
-        {selectedGapIndex === undefined && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-            <p className="text-yellow-800 font-medium">
-              Please select a market opportunity to continue
-            </p>
+            {selectedGapIndex === undefined && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                <p className="text-yellow-800 font-medium">
+                  Please select a market opportunity to continue
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
     </SetupPageLayout>
   );
 };

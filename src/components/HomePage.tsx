@@ -108,11 +108,8 @@ const HomePage: React.FC = () => {
         <section className="section-spacing mobile-padding">
           <div className="container-width">
             <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-gray-900">
-                Have an Idea?<br />
-                <span className="bg-gradient-to-r from-teal-600 to-teal-400 bg-clip-text text-transparent">
-                  Let us Help
-                </span>
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-gray-900 text-center">
+                Have an Idea? Let us Help
               </h1>
               <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
                 Find your competitors, identify market gaps, and create a clear path for your ideas.

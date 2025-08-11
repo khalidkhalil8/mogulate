@@ -53,21 +53,21 @@ const MarketGapScoringCard: React.FC<MarketGapScoringCardProps> = ({
       <CardContent className="space-y-4">
         <div>
           <h4 className="font-medium text-gray-900 mb-2">Gap Description:</h4>
-          <div className="text-gray-700 min-h-[4rem] p-3 bg-gray-50 rounded border">
+          <div className="text-gray-700 min-h-[6rem] p-4 bg-gray-50 rounded border leading-relaxed">
             {marketGap.gap}
           </div>
         </div>
         
         <div>
           <h4 className="font-medium text-gray-900 mb-2">Positioning Suggestion:</h4>
-          <div className="text-gray-700 min-h-[4rem] p-3 bg-gray-50 rounded border">
+          <div className="text-gray-700 min-h-[6rem] p-4 bg-gray-50 rounded border leading-relaxed">
             {marketGap.positioningSuggestion}
           </div>
         </div>
         
         <div>
           <h4 className="font-medium text-gray-900 mb-2">Score Rationale:</h4>
-          <div className="text-gray-600 text-sm min-h-[3rem] p-3 bg-gray-50 rounded border">
+          <div className="text-gray-600 text-sm min-h-[4rem] p-4 bg-gray-50 rounded border leading-relaxed">
             {marketGap.rationale}
           </div>
         </div>
