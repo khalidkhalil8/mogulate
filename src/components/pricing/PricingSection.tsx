@@ -71,10 +71,10 @@ const PricingSection: React.FC<PricingSectionProps> = ({
       <div className="container-width">
         {showTitle && (
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 text-center">
               Simple, Transparent Pricing
             </h2>
-            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed text-center">
               Choose the plan that best fits your needs.
             </p>
           </div>

@@ -111,7 +111,7 @@ const HomePage: React.FC = () => {
               <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-gray-900 text-center">
                 Have an Idea? Let us Help
               </h1>
-              <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-[740px] mx-auto leading-relaxed text-center">
                 Find your competitors, identify market gaps, and create a clear path for your ideas.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -134,10 +134,10 @@ const HomePage: React.FC = () => {
           <div className="container-width">
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 text-center">
                   See Mogulate in Action
                 </h2>
-                <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed text-center">
                   From idea to market analysis in minutes. Here's how Mogulate helps you make informed business decisions.
                 </p>
               </div>
@@ -191,7 +191,7 @@ const HomePage: React.FC = () => {
         <section id="how-it-works" className="section-spacing mobile-padding">
           <div className="container-width">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 text-center">
                 How It Works
               </h2>
             </div>
@@ -237,12 +237,12 @@ const HomePage: React.FC = () => {
         <section id="why-entrepreneurs" className="section-spacing bg-gray-50 mobile-padding">
           <div className="container-width">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-4xl md:text-5xl font-bold mb-12 text-gray-900">
+              <h2 className="text-4xl md:text-5xl font-bold mb-12 text-gray-900 text-center">
                 Why Entrepreneurs Choose Mogulate
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white card-spacing rounded-lg shadow-md">
+                <div className="bg-white card-spacing rounded-lg shadow-md text-center">
                   <h3 className="text-2xl font-semibold mb-6 text-gray-900">Save Weeks of Research</h3>
                   <p className="text-lg text-gray-600 leading-relaxed">
                     What used to take weeks of manual research now happens in minutes. 
@@ -250,7 +250,7 @@ const HomePage: React.FC = () => {
                   </p>
                 </div>
                 
-                <div className="bg-white card-spacing rounded-lg shadow-md">
+                <div className="bg-white card-spacing rounded-lg shadow-md text-center">
                   <h3 className="text-2xl font-semibold mb-6 text-gray-900">Make Data-Driven Decisions</h3>
                   <p className="text-lg text-gray-600 leading-relaxed">
                     Stop relying on gut feelings. Get concrete data about your market, 
@@ -258,7 +258,7 @@ const HomePage: React.FC = () => {
                   </p>
                 </div>
                 
-                <div className="bg-white card-spacing rounded-lg shadow-md">
+                <div className="bg-white card-spacing rounded-lg shadow-md text-center">
                   <h3 className="text-2xl font-semibold mb-6 text-gray-900">Find Your Competitive Edge</h3>
                   <p className="text-lg text-gray-600 leading-relaxed">
                     Identify gaps in the market that your competitors are missing. 
@@ -266,7 +266,7 @@ const HomePage: React.FC = () => {
                   </p>
                 </div>
                 
-                <div className="bg-white card-spacing rounded-lg shadow-md">
+                <div className="bg-white card-spacing rounded-lg shadow-md text-center">
                   <h3 className="text-2xl font-semibold mb-6 text-gray-900">Validate Before You Build</h3>
                   <p className="text-lg text-gray-600 leading-relaxed">
                     Get a clear validation roadmap before investing time and money. 
