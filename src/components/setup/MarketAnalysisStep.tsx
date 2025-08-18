@@ -100,29 +100,12 @@ const MarketAnalysisStep: React.FC<MarketAnalysisStepProps> = ({
         showNavigation={false}
       >
         <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <div className="text-gray-500 mb-6">
-            <Brain className="w-12 h-12 mx-auto mb-2" />
-            <p className="mb-2">No market analysis generated yet</p>
-            <p className="text-sm">Generate a market analysis to discover opportunities</p>
-          </div>
           <Button
             onClick={handleAnalyzeMarket}
             disabled={isAnalyzing || !setupData.description.trim() || setupData.competitors.length === 0}
-            className="flex items-center gap-2"
           >
-            {isAnalyzing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Brain className="w-4 h-4" />
-            )}
             {isAnalyzing ? 'Analyzing Market...' : 'Generate Market Analysis'}
           </Button>
-          
-          {setupData.competitors.length === 0 && (
-            <p className="text-sm text-gray-500 mt-4">
-              Add competitors first to enable market analysis
-            </p>
-          )}
         </div>
       </SetupPageLayout>
     );

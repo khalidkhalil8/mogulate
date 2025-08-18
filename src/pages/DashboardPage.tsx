@@ -81,19 +81,11 @@ const DashboardPage: React.FC = () => {
           {/* Projects Grid */}
           {projects.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Target className="h-10 w-10 text-gray-400" />
-              </div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">No projects yet</h3>
-              <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
-                Create your first project to start building and validating your ideas.
-              </p>
               <Button
                 onClick={handleCreateProject}
                 disabled={isCreating}
                 className="standard-button bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                <Plus className="h-4 w-4" />
                 Create Your First Project
               </Button>
             </div>
