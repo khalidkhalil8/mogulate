@@ -118,12 +118,7 @@ const FeatureGenerationStep: React.FC<FeatureGenerationStepProps> = ({
         showNavigation={false}
       >
         <div className="text-center py-12">
-          <div className="text-gray-500 mb-6">
-            <Lightbulb className="w-12 h-12 mx-auto mb-2" />
-            <p className="mb-2">No features generated yet</p>
-            <p className="text-sm">Generate features based on your project and market analysis</p>
-          </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-6">
             <Button
               onClick={handleGenerateFeatures}
               disabled={isGenerating || !setupData.description.trim() || !setupData.marketAnalysis?.marketGaps?.length}
@@ -139,7 +134,7 @@ const FeatureGenerationStep: React.FC<FeatureGenerationStepProps> = ({
           </div>
           
           {(!setupData.marketAnalysis?.marketGaps?.length) && (
-            <p className="text-sm text-gray-500 mt-4">
+            <p className="text-sm text-gray-500">
               Complete market analysis first to generate relevant features
             </p>
           )}
