@@ -198,7 +198,8 @@ const ProjectPage: React.FC = () => {
     features: Array.isArray(project.features) ? project.features.length : 0,
     validationSteps: Array.isArray(project.validation_plan) ? project.validation_plan.length : 0,
     creditsUsed: project.credits_used || 0,
-    hasMarketAnalysis: !!project.market_analysis
+    hasMarketAnalysis: !!project.market_analysis,
+    hasSelectedGap: !!project.market_analysis && project.selected_gap_index !== null && project.selected_gap_index !== undefined
   };
 
   return (
@@ -246,13 +247,13 @@ const ProjectPage: React.FC = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Status:</span>
-                    <Badge variant={stats.hasMarketAnalysis ? "default" : "secondary"}>
-                      {stats.hasMarketAnalysis ? "Complete" : "Not Started"}
+                    <Badge variant={stats.hasSelectedGap ? "default" : "secondary"}>
+                      {stats.hasSelectedGap ? "Gap Selected" : "Not Started"}
                     </Badge>
                   </div>
-                  {stats.hasMarketAnalysis && (
+                  {stats.hasSelectedGap && (
                     <p className="text-sm text-gray-600">
-                      Selected market gap and positioning identified
+                      Market gap selected and positioning identified
                     </p>
                   )}
                    <div className="flex gap-2 pt-1">
