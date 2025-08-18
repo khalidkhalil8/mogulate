@@ -9,15 +9,22 @@ interface MarketGapsScoringDisplayProps {
   analysis: MarketGapScoringAnalysis;
   selectedGapIndex?: number;
   onSelectGap: (index: number) => void;
+  showOnlySelected?: boolean;
 }
 
 const MarketGapsScoringDisplay: React.FC<MarketGapsScoringDisplayProps> = ({ 
   analysis, 
   selectedGapIndex,
-  onSelectGap
+  onSelectGap,
+  showOnlySelected = false
 }) => {
   // Sort market gaps by score (highest first)
   const sortedGaps = [...analysis.marketGaps].sort((a, b) => b.score - a.score);
+  
+  // If showOnlySelected is true and we have a selected gap, show only that one
+  const gapsToShow = showOnlySelected && selectedGapIndex !== undefined 
+    ? [analysis.marketGaps[selectedGapIndex]].filter(Boolean)
+    : sortedGaps;
 
   return (
     <div className="space-y-6">
@@ -30,11 +37,13 @@ const MarketGapsScoringDisplay: React.FC<MarketGapsScoringDisplayProps> = ({
             </div>
             <div>
               <p className="text-blue-800 font-medium mb-1">
-                Market Opportunity Selection
+                {showOnlySelected ? 'Selected Market Opportunity' : 'Market Opportunity Selection'}
               </p>
               <p className="text-blue-700 text-sm">
-                Your market opportunities were scored based on market size, competition, ease of implementation, 
-                and alignment with your idea. We recommend focusing on the highest-scoring opportunity.
+                {showOnlySelected 
+                  ? 'This is your selected market opportunity based on scoring and alignment with your project goals.'
+                  : 'Your market opportunities were scored based on market size, competition, ease of implementation, and alignment with your idea. We recommend focusing on the highest-scoring opportunity.'
+                }
               </p>
             </div>
           </div>
@@ -42,14 +51,14 @@ const MarketGapsScoringDisplay: React.FC<MarketGapsScoringDisplayProps> = ({
       </Card>
 
       {/* Market Gaps Grid */}
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-        {sortedGaps.map((gap, index) => {
+      <div className={`grid gap-6 ${showOnlySelected ? 'md:grid-cols-1' : 'md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'}`}>
+        {gapsToShow.map((gap, index) => {
           const originalIndex = analysis.marketGaps.indexOf(gap);
           const isSelected = selectedGapIndex === originalIndex;
           
           return (
             <MarketGapScoringCard
-              key={index}
+              key={originalIndex}
               marketGap={gap}
               isSelected={isSelected}
               onSelect={() => onSelectGap(originalIndex)}

@@ -25,10 +25,17 @@ const ProjectMarketAnalysisPage = () => {
     updateMarketAnalysis
   } = useProjectMarketAnalysis(id || '');
   
-  const [selectedGapIndex, setSelectedGapIndex] = useState<number | undefined>();
+  const project = projects.find(p => p.id === id);
+  
+  const [selectedGapIndex, setSelectedGapIndex] = useState<number | undefined>(project?.selected_gap_index ?? undefined);
   const [isRunningAnalysis, setIsRunningAnalysis] = useState(false);
 
-  const project = projects.find(p => p.id === id);
+  // Update selectedGapIndex when project data loads
+  React.useEffect(() => {
+    if (project?.selected_gap_index !== undefined) {
+      setSelectedGapIndex(project.selected_gap_index);
+    }
+  }, [project?.selected_gap_index]);
 
   if (projectsLoading || analysisLoading) {
     return <LoadingState />;
@@ -148,6 +155,7 @@ const ProjectMarketAnalysisPage = () => {
                     analysis={marketAnalysis}
                     selectedGapIndex={selectedGapIndex}
                     onSelectGap={setSelectedGapIndex}
+                    showOnlySelected={true}
                   />
                 ) : (
                   <MarketGapAnalysisCard analysis={marketAnalysis} />
