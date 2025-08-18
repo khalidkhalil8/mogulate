@@ -310,9 +310,42 @@ const ProjectPage: React.FC = () => {
             </Card>
 
             {/* Features Widget */}
-            <EditableFeaturesWidget 
-              projectId={id!} 
-            />
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <CheckSquare className="h-5 w-5" />
+                  Features ({stats.features})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Status:</span>
+                    <Badge variant={stats.features > 0 ? "default" : "secondary"}>
+                      {stats.features > 0 ? `${stats.features} Features` : "No Features"}
+                    </Badge>
+                  </div>
+                  {stats.features > 0 && (
+                    <p className="text-sm text-gray-600">
+                      {stats.features} feature{stats.features !== 1 ? 's' : ''} defined
+                    </p>
+                  )}
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWidgetClick(`/project/${id}/features`);
+                      }}
+                      className="flex-1"
+                    >
+                      View
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Validation Plan Widget */}
             <EditableValidationPlanWidget 
