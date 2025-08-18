@@ -26,7 +26,14 @@ import ValidationPlanPage from "./components/ValidationPlanPage";
 import SummaryPage from "./components/SummaryPage";
 import ProjectSetupPage from "./pages/ProjectSetupPage";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
