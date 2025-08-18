@@ -36,9 +36,9 @@ const SetupPageLayout: React.FC<SetupPageLayoutProps> = ({
       <div className="setup-content mobile-padding section-spacing">
         <div className="content-spacing">
           {/* Consistent Header Layout */}
-          <div className="setup-header">
+          <div className="setup-header text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">{title}</h1>
-            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl">
+            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
               {description}
             </p>
           </div>

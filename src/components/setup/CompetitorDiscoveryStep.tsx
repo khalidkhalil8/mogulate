@@ -171,15 +171,6 @@ const CompetitorDiscoveryStep: React.FC<CompetitorDiscoveryStepProps> = ({
           </div>
         )}
 
-        {competitors.length === 0 && (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <div className="text-gray-500 mb-4">
-              <Search className="w-12 h-12 mx-auto mb-2" />
-              <p>No competitors added yet</p>
-              <p className="text-sm">Click "Discover Competitors" to find your competition with AI</p>
-            </div>
-          </div>
-        )}
       </div>
     </SetupPageLayout>
   );
