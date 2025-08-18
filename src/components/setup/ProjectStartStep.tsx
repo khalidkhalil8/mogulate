@@ -57,7 +57,7 @@ const ProjectStartStep: React.FC<ProjectStartStepProps> = ({
       
       <div className="max-w-2xl mx-auto mobile-padding section-spacing">
         {/* Header section with consistent alignment */}
-        <div className="setup-header">
+        <div className="setup-header text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Start Your Project
           </h1>
