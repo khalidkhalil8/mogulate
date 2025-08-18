@@ -83,27 +83,24 @@ const ValidationPlanStep: React.FC<ValidationPlanStepProps> = ({
         isLoading={isLoading}
         showNavigation={false}
       >
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <div className="text-gray-500 mb-6">
-            <CheckCircle className="w-12 h-12 mx-auto mb-2" />
-            <p className="mb-2">No validation plan generated yet</p>
-            <p className="text-sm">Generate a plan to validate your project with real users</p>
+        <div className="text-center py-12">
+          <div className="flex justify-center mb-6">
+            <Button
+              onClick={handleGenerateValidationPlan}
+              disabled={isGenerating || !setupData.description.trim() || setupData.features.length === 0}
+              className="standard-button bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isGenerating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4" />
+              )}
+              {isGenerating ? 'Generating Plan...' : 'Generate Validation Plan'}
+            </Button>
           </div>
-          <Button
-            onClick={handleGenerateValidationPlan}
-            disabled={isGenerating || !setupData.description.trim() || setupData.features.length === 0}
-            className="flex items-center gap-2"
-          >
-            {isGenerating ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <CheckCircle className="w-4 h-4" />
-            )}
-            {isGenerating ? 'Generating Plan...' : 'Generate Validation Plan'}
-          </Button>
           
           {setupData.features.length === 0 && (
-            <p className="text-sm text-gray-500 mt-4">
+            <p className="text-sm text-gray-500">
               Add features first to generate a relevant validation plan
             </p>
           )}
