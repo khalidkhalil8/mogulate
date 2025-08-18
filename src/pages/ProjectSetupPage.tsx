@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useProjects } from '@/hooks/useProjects';
 import { useProjectLimits } from '@/hooks/useProjectLimits';
 import { toast } from '@/components/ui/sonner';
+import { supabase } from '@/integrations/supabase/client';
 import ProjectStartStep from '@/components/setup/ProjectStartStep';
 import CompetitorDiscoveryStep from '@/components/setup/CompetitorDiscoveryStep';
 import MarketAnalysisStep from '@/components/setup/MarketAnalysisStep';
@@ -207,7 +208,6 @@ const ProjectSetupPage: React.FC = () => {
         title: setupData.title,
         idea: setupData.description,
         competitors: setupData.competitors,
-        features: setupData.features,
         validation_plan: setupData.validationPlan,
       };
 
@@ -220,6 +220,21 @@ const ProjectSetupPage: React.FC = () => {
       }
 
       await updateProject(currentProjectId, updateData);
+
+      // Save features to the project_features table
+      if (setupData.features && setupData.features.length > 0) {
+        for (const feature of setupData.features) {
+          await supabase
+            .from('project_features')
+            .insert({
+              project_id: currentProjectId,
+              title: feature.title,
+              description: feature.description || '',
+              status: feature.status || 'Planned',
+              priority: feature.priority || 'Medium'
+            });
+        }
+      }
 
       // Clear localStorage after successful save (for both new and existing projects)
       if (projectId) {
