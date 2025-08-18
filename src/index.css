@@ -113,6 +113,15 @@
     @apply mb-8 md:mb-12;
   }
 
+  .setup-header h1,
+  .setup-header h2,
+  .setup-header h3,
+  .setup-header h4,
+  .setup-header h5,
+  .setup-header h6 {
+    @apply text-center;
+  }
+
   .setup-content {
     @apply max-w-4xl mx-auto;
   }
