@@ -117,24 +117,26 @@ const FeatureGenerationStep: React.FC<FeatureGenerationStepProps> = ({
         isLoading={isLoading}
         showNavigation={false}
       >
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
+        <div className="text-center py-12">
           <div className="text-gray-500 mb-6">
             <Lightbulb className="w-12 h-12 mx-auto mb-2" />
             <p className="mb-2">No features generated yet</p>
             <p className="text-sm">Generate features based on your project and market analysis</p>
           </div>
-          <Button
-            onClick={handleGenerateFeatures}
-            disabled={isGenerating || !setupData.description.trim() || !setupData.marketAnalysis?.marketGaps?.length}
-            className="flex items-center gap-2"
-          >
-            {isGenerating ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Lightbulb className="w-4 h-4" />
-            )}
-            {isGenerating ? 'Generating Features...' : 'Generate Features with AI'}
-          </Button>
+          <div className="flex justify-center">
+            <Button
+              onClick={handleGenerateFeatures}
+              disabled={isGenerating || !setupData.description.trim() || !setupData.marketAnalysis?.marketGaps?.length}
+              className="standard-button bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isGenerating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Lightbulb className="w-4 h-4" />
+              )}
+              {isGenerating ? 'Generating Features...' : 'Generate Features with AI'}
+            </Button>
+          </div>
           
           {(!setupData.marketAnalysis?.marketGaps?.length) && (
             <p className="text-sm text-gray-500 mt-4">
